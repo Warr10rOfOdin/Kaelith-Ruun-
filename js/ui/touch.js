@@ -7,17 +7,18 @@ const Touch = {
     _initialized: false,
 
     init() {
-        // Prevent double-initialization
         if (this._initialized) return;
         this._initialized = true;
 
         this.preventBounce();
-        this.setupInstallPrompt();
+        // Only show PWA install prompt in browser mode, not in native app
+        if (!NativeBridge.isNative) {
+            this.setupInstallPrompt();
+        }
         this.handleKeyboard();
         this.setupSwipeBack();
     },
 
-    // Prevent iOS rubber-banding on non-scrollable areas
     preventBounce() {
         document.body.addEventListener('touchmove', (e) => {
             const target = e.target;
@@ -39,7 +40,6 @@ const Touch = {
         }, { passive: false });
     },
 
-    // PWA install prompt
     setupInstallPrompt() {
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -52,7 +52,6 @@ const Touch = {
             }
         });
 
-        // Detect if already installed
         window.addEventListener('appinstalled', () => {
             this.deferredPrompt = null;
             const promptEl = document.getElementById('install-prompt');
@@ -70,8 +69,10 @@ const Touch = {
         if (promptEl) promptEl.classList.add('hidden');
     },
 
-    // Handle keyboard appearing on mobile (resize viewport)
     handleKeyboard() {
+        // Native keyboard handling is done by NativeBridge
+        if (NativeBridge.isNative) return;
+
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => {
                 document.documentElement.style.setProperty(
@@ -82,7 +83,6 @@ const Touch = {
         }
     },
 
-    // Swipe right on side panel to close it
     setupSwipeBack() {
         let startX = 0;
         let startY = 0;
@@ -104,10 +104,9 @@ const Touch = {
                 const diffX = endX - startX;
                 const diffY = Math.abs(endY - startY);
 
-                // Swipe right to close (must be mostly horizontal)
                 if (diffX > 80 && diffY < 50) {
                     sidePanel.classList.add('hidden');
-                    // Reset explore tab
+                    NativeBridge.hapticLight();
                     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
                     const exploreTab = document.querySelector('.nav-tab[data-tab="explore"]');
                     if (exploreTab) exploreTab.classList.add('active');
@@ -117,10 +116,8 @@ const Touch = {
         }, { passive: true });
     },
 
-    // Haptic feedback (if available)
+    // Haptic feedback — uses native haptics when available
     vibrate(ms = 10) {
-        if (navigator.vibrate) {
-            navigator.vibrate(ms);
-        }
+        NativeBridge.hapticLight();
     }
 };

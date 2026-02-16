@@ -13,8 +13,11 @@ window.addEventListener('unhandledrejection', function(e) {
 });
 
 const Game = {
-    init() {
+    async init() {
         try {
+            // Initialize native bridge first (detects native vs web)
+            await NativeBridge.init();
+
             ScreenManager.init();
             Narrative.init();
             Touch.init();
@@ -32,6 +35,9 @@ const Game = {
 
             // Title ASCII art
             this.renderTitleArt();
+
+            // Hide native splash screen once game is ready
+            await NativeBridge.hideSplash();
         } catch (e) {
             console.error('[Kaelith Ruun] Init error:', e);
         }

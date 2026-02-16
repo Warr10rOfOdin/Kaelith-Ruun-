@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2732 2732">
+  <rect width="2732" height="2732" fill="#0a0a0f"/>
+  <g transform="translate(1366, 1200)">
+    <!-- Rune circle -->
+    <circle cx="0" cy="0" r="250" fill="none" stroke="#c9a84c" stroke-width="3" opacity="0.3"/>
+    <circle cx="0" cy="0" r="200" fill="none" stroke="#c9a84c" stroke-width="2" opacity="0.2"/>
+    <!-- Void symbol -->
+    <path d="M0,-180 L60,-60 L180,0 L60,60 L0,180 L-60,60 L-180,0 L-60,-60 Z" fill="none" stroke="#c9a84c" stroke-width="4" opacity="0.6"/>
+    <circle cx="0" cy="0" r="30" fill="#c9a84c" opacity="0.4"/>
+    <circle cx="0" cy="0" r="12" fill="#c9a84c" opacity="0.7"/>
+    <!-- Inner runes -->
+    <text x="-100" y="-110" font-family="serif" font-size="24" fill="#8a7233" opacity="0.4">&#x16A0;</text>
+    <text x="90" y="-110" font-family="serif" font-size="24" fill="#8a7233" opacity="0.4">&#x16B1;</text>
+    <text x="-100" y="130" font-family="serif" font-size="24" fill="#8a7233" opacity="0.4">&#x16C7;</text>
+    <text x="90" y="130" font-family="serif" font-size="24" fill="#8a7233" opacity="0.4">&#x16D2;</text>
+  </g>
+  <!-- Title -->
+  <text x="1366" y="1600" text-anchor="middle" font-family="serif" font-size="120" font-weight="700" fill="#c9a84c" letter-spacing="20">KAELITH RUUN</text>
+  <text x="1366" y="1700" text-anchor="middle" font-family="serif" font-size="48" fill="#9e9a8f" letter-spacing="15">SHATTERED REALMS</text>
+</svg>

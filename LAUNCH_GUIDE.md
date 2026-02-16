@@ -1,139 +1,153 @@
-# Kaelith Ruun — App Store Launch Guide
+# Kaelith Ruun — Native Mobile App Build Guide
 
 ## Overview
 
-Kaelith Ruun is a PWA (Progressive Web App) built with vanilla HTML/CSS/JS. It can be deployed to both the Google Play Store and Apple App Store by wrapping it in a native shell using TWA (Trusted Web Activity) for Android and WKWebView/Capacitor for iOS.
+Kaelith Ruun is a native mobile game built with Capacitor. The game logic is HTML/CSS/JS running inside a native iOS/Android shell with real native features (haptics, status bar, splash screen, hardware back button, native keyboard).
+
+The project is already configured — Capacitor, native plugins, and config are all set up.
 
 ---
 
-## Option A: Google Play Store (Android)
-
-### Method 1: TWA (Trusted Web Activity) — Recommended
-
-TWA lets you publish your PWA on Play Store with no native code. Google treats it as a first-class app.
-
-#### Prerequisites
-- Your PWA hosted on HTTPS (e.g., via GitHub Pages, Netlify, Vercel, or Firebase Hosting)
-- A Google Play Developer account ($25 one-time fee)
-- Android Studio installed
-- Java JDK 11+
-
-#### Steps
-
-1. **Host the PWA**
-   ```bash
-   # Deploy to GitHub Pages (simplest)
-   # Push the repo, enable Pages in Settings > Pages > Source: main branch
-   # Your app will be at: https://<username>.github.io/Kaelith-Ruun-/
-   ```
-
-2. **Verify Digital Asset Links**
-   Create `/.well-known/assetlinks.json` on your hosted domain:
-   ```json
-   [{
-     "relation": ["delegate_permission/common.handle_all_urls"],
-     "target": {
-       "namespace": "android_app",
-       "package_name": "com.kaelithruun.app",
-       "sha256_cert_fingerprints": ["YOUR_SHA256_FINGERPRINT"]
-     }
-   }]
-   ```
-
-3. **Use Bubblewrap CLI (easiest)**
-   ```bash
-   npm install -g @nicolo-ribaudo/bubblewrap
-   bubblewrap init --manifest https://yourdomain.com/manifest.json
-   # Follow prompts: set package name, colors, icons
-   bubblewrap build
-   ```
-   This generates a signed APK/AAB ready for upload.
-
-4. **Upload to Play Console**
-   - Go to https://play.google.com/console
-   - Create new app > "Kaelith Ruun"
-   - Upload the `.aab` file from Bubblewrap
-   - Fill in store listing (see Store Listing section below)
-   - Set Content Rating (PEGI/ESRB — likely "Fantasy Violence")
-   - Set pricing: Free (or your price)
-   - Submit for review
-
-### Method 2: Capacitor Wrapper
-
-If you need native features (push notifications, in-app purchases):
-
-```bash
-npm init -y
-npm install @capacitor/core @capacitor/cli
-npx cap init "Kaelith Ruun" com.kaelithruun.app --web-dir .
-npx cap add android
-npx cap sync
-npx cap open android  # Opens Android Studio
-```
-
-Build and sign the APK in Android Studio, then upload to Play Console.
-
----
-
-## Option B: Apple App Store (iOS)
+## Quick Start
 
 ### Prerequisites
-- Apple Developer account ($99/year)
-- macOS with Xcode installed
-- Capacitor or a WebView wrapper
+- Node.js 18+ and npm
+- **Android**: Android Studio + Android SDK
+- **iOS**: macOS with Xcode 15+ + CocoaPods (`sudo gem install cocoapods`)
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Build for Android
+
+```bash
+npx cap add android        # First time only — creates android/ folder
+npx cap sync               # Copies web assets + installs native plugins
+npx cap open android       # Opens in Android Studio
+```
+
+In Android Studio:
+1. Wait for Gradle sync to complete
+2. Select a device or emulator
+3. Click **Run** (green play button)
+4. For a release build: Build > Generate Signed Bundle / APK
+
+### Build for iOS
+
+```bash
+npx cap add ios             # First time only — creates ios/ folder
+npx cap sync                # Copies web assets + installs native plugins
+npx cap open ios            # Opens in Xcode
+```
+
+In Xcode:
+1. Select your development team in Signing & Capabilities
+2. Set Bundle Identifier: `com.kaelithruun.app`
+3. Select a simulator or connected device
+4. Click **Run** (play button)
+5. For release: Product > Archive > Distribute App
+
+### After Making Code Changes
+
+```bash
+npx cap sync                # Re-syncs web code to native projects
+```
+
+---
+
+## Native Features Included
+
+| Feature | Plugin | What It Does |
+|---------|--------|-------------|
+| **Haptic Feedback** | @capacitor/haptics | Real vibration on attacks, damage, victory, defeat |
+| **Status Bar** | @capacitor/status-bar | Dark status bar matching game theme |
+| **Splash Screen** | @capacitor/splash-screen | Native splash with game branding |
+| **Keyboard** | @capacitor/keyboard | Native keyboard resize handling |
+| **Back Button** | @capacitor/app | Android hardware back: closes panels, minimizes app |
+| **App Lifecycle** | @capacitor/app | Handles pause/resume, auto-save |
+| **Local Storage** | @capacitor/preferences | Native key-value storage (future upgrade path) |
+
+---
+
+## Generating App Icons & Splash Screens
+
+Source assets are in `resources/`:
+- `resources/icon.svg` — App icon source
+- `resources/splash.svg` — Splash screen source
+
+To generate all required native icon sizes:
+
+```bash
+npm install -D @capacitor/assets
+npx capacitor-assets generate
+```
+
+This generates all icon sizes for iOS (20pt through 1024pt) and Android (mdpi through xxxhdpi) plus splash screens.
+
+---
+
+## Google Play Store Deployment
+
+### Prerequisites
+- Google Play Developer account ($25 one-time)
+- Android Studio
 
 ### Steps
 
-1. **Set up Capacitor for iOS**
-   ```bash
-   npm init -y
-   npm install @capacitor/core @capacitor/cli
-   npx cap init "Kaelith Ruun" com.kaelithruun.app --web-dir .
-   npx cap add ios
-   npx cap sync
-   npx cap open ios  # Opens Xcode
-   ```
+1. **Build a signed AAB** in Android Studio:
+   - Build > Generate Signed Bundle / APK
+   - Choose Android App Bundle (.aab)
+   - Create a keystore (save this — you need it for every update)
+   - Build the release
 
-2. **Configure in Xcode**
+2. **Upload to Play Console**:
+   - Go to https://play.google.com/console
+   - Create new app: "Kaelith Ruun"
+   - Upload the `.aab` file
+   - Fill in store listing (see Store Listing section)
+   - Set Content Rating: ESRB Teen (Fantasy Violence)
+   - Set pricing (see Pricing section)
+   - Submit for review
+
+---
+
+## Apple App Store Deployment
+
+### Prerequisites
+- Apple Developer account ($99/year)
+- macOS with Xcode 15+
+
+### Steps
+
+1. **Configure in Xcode**:
    - Set Bundle Identifier: `com.kaelithruun.app`
    - Set Display Name: "Kaelith Ruun"
-   - Configure App Icons (use the SVG icon to generate all required sizes)
-   - Set Deployment Target: iOS 14.0+
-   - Enable "Supports Full Screen" in General > Deployment Info
+   - Set Deployment Target: iOS 15.0+
+   - Enable "Supports Full Screen"
    - Set Status Bar Style: "Light Content"
 
-3. **App Icon Generation**
-   Generate all required icon sizes from the SVG:
-   - 20pt, 29pt, 40pt, 60pt, 76pt, 83.5pt, 1024pt
-   - Use a tool like https://appicon.co or `npx pwa-asset-generator`
-
-4. **Configure WKWebView Settings**
-   In your Capacitor config (`capacitor.config.json`):
-   ```json
-   {
-     "appId": "com.kaelithruun.app",
-     "appName": "Kaelith Ruun",
-     "webDir": ".",
-     "ios": {
-       "contentInset": "always",
-       "allowsLinkPreview": false,
-       "scrollEnabled": false
-     },
-     "server": {
-       "iosScheme": "capacitor"
-     }
-   }
-   ```
-
-5. **Build and Archive**
-   - In Xcode: Product > Archive
+2. **Build and Archive**:
+   - Product > Archive
    - Upload to App Store Connect via Xcode Organizer
-   - Fill in App Store listing (see below)
 
-6. **Submit for Review**
+3. **Submit for Review**:
    - App Store Connect > My Apps > New App
    - Fill metadata, screenshots, descriptions
    - Submit for review (typically 24-48 hours)
+
+---
+
+## Web Fallback (Optional)
+
+The game also works in any browser. For web deployment:
+
+- **GitHub Pages**: Enable in repo Settings > Pages (free, simplest)
+- **Netlify/Vercel**: Connect repo, auto-deploys on push
+
+The service worker (`sw.js`) enables offline play in browsers. The PWA install prompt only shows in browser mode — it's hidden in the native app.
 
 ---
 
@@ -194,7 +208,7 @@ Capture at the following sizes:
 - **Android Phone** (1080 x 1920): Same scenes
 - **Android Tablet** (1200 x 1920): Same scenes
 
-Recommended: 5-8 screenshots per device, showing:
+Recommended 5-8 screenshots per device showing:
 1. Title screen with game logo
 2. Character creation (race selection)
 3. Story narrative moment
@@ -229,20 +243,23 @@ Recommended: 5-8 screenshots per device, showing:
 
 ## Pre-Launch Checklist
 
-- [ ] PWA hosted on HTTPS domain
-- [ ] Service worker caching all assets for offline play
-- [ ] manifest.json validated (use Chrome DevTools > Application)
-- [ ] All icon sizes generated (192px, 512px minimum)
+- [ ] `npm install` runs without errors
+- [ ] `npx cap sync` completes successfully
+- [ ] Android: builds and runs on emulator
+- [ ] Android: builds and runs on physical device
+- [ ] iOS: builds and runs on simulator
+- [ ] iOS: builds and runs on physical device
+- [ ] Native haptics working (tap attack button, feel vibration)
+- [ ] Status bar styled correctly (dark, matches game)
+- [ ] Splash screen shows on cold launch
+- [ ] Android back button works (closes panels, doesn't crash)
+- [ ] All icon sizes generated via `npx capacitor-assets generate`
+- [ ] localStorage save/load verified on device
 - [ ] Tested on iPhone SE (smallest common screen)
-- [ ] Tested on iPhone 14 Pro (notch/dynamic island)
-- [ ] Tested on Android device (Chrome)
-- [ ] Tested on iPad / Android tablet
-- [ ] localStorage save/load verified
+- [ ] Tested on iPhone 15 Pro (dynamic island)
+- [ ] Tested on Android device (various sizes)
 - [ ] Privacy policy page created (required for both stores)
 - [ ] App screenshots captured at required resolutions
-- [ ] Digital Asset Links verified (Android TWA)
-- [ ] Capacitor build runs without errors (iOS)
-- [ ] App icons meet store requirements
 
 ---
 
@@ -254,6 +271,7 @@ Recommended: 5-8 screenshots per device, showing:
 4. **Track installs** and retention via store analytics
 5. **Consider adding**:
    - Push notifications for daily rewards
-   - Cloud save sync
+   - Cloud save sync (Firebase/Supabase)
    - Achievement system
    - Additional regions / story content
+   - In-app rating prompt

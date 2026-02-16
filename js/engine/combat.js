@@ -275,6 +275,7 @@ const Combat = {
 
         this.applyDamageToEnemy(damage);
         this.shakeElement('enemy-display');
+        NativeBridge.hapticMedium();
     },
 
     performAbility(idx) {
@@ -512,6 +513,7 @@ const Combat = {
 
             GameState.player.hp = Math.max(0, GameState.player.hp - damage);
             this.logCombat(`${this.enemy.name} uses ${ability.name} for ${damage} damage!`, 'enemy-attack');
+            NativeBridge.hapticHeavy();
 
             // Lifesteal
             if (ability.lifesteal) {
@@ -668,6 +670,7 @@ const Combat = {
         if (!enemy) return;
 
         this.logCombat(`The ${enemy.name} has been defeated!`, 'victory');
+        NativeBridge.hapticNotification('success');
 
         // XP
         let xp = enemy.xpReward || 0;
@@ -743,6 +746,7 @@ const Combat = {
         this._clearTimers();
 
         this.logCombat('You have fallen...', 'defeat');
+        NativeBridge.hapticNotification('error');
         this.logCombat('Darkness takes you, but something pulls you back...', 'info');
 
         this._setTimeout(() => {

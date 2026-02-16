@@ -1,0 +1,76 @@
+// ============================================
+// SERVICE WORKER — Kaelith Ruun PWA
+// Enables offline play and mobile app install
+// ============================================
+
+const CACHE_NAME = 'kaelith-ruun-v1';
+const ASSETS = [
+    '/',
+    '/index.html',
+    '/css/style.css',
+    '/css/combat.css',
+    '/css/map.css',
+    '/js/data/races.js',
+    '/js/data/classes.js',
+    '/js/data/items.js',
+    '/js/data/enemies.js',
+    '/js/data/world.js',
+    '/js/data/lore.js',
+    '/js/data/npcs.js',
+    '/js/data/quests.js',
+    '/js/engine/state.js',
+    '/js/engine/narrative.js',
+    '/js/engine/combat.js',
+    '/js/engine/inventory.js',
+    '/js/engine/exploration.js',
+    '/js/engine/dialogue.js',
+    '/js/engine/progression.js',
+    '/js/ui/screens.js',
+    '/js/ui/hud.js',
+    '/js/ui/actions.js',
+    '/js/ui/map.js',
+    '/js/ui/effects.js',
+    '/js/ui/touch.js',
+    '/js/main.js',
+    '/icons/icon.svg',
+    '/manifest.json'
+];
+
+// Install — cache all assets
+self.addEventListener('install', event => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    );
+    self.skipWaiting();
+});
+
+// Activate — clean old caches
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+        )
+    );
+    self.clients.claim();
+});
+
+// Fetch — cache-first strategy for offline play
+self.addEventListener('fetch', event => {
+    event.respondWith(
+        caches.match(event.request).then(cached => {
+            return cached || fetch(event.request).then(response => {
+                // Cache new requests dynamically
+                if (response.status === 200) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
+                return response;
+            });
+        }).catch(() => {
+            // Offline fallback
+            if (event.request.mode === 'navigate') {
+                return caches.match('/index.html');
+            }
+        })
+    );
+});

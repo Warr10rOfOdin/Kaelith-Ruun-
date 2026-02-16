@@ -1,0 +1,32 @@
+{
+  "name": "kaelith-ruun",
+  "version": "1.0.0",
+  "description": "Dark fantasy text RPG — native mobile game with web fallback",
+  "main": "index.html",
+  "scripts": {
+    "cap:sync": "npx cap sync",
+    "cap:open:ios": "npx cap open ios",
+    "cap:open:android": "npx cap open android",
+    "cap:run:ios": "npx cap run ios",
+    "cap:run:android": "npx cap run android",
+    "icons": "npx capacitor-assets generate"
+  },
+  "keywords": [
+    "rpg",
+    "dark-fantasy",
+    "mobile-game",
+    "capacitor"
+  ],
+  "author": "Warr10rOfOdin",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/app": "^8.0.1",
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/haptics": "^8.0.0",
+    "@capacitor/keyboard": "^8.0.0",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.1"
+  }
+}

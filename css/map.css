@@ -1,0 +1,89 @@
+/* ============================================
+   MAP STYLES — Mobile-First
+   ============================================ */
+
+.world-map {
+    padding: 0.5rem;
+}
+
+.world-location {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem;
+    margin-bottom: 0.4rem;
+    background: var(--bg-medium);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    min-height: 52px;
+}
+
+.world-location:active {
+    border-color: var(--accent-gold-dim);
+    background: var(--bg-light);
+}
+
+.world-location.current {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 12px rgba(201, 168, 76, 0.15);
+}
+
+.world-location.locked {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.world-location .loc-icon {
+    font-size: 1.3rem;
+    width: 36px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.world-location .loc-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.world-location .loc-name {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--accent-gold);
+    letter-spacing: 0.06em;
+}
+
+.world-location .loc-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.world-location .loc-level {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    font-family: var(--font-heading);
+}
+
+/* Tablet */
+@media (min-width: 600px) {
+    .world-map { padding: 0.8rem; }
+    .world-location { padding: 0.8rem; gap: 0.8rem; }
+    .world-location .loc-icon { font-size: 1.4rem; }
+    .world-location .loc-name { font-size: 0.88rem; }
+    .world-location .loc-desc { white-space: normal; font-size: 0.8rem; }
+}
+
+/* Desktop */
+@media (min-width: 900px) {
+    .world-location:hover {
+        border-color: var(--accent-gold-dim);
+        background: var(--bg-light);
+    }
+    .world-location .loc-icon { font-size: 1.5rem; width: 40px; }
+    .world-location .loc-name { font-size: 0.9rem; }
+    .world-location .loc-desc { white-space: normal; }
+}

@@ -5,13 +5,18 @@
 const Dialogue = {
     currentNpc: null,
     currentNode: null,
+    _choiceHandlers: [],
 
     start(npcKey) {
         const npc = NPCS[npcKey];
         if (!npc) return;
 
         this.currentNpc = npc;
-        this.show(npc.dialogues.initial);
+        if (npc.dialogues && npc.dialogues.initial) {
+            this.show(npc.dialogues.initial);
+        } else {
+            this.close();
+        }
     },
 
     show(node) {
@@ -22,17 +27,26 @@ const Dialogue = {
 
         this.currentNode = node;
         const overlay = document.getElementById('dialogue-overlay');
+        if (!overlay) return;
         overlay.classList.remove('hidden');
 
-        document.getElementById('dialogue-portrait').textContent = this.currentNpc.icon;
-        document.getElementById('dialogue-speaker').textContent = `${this.currentNpc.name} — ${this.currentNpc.title}`;
-        document.getElementById('dialogue-text').textContent = node.text;
+        const portrait = document.getElementById('dialogue-portrait');
+        const speaker = document.getElementById('dialogue-speaker');
+        const textEl = document.getElementById('dialogue-text');
+
+        if (portrait && this.currentNpc) portrait.textContent = this.currentNpc.icon;
+        if (speaker && this.currentNpc) speaker.textContent = `${this.currentNpc.name} — ${this.currentNpc.title}`;
+        if (textEl) textEl.textContent = node.text;
 
         const choicesDiv = document.getElementById('dialogue-choices');
+        if (!choicesDiv) return;
+
+        // Clean up old handlers
+        this._cleanupHandlers();
         choicesDiv.innerHTML = '';
 
         if (node.choices && node.choices.length > 0) {
-            node.choices.forEach((choice, idx) => {
+            node.choices.forEach((choice) => {
                 const btn = document.createElement('button');
                 btn.className = 'dialogue-choice';
                 btn.textContent = choice.text;
@@ -44,7 +58,9 @@ const Dialogue = {
                     btn.style.opacity = '0.4';
                 }
 
-                btn.onclick = () => this.selectChoice(choice);
+                const handler = () => this.selectChoice(choice);
+                btn.addEventListener('click', handler);
+                this._choiceHandlers.push({ el: btn, handler });
                 choicesDiv.appendChild(btn);
             });
         } else {
@@ -52,7 +68,9 @@ const Dialogue = {
             const btn = document.createElement('button');
             btn.className = 'dialogue-choice';
             btn.textContent = '[Continue]';
-            btn.onclick = () => this.close();
+            const handler = () => this.close();
+            btn.addEventListener('click', handler);
+            this._choiceHandlers.push({ el: btn, handler });
             choicesDiv.appendChild(btn);
         }
 
@@ -62,6 +80,13 @@ const Dialogue = {
         }
     },
 
+    _cleanupHandlers() {
+        this._choiceHandlers.forEach(({ el, handler }) => {
+            el.removeEventListener('click', handler);
+        });
+        this._choiceHandlers = [];
+    },
+
     selectChoice(choice) {
         // Handle purchases
         if (choice.cost && choice.item) {
@@ -69,7 +94,7 @@ const Dialogue = {
                 GameState.player.gold -= choice.cost;
                 GameState.addToInventory(choice.item);
                 const item = ITEMS[choice.item];
-                Notifications.show(`Purchased ${item.name}!`, 'gold');
+                if (item) Notifications.show(`Purchased ${item.name}!`, 'gold');
                 HUD.update();
             } else {
                 Notifications.show('Not enough gold!', 'red');
@@ -78,7 +103,7 @@ const Dialogue = {
         }
 
         // Navigate to next dialogue node
-        if (choice.next) {
+        if (choice.next && this.currentNpc) {
             const nextNode = this.currentNpc.dialogues[choice.next];
             if (nextNode) {
                 this.show(nextNode);
@@ -91,12 +116,14 @@ const Dialogue = {
     },
 
     close() {
+        this._cleanupHandlers();
+
         const overlay = document.getElementById('dialogue-overlay');
-        overlay.classList.add('hidden');
+        if (overlay) overlay.classList.add('hidden');
+
         this.currentNpc = null;
         this.currentNode = null;
 
-        // Log that dialogue happened
         GameState.save();
     }
 };

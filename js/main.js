@@ -2,24 +2,39 @@
 // KAELITH RUUN — MAIN ENTRY POINT
 // ============================================
 
+// Global error handler — prevent crashes from breaking the game
+window.onerror = function(msg, url, line, col, error) {
+    console.error(`[Kaelith Ruun] Error: ${msg} at ${url}:${line}:${col}`, error);
+    return false;
+};
+
+window.addEventListener('unhandledrejection', function(e) {
+    console.error('[Kaelith Ruun] Unhandled promise rejection:', e.reason);
+});
+
 const Game = {
     init() {
-        ScreenManager.init();
-        Narrative.init();
-        Touch.init();
+        try {
+            ScreenManager.init();
+            Narrative.init();
+            Touch.init();
 
-        this.setupTitleScreen();
-        this.setupCreationScreen();
-        this.setupLoreScreen();
-        this.setupBottomNav();
+            this.setupTitleScreen();
+            this.setupCreationScreen();
+            this.setupLoreScreen();
+            this.setupBottomNav();
 
-        // Check for existing save
-        if (GameState.hasSave()) {
-            document.getElementById('btn-continue').disabled = false;
+            // Check for existing save
+            if (GameState.hasSave()) {
+                const continueBtn = document.getElementById('btn-continue');
+                if (continueBtn) continueBtn.disabled = false;
+            }
+
+            // Title ASCII art
+            this.renderTitleArt();
+        } catch (e) {
+            console.error('[Kaelith Ruun] Init error:', e);
         }
-
-        // Title ASCII art
-        this.renderTitleArt();
     },
 
     renderTitleArt() {
@@ -30,30 +45,41 @@ const Game = {
         ║  █▌    Yet embers still burn...    ▐█  ║
         ║  ▀█▄─── ─── ─── ─── ─── ─── ───▄█▀  ║
         ╚═══════════════════════════════════════╝`;
-        document.getElementById('title-ascii').textContent = art;
+        const el = document.getElementById('title-ascii');
+        if (el) el.textContent = art;
     },
 
     // =========================================
     // TITLE SCREEN
     // =========================================
     setupTitleScreen() {
-        document.getElementById('btn-new-game').onclick = () => {
-            ScreenManager.showScreen('creation');
-            this.startCreation();
-        };
+        const newGameBtn = document.getElementById('btn-new-game');
+        const continueBtn = document.getElementById('btn-continue');
+        const loreBtn = document.getElementById('btn-lore');
 
-        document.getElementById('btn-continue').onclick = () => {
-            if (GameState.load()) {
-                ScreenManager.showScreen('game');
-                HUD.update();
-                Narrative.addSystem('Your journey continues...');
-                Exploration.showCurrentLocation();
-            }
-        };
+        if (newGameBtn) {
+            newGameBtn.onclick = () => {
+                ScreenManager.showScreen('creation');
+                this.startCreation();
+            };
+        }
 
-        document.getElementById('btn-lore').onclick = () => {
-            ScreenManager.showScreen('lore');
-        };
+        if (continueBtn) {
+            continueBtn.onclick = () => {
+                if (GameState.load()) {
+                    ScreenManager.showScreen('game');
+                    HUD.update();
+                    Narrative.addSystem('Your journey continues...');
+                    Exploration.showCurrentLocation();
+                }
+            };
+        }
+
+        if (loreBtn) {
+            loreBtn.onclick = () => {
+                ScreenManager.showScreen('lore');
+            };
+        }
     },
 
     // =========================================
@@ -72,20 +98,25 @@ const Game = {
 
     setupCreationScreen() {
         const nameInput = document.getElementById('char-name');
-        nameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && nameInput.value.trim().length > 0) {
-                this.nextCreationStep();
-            }
-        });
+        if (nameInput) {
+            nameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && nameInput.value.trim().length > 0) {
+                    this.nextCreationStep();
+                }
+            });
+        }
 
-        document.getElementById('btn-creation-next').onclick = () => this.nextCreationStep();
-        document.getElementById('btn-creation-back').onclick = () => this.prevCreationStep();
+        const nextBtn = document.getElementById('btn-creation-next');
+        const backBtn = document.getElementById('btn-creation-back');
+        if (nextBtn) nextBtn.onclick = () => this.nextCreationStep();
+        if (backBtn) backBtn.onclick = () => this.prevCreationStep();
     },
 
     updateCreationStep() {
         const steps = ['step-name', 'step-race', 'step-class', 'step-confirm'];
         steps.forEach((id, i) => {
             const el = document.getElementById(id);
+            if (!el) return;
             if (i === this.creationStep) {
                 el.classList.remove('hidden');
             } else {
@@ -95,18 +126,18 @@ const Game = {
 
         // Back button visibility
         const backBtn = document.getElementById('btn-creation-back');
-        if (this.creationStep > 0) {
-            backBtn.classList.remove('hidden');
-        } else {
-            backBtn.classList.add('hidden');
+        if (backBtn) {
+            if (this.creationStep > 0) {
+                backBtn.classList.remove('hidden');
+            } else {
+                backBtn.classList.add('hidden');
+            }
         }
 
         // Next button text
         const nextBtn = document.getElementById('btn-creation-next');
-        if (this.creationStep === 3) {
-            nextBtn.textContent = 'Begin Journey';
-        } else {
-            nextBtn.textContent = 'Next';
+        if (nextBtn) {
+            nextBtn.textContent = this.creationStep === 3 ? 'Begin Journey' : 'Next';
         }
 
         // Populate race options
@@ -127,6 +158,7 @@ const Game = {
 
     renderRaceOptions() {
         const container = document.getElementById('race-options');
+        if (!container) return;
         container.innerHTML = '';
 
         for (const [key, race] of Object.entries(RACES)) {
@@ -136,11 +168,14 @@ const Game = {
             card.onclick = () => {
                 this.selectedRace = key;
                 this.renderRaceOptions();
-                document.getElementById('race-description').innerHTML = `
-                    <strong>${race.name}</strong><br>
-                    ${race.description}<br><br>
-                    <em>${race.abilities.join(' | ')}</em>
-                `;
+                const desc = document.getElementById('race-description');
+                if (desc) {
+                    desc.innerHTML = `
+                        <strong>${race.name}</strong><br>
+                        ${race.description}<br><br>
+                        <em>${race.abilities.join(' | ')}</em>
+                    `;
+                }
             };
             container.appendChild(card);
         }
@@ -148,6 +183,7 @@ const Game = {
 
     renderClassOptions() {
         const container = document.getElementById('class-options');
+        if (!container) return;
         container.innerHTML = '';
 
         for (const [key, cls] of Object.entries(CLASSES)) {
@@ -157,18 +193,22 @@ const Game = {
             card.onclick = () => {
                 this.selectedClass = key;
                 this.renderClassOptions();
-                document.getElementById('class-description').innerHTML = `
-                    <strong>${cls.name}</strong><br>
-                    ${cls.description}<br><br>
-                    <em>Primary: ${cls.primaryStat.toUpperCase()} | HP/level: ${cls.hpPerLevel} | MP/level: ${cls.mpPerLevel}</em>
-                `;
+                const desc = document.getElementById('class-description');
+                if (desc) {
+                    desc.innerHTML = `
+                        <strong>${cls.name}</strong><br>
+                        ${cls.description}<br><br>
+                        <em>Primary: ${cls.primaryStat.toUpperCase()} | HP/level: ${cls.hpPerLevel} | MP/level: ${cls.mpPerLevel}</em>
+                    `;
+                }
             };
             container.appendChild(card);
         }
     },
 
     renderCharPreview() {
-        const name = document.getElementById('char-name').value.trim();
+        const nameInput = document.getElementById('char-name');
+        const name = nameInput ? nameInput.value.trim() : '';
         const race = RACES[this.selectedRace];
         const cls = CLASSES[this.selectedClass];
 
@@ -187,6 +227,8 @@ const Game = {
         const maxMp = 30 + (stats.int * 2) + stats.wis + race.mpBonus;
 
         const preview = document.getElementById('char-preview');
+        if (!preview) return;
+
         preview.innerHTML = `
             <h3>${race.icon} ${name} — ${race.name} ${cls.name} ${cls.icon}</h3>
             <div class="stat-line"><span>HP</span><span>${maxHp}</span></div>
@@ -207,7 +249,8 @@ const Game = {
     nextCreationStep() {
         // Validate current step
         if (this.creationStep === 0) {
-            const name = document.getElementById('char-name').value.trim();
+            const nameInput = document.getElementById('char-name');
+            const name = nameInput ? nameInput.value.trim() : '';
             if (name.length < 1) {
                 Notifications.show('Enter a name to continue.', 'red');
                 return;
@@ -240,7 +283,8 @@ const Game = {
     },
 
     finalizeCharacter() {
-        const name = document.getElementById('char-name').value.trim();
+        const nameInput = document.getElementById('char-name');
+        const name = nameInput ? nameInput.value.trim() : 'Wanderer';
         GameState.initialize(name, this.selectedRace, this.selectedClass);
 
         ScreenManager.showScreen('game');
@@ -265,26 +309,33 @@ const Game = {
     // =========================================
     setupLoreScreen() {
         const content = document.getElementById('lore-content');
+        if (!content) return;
+
         let html = '';
 
-        LORE.sections.forEach(section => {
-            html += `<div class="lore-section">`;
-            html += `<h3>${section.title}</h3>`;
-            section.text.split('\n\n').forEach(paragraph => {
-                html += `<p>${paragraph.trim()}</p>`;
+        if (typeof LORE !== 'undefined' && LORE.sections) {
+            LORE.sections.forEach(section => {
+                html += `<div class="lore-section">`;
+                html += `<h3>${section.title}</h3>`;
+                section.text.split('\n\n').forEach(paragraph => {
+                    html += `<p>${paragraph.trim()}</p>`;
+                });
+                html += '</div>';
             });
-            html += '</div>';
-        });
+        }
 
         content.innerHTML = html;
 
-        document.getElementById('btn-lore-back').onclick = () => {
-            if (GameState.player) {
-                ScreenManager.showScreen('game');
-            } else {
-                ScreenManager.showScreen('title');
-            }
-        };
+        const backBtn = document.getElementById('btn-lore-back');
+        if (backBtn) {
+            backBtn.onclick = () => {
+                if (GameState.player) {
+                    ScreenManager.showScreen('game');
+                } else {
+                    ScreenManager.showScreen('title');
+                }
+            };
+        }
     },
 
     // =========================================
@@ -304,6 +355,7 @@ const Game = {
 
     handleTabChange(tabName) {
         const sidePanel = document.getElementById('side-panel');
+        if (!sidePanel) return;
 
         switch (tabName) {
             case 'explore':

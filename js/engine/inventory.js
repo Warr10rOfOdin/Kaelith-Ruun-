@@ -5,6 +5,7 @@
 const Inventory = {
     render() {
         const panel = document.getElementById('side-panel-content');
+        if (!panel || !GameState.player) return;
         const p = GameState.player;
 
         let html = '<h3>Equipment</h3>';
@@ -27,11 +28,13 @@ const Inventory = {
 
         html += '</div>';
 
-        html += '<h3 style="margin-top:1rem">Inventory</h3>';
+        // Dynamic inventory display
+        const maxSlots = GameState.MAX_INVENTORY_SIZE || 40;
+        const displaySlots = Math.max(20, Math.min(maxSlots, p.inventory.length + 5));
+        html += `<h3 style="margin-top:1rem">Inventory (${p.inventory.length}/${maxSlots})</h3>`;
         html += '<div class="inventory-grid">';
 
-        // Inventory slots (max 20)
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < displaySlots; i++) {
             const invItem = p.inventory[i];
             if (invItem) {
                 const item = ITEMS[invItem.key];
@@ -78,7 +81,7 @@ const Inventory = {
             html += `<p style="color:var(--accent-green-bright);margin-bottom:1rem">Effect: ${item.description}</p>`;
         }
 
-        html += '<div style="display:flex;gap:0.5rem;margin-top:1rem">';
+        html += '<div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap">';
 
         if (item.type === 'weapon' || item.type === 'armor') {
             html += `<button class="action-btn primary" onclick="Inventory.equipFromInventory('${itemKey}')">Equip</button>`;
@@ -95,7 +98,8 @@ const Inventory = {
         html += `<button class="action-btn" onclick="Inventory.render()">Back</button>`;
         html += '</div>';
 
-        document.getElementById('side-panel-content').innerHTML = html;
+        const panel = document.getElementById('side-panel-content');
+        if (panel) panel.innerHTML = html;
     },
 
     showEquipmentDetail(slot) {
@@ -118,15 +122,19 @@ const Inventory = {
             html += '</div></div>';
         }
 
-        html += `<button class="action-btn" onclick="Inventory.unequip('${slot}')" style="margin-top:1rem">Unequip</button>`;
-        html += `<button class="action-btn" onclick="Inventory.render()" style="margin-top:0.5rem">Back</button>`;
+        html += '<div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap">';
+        html += `<button class="action-btn" onclick="Inventory.unequip('${slot}')">Unequip</button>`;
+        html += `<button class="action-btn" onclick="Inventory.render()">Back</button>`;
+        html += '</div>';
 
-        document.getElementById('side-panel-content').innerHTML = html;
+        const panel = document.getElementById('side-panel-content');
+        if (panel) panel.innerHTML = html;
     },
 
     equipFromInventory(itemKey) {
         if (GameState.equipItem(itemKey)) {
-            Notifications.show(`Equipped ${ITEMS[itemKey].name}`, 'gold');
+            const item = ITEMS[itemKey];
+            if (item) Notifications.show(`Equipped ${item.name}`, 'gold');
             HUD.update();
             this.render();
         }
@@ -134,19 +142,27 @@ const Inventory = {
 
     unequip(slot) {
         const itemKey = GameState.player.equipment[slot];
-        if (itemKey) {
-            GameState.addToInventory(itemKey);
-            GameState.player.equipment[slot] = null;
-            GameState.recalculateStats();
-            Notifications.show(`Unequipped ${ITEMS[itemKey].name}`, 'gold');
-            HUD.update();
-            this.render();
+        if (!itemKey) return;
+
+        // Check if inventory has space
+        const maxSlots = GameState.MAX_INVENTORY_SIZE || 40;
+        if (GameState.player.inventory.length >= maxSlots) {
+            Notifications.show('Inventory is full! Sell something first.', 'red');
+            return;
         }
+
+        GameState.addToInventory(itemKey);
+        GameState.player.equipment[slot] = null;
+        GameState.recalculateStats();
+        const item = ITEMS[itemKey];
+        if (item) Notifications.show(`Unequipped ${item.name}`, 'gold');
+        HUD.update();
+        this.render();
     },
 
     useFromInventory(itemKey) {
         const item = ITEMS[itemKey];
-        if (!item || item.type !== 'consumable') return;
+        if (!item || item.type !== 'consumable' || !item.effect) return;
 
         if (item.effect.type === 'heal') {
             if (item.effect.stat === 'hp') {
@@ -156,8 +172,8 @@ const Inventory = {
                 GameState.healPlayer(0, item.effect.amount);
                 Notifications.show(`Restored ${item.effect.amount} MP`, 'blue');
             } else if (item.effect.stat === 'both') {
-                GameState.healPlayer(item.effect.hpAmount, item.effect.mpAmount);
-                Notifications.show(`Restored ${item.effect.hpAmount} HP and ${item.effect.mpAmount} MP`, 'green');
+                GameState.healPlayer(item.effect.hpAmount || 0, item.effect.mpAmount || 0);
+                Notifications.show(`Restored ${item.effect.hpAmount || 0} HP and ${item.effect.mpAmount || 0} MP`, 'green');
             }
         }
 

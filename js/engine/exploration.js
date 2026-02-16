@@ -45,17 +45,22 @@ const Exploration = {
             buttons.push({ text: 'Hunt Enemies', class: 'danger', action: 'Exploration.hunt()' });
             buttons.push({ text: 'Rest', class: '', action: 'Exploration.rest()' });
         } else if (location.type === 'boss') {
-            const bossKey = WORLD.regions[location.region].boss;
+            const region = WORLD.regions[location.region];
+            const bossKey = region ? region.boss : null;
             if (bossKey && !GameState.bossesDefeated.includes(bossKey)) {
                 const boss = ENEMIES[bossKey];
-                buttons.push({ text: `Challenge ${boss.name}`, class: 'danger', action: `Exploration.challengeBoss('${bossKey}')` });
+                if (boss) {
+                    buttons.push({ text: `Challenge ${boss.name}`, class: 'danger', action: `Exploration.challengeBoss('${bossKey}')` });
+                }
             } else {
                 buttons.push({ text: 'Explore Ruins', class: 'primary', action: 'Exploration.explore()' });
             }
         } else if (location.type === 'npc') {
             if (location.npc) {
                 const npc = NPCS[location.npc];
-                buttons.push({ text: `Talk to ${npc.name}`, class: 'primary', action: `Dialogue.start('${location.npc}')` });
+                if (npc) {
+                    buttons.push({ text: `Talk to ${npc.name}`, class: 'primary', action: `Dialogue.start('${location.npc}')` });
+                }
             }
         }
 
@@ -69,7 +74,7 @@ const Exploration = {
         GameState.turnCount++;
 
         const location = WORLD.locations[GameState.currentLocation];
-        const region = WORLD.regions[GameState.currentRegion];
+        if (!location) return;
 
         // Random event selection
         const roll = Math.random();
@@ -86,7 +91,7 @@ const Exploration = {
             Narrative.showExploration(GameState.currentLocation);
         } else if (roll < 0.8) {
             // Wandering merchant (chance)
-            if (Math.random() < 0.3) {
+            if (Math.random() < 0.3 && NPCS['wandering_merchant']) {
                 Narrative.addFlavor('A figure emerges from the gloom, laden with packs and trinkets.');
                 Dialogue.start('wandering_merchant');
                 return;
@@ -111,7 +116,10 @@ const Exploration = {
 
     triggerRandomCombat() {
         const region = WORLD.regions[GameState.currentRegion];
-        if (!region || !region.enemies.length) return;
+        if (!region || !region.enemies || !region.enemies.length) {
+            Narrative.addSystem('The area seems peaceful... for now.');
+            return;
+        }
 
         // Weight toward player-appropriate enemies
         const playerLevel = GameState.player.level;
@@ -122,6 +130,11 @@ const Exploration = {
 
         const enemyPool = validEnemies.length > 0 ? validEnemies : [region.enemies[0]];
         const enemyKey = enemyPool[Math.floor(Math.random() * enemyPool.length)];
+
+        if (!enemyKey || !ENEMIES[enemyKey]) {
+            Narrative.addSystem('The area seems peaceful... for now.');
+            return;
+        }
 
         Narrative.addFlavor(`A hostile presence makes itself known...`);
         setTimeout(() => {
@@ -143,28 +156,36 @@ const Exploration = {
             // Health/mana vial
             const isHealth = Math.random() < 0.5;
             const itemKey = isHealth ? 'health_vial' : 'mana_vial';
-            GameState.addToInventory(itemKey);
-            Narrative.addLoot(`You find a ${ITEMS[itemKey].name}!`);
-            found = true;
+            if (ITEMS[itemKey]) {
+                GameState.addToInventory(itemKey);
+                Narrative.addLoot(`You find a ${ITEMS[itemKey].name}!`);
+                found = true;
+            }
         } else if (roll < 0.85) {
             // Random consumable
             const consumables = ['health_vial', 'mana_vial', 'antidote', 'blood_flask'];
             const itemKey = consumables[Math.floor(Math.random() * consumables.length)];
-            GameState.addToInventory(itemKey);
-            Narrative.addLoot(`You discover a ${ITEMS[itemKey].name} hidden in a cache!`);
-            found = true;
+            if (ITEMS[itemKey]) {
+                GameState.addToInventory(itemKey);
+                Narrative.addLoot(`You discover a ${ITEMS[itemKey].name} hidden in a cache!`);
+                found = true;
+            }
         } else {
             // Rare find - equipment
             const region = WORLD.regions[GameState.currentRegion];
-            const lootTier = region.levelRange[1] <= 4 ? 'common' : region.levelRange[1] <= 6 ? 'uncommon' : 'rare';
-            const table = LOOT_TABLES[lootTier];
-            if (table && Math.random() < 0.3) {
-                const itemKey = table.equipment[Math.floor(Math.random() * table.equipment.length)];
-                GameState.addToInventory(itemKey);
-                const item = ITEMS[itemKey];
-                Narrative.addLoot(`Amazing find! You discover: ${item.icon} ${item.name}!`);
-                Notifications.show(`Found ${item.name}!`, 'gold');
-                found = true;
+            if (region && region.levelRange) {
+                const lootTier = region.levelRange[1] <= 4 ? 'common' : region.levelRange[1] <= 6 ? 'uncommon' : 'rare';
+                const table = typeof LOOT_TABLES !== 'undefined' ? LOOT_TABLES[lootTier] : null;
+                if (table && table.equipment && table.equipment.length > 0 && Math.random() < 0.3) {
+                    const itemKey = table.equipment[Math.floor(Math.random() * table.equipment.length)];
+                    if (itemKey && ITEMS[itemKey]) {
+                        GameState.addToInventory(itemKey);
+                        const item = ITEMS[itemKey];
+                        Narrative.addLoot(`Amazing find! You discover: ${item.icon} ${item.name}!`);
+                        Notifications.show(`Found ${item.name}!`, 'gold');
+                        found = true;
+                    }
+                }
             }
         }
 
@@ -230,6 +251,7 @@ const Exploration = {
     showTravel() {
         const panel = document.getElementById('side-panel-content');
         const sidePanel = document.getElementById('side-panel');
+        if (!panel || !sidePanel) return;
         sidePanel.classList.remove('hidden');
 
         let html = '<h3>Travel</h3>';
@@ -249,7 +271,7 @@ const Exploration = {
                 html += `<span class="loc-icon">${loc.icon}</span>`;
                 html += `<div class="loc-info">`;
                 html += `<div class="loc-name">${loc.name}</div>`;
-                html += `<div class="loc-desc">${isCurrent ? '(Current Location)' : loc.description.substring(0, 60) + '...'}</div>`;
+                html += `<div class="loc-desc">${isCurrent ? '(Current Location)' : (loc.description || '').substring(0, 60) + '...'}</div>`;
                 html += `</div></div>`;
             });
         }
@@ -286,7 +308,8 @@ const Exploration = {
         if (locationKey === GameState.currentLocation) return;
 
         GameState.currentLocation = locationKey;
-        document.getElementById('side-panel').classList.add('hidden');
+        const sidePanel = document.getElementById('side-panel');
+        if (sidePanel) sidePanel.classList.add('hidden');
 
         Narrative.addSeparator();
         Narrative.addAction(`You travel to ${location.name}...`);
@@ -309,7 +332,8 @@ const Exploration = {
 
         GameState.currentRegion = regionKey;
         GameState.currentLocation = region.locations[0];
-        document.getElementById('side-panel').classList.add('hidden');
+        const sidePanel = document.getElementById('side-panel');
+        if (sidePanel) sidePanel.classList.add('hidden');
 
         Narrative.addSeparator();
         Narrative.addAction(`You journey to ${region.name}...`);

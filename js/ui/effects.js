@@ -4,6 +4,8 @@
 
 const Effects = {
     levelUp() {
+        if (!GameState.player) return;
+
         const overlay = document.createElement('div');
         overlay.className = 'level-up-overlay';
 
@@ -14,7 +16,9 @@ const Effects = {
         overlay.appendChild(text);
         document.body.appendChild(overlay);
 
-        setTimeout(() => overlay.remove(), 1500);
+        setTimeout(() => {
+            if (overlay.parentNode) overlay.remove();
+        }, 1500);
     },
 
     screenFlash(color = 'rgba(255,255,255,0.1)') {
@@ -25,7 +29,9 @@ const Effects = {
             animation:flashOut 0.3s ease forwards;
         `;
         document.body.appendChild(flash);
-        setTimeout(() => flash.remove(), 300);
+        setTimeout(() => {
+            if (flash.parentNode) flash.remove();
+        }, 300);
     }
 };
 
@@ -36,11 +42,15 @@ const Effects = {
 const Notifications = {
     show(text, type = '') {
         const container = document.getElementById('notifications');
+        if (!container) return;
+
         const notif = document.createElement('div');
         notif.className = `notification ${type}`;
         notif.textContent = text;
         container.appendChild(notif);
 
-        setTimeout(() => notif.remove(), 3000);
+        setTimeout(() => {
+            if (notif.parentNode) notif.remove();
+        }, 3000);
     }
 };

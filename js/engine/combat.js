@@ -14,10 +14,14 @@ const Combat = {
     enemyBuffs: [],
     log: null,
     onCombatEnd: null,
+    _pendingTimers: [],
 
     start(enemyKey, onEnd) {
         const template = ENEMIES[enemyKey];
         if (!template) return;
+
+        // Clear any pending timers from previous combat
+        this._clearTimers();
 
         this.active = true;
         this.onCombatEnd = onEnd || null;
@@ -36,8 +40,8 @@ const Combat = {
             attack: Math.floor(template.attack * scale),
             defense: template.defense,
             speed: template.speed,
-            magicDefense: template.magicDefense,
-            abilities: [...template.abilities],
+            magicDefense: template.magicDefense || 0,
+            abilities: [...(template.abilities || [])],
             isBoss: template.isBoss || false,
             phases: template.phases || [],
             currentPhase: 0,
@@ -52,6 +56,9 @@ const Combat = {
         this.playerBuffs = [];
         this.enemyBuffs = [];
 
+        // Ensure player statusEffects array exists
+        if (!GameState.player.statusEffects) GameState.player.statusEffects = [];
+
         // Show combat screen
         ScreenManager.showScreen('combat');
         this.renderCombatUI();
@@ -64,47 +71,71 @@ const Combat = {
         this.enableActions();
     },
 
+    _clearTimers() {
+        this._pendingTimers.forEach(id => clearTimeout(id));
+        this._pendingTimers = [];
+    },
+
+    _setTimeout(fn, delay) {
+        const id = setTimeout(() => {
+            this._pendingTimers = this._pendingTimers.filter(t => t !== id);
+            fn();
+        }, delay);
+        this._pendingTimers.push(id);
+        return id;
+    },
+
     renderCombatUI() {
         // Enemy display
         const enemyDisplay = document.getElementById('enemy-display');
-        enemyDisplay.innerHTML = `
-            <div class="enemy-art">${this.enemy.icon}</div>
-            <div class="enemy-name">${this.enemy.name}</div>
-            <div class="enemy-level">Level ${this.enemy.level}</div>
-        `;
+        if (enemyDisplay) {
+            enemyDisplay.innerHTML = `
+                <div class="enemy-art">${this.enemy.icon}</div>
+                <div class="enemy-name">${this.enemy.name}</div>
+                <div class="enemy-level">Level ${this.enemy.level}</div>
+            `;
+        }
 
         // Enemy bars
         const enemyBars = document.getElementById('enemy-bars');
-        enemyBars.innerHTML = `
-            <div class="combat-bar-container">
-                <div id="enemy-hp-bar" class="combat-bar enemy-hp" style="width: 100%"></div>
-                <span class="combat-bar-text" id="enemy-hp-text">${this.enemy.hp} / ${this.enemy.maxHp}</span>
-            </div>
-        `;
+        if (enemyBars) {
+            enemyBars.innerHTML = `
+                <div class="combat-bar-container">
+                    <div id="enemy-hp-bar" class="combat-bar enemy-hp" style="width: 100%"></div>
+                    <span class="combat-bar-text" id="enemy-hp-text">${this.enemy.hp} / ${this.enemy.maxHp}</span>
+                </div>
+            `;
+        }
 
-        // Player bars
+        // Player bars — guard against division by zero
         const playerBars = document.getElementById('player-combat-bars');
-        playerBars.innerHTML = `
-            <div class="combat-bar-container">
-                <div id="player-combat-hp" class="combat-bar player-hp" style="width: ${(GameState.player.hp / GameState.player.maxHp) * 100}%"></div>
-                <span class="combat-bar-text">${GameState.player.hp} / ${GameState.player.maxHp} HP</span>
-            </div>
-            <div class="combat-bar-container">
-                <div id="player-combat-mp" class="combat-bar player-mp" style="width: ${(GameState.player.mp / GameState.player.maxMp) * 100}%"></div>
-                <span class="combat-bar-text">${GameState.player.mp} / ${GameState.player.maxMp} MP</span>
-            </div>
-        `;
+        if (playerBars) {
+            const hpPct = GameState.player.maxHp > 0 ? Math.min(100, Math.max(0, (GameState.player.hp / GameState.player.maxHp) * 100)) : 0;
+            const mpPct = GameState.player.maxMp > 0 ? Math.min(100, Math.max(0, (GameState.player.mp / GameState.player.maxMp) * 100)) : 0;
+
+            playerBars.innerHTML = `
+                <div class="combat-bar-container">
+                    <div id="player-combat-hp" class="combat-bar player-hp" style="width: ${hpPct}%"></div>
+                    <span class="combat-bar-text">${GameState.player.hp} / ${GameState.player.maxHp} HP</span>
+                </div>
+                <div class="combat-bar-container">
+                    <div id="player-combat-mp" class="combat-bar player-mp" style="width: ${mpPct}%"></div>
+                    <span class="combat-bar-text">${GameState.player.mp} / ${GameState.player.maxMp} MP</span>
+                </div>
+            `;
+        }
 
         // Combat actions
         this.renderActions();
 
         // Clear combat log
         this.log = document.getElementById('combat-log');
-        this.log.innerHTML = '';
+        if (this.log) this.log.innerHTML = '';
     },
 
     renderActions() {
         const actionsDiv = document.getElementById('combat-actions');
+        if (!actionsDiv) return;
         const p = GameState.player;
 
         let html = '';
@@ -113,10 +144,13 @@ const Combat = {
         html += `<button class="combat-btn attack" onclick="Combat.playerAction('attack')">Attack</button>`;
 
         // Abilities
-        p.abilities.forEach((ability, idx) => {
-            const canUse = ability.mpCost <= p.mp;
-            html += `<button class="combat-btn magic" ${!canUse ? 'disabled' : ''} onclick="Combat.playerAction('ability', ${idx})">${ability.name} (${ability.mpCost} MP)</button>`;
-        });
+        if (p.abilities && p.abilities.length > 0) {
+            p.abilities.forEach((ability, idx) => {
+                if (!ability) return;
+                const canUse = ability.mpCost <= p.mp;
+                html += `<button class="combat-btn magic" ${!canUse ? 'disabled' : ''} onclick="Combat.playerAction('ability', ${idx})">${ability.name} (${ability.mpCost} MP)</button>`;
+            });
+        }
 
         // Use item
         const hasConsumables = p.inventory.some(i => ITEMS[i.key] && ITEMS[i.key].type === 'consumable');
@@ -150,11 +184,13 @@ const Combat = {
 
     showItemMenu() {
         const actionsDiv = document.getElementById('combat-actions');
+        if (!actionsDiv) return;
         const consumables = GameState.player.inventory.filter(i => ITEMS[i.key] && ITEMS[i.key].type === 'consumable');
 
         let html = '';
         consumables.forEach(invItem => {
             const item = ITEMS[invItem.key];
+            if (!item) return;
             html += `<button class="combat-btn item" onclick="Combat.useItem('${invItem.key}')">${item.icon} ${item.name} (x${invItem.quantity})</button>`;
         });
         html += `<button class="combat-btn" onclick="Combat.renderActions()">Cancel</button>`;
@@ -176,12 +212,12 @@ const Combat = {
                 GameState.healPlayer(0, item.effect.amount);
                 this.logCombat(`You drink the ${item.name}. Restored ${item.effect.amount} MP!`, 'heal');
             } else if (item.effect.stat === 'both') {
-                GameState.healPlayer(item.effect.hpAmount, item.effect.mpAmount);
-                this.logCombat(`You drink the ${item.name}. Restored ${item.effect.hpAmount} HP and ${item.effect.mpAmount} MP!`, 'heal');
+                GameState.healPlayer(item.effect.hpAmount || 0, item.effect.mpAmount || 0);
+                this.logCombat(`You drink the ${item.name}. Restored ${item.effect.hpAmount || 0} HP and ${item.effect.mpAmount || 0} MP!`, 'heal');
             }
         } else if (item.effect.type === 'flee') {
             this.logCombat('You hurl a smoke bomb and vanish!', 'info');
-            setTimeout(() => this.endCombat('flee'), 800);
+            this._setTimeout(() => this.endCombat('flee'), 800);
             return;
         } else if (item.effect.type === 'buff') {
             this.playerBuffs.push({ stat: item.effect.stat, percent: item.effect.percent, duration: item.effect.duration });
@@ -189,10 +225,12 @@ const Combat = {
         }
 
         this.updateBars();
-        this.enemyTurn();
+        this.disableActions();
+        this._setTimeout(() => this.enemyTurn(), 600);
     },
 
     playerAction(action, abilityIdx) {
+        if (!this.active) return;
         this.disableActions();
         this.playerDefending = false;
         this.turnCount++;
@@ -218,8 +256,8 @@ const Combat = {
         }
 
         // Enemy turn after a delay
-        setTimeout(() => {
-            this.enemyTurn();
+        this._setTimeout(() => {
+            if (this.active) this.enemyTurn();
         }, 600);
     },
 
@@ -261,6 +299,12 @@ const Combat = {
                 this.logCombat(`You sacrifice ${hpCost} HP for power!`, 'damage');
             }
         } else {
+            if (!ability.damage || ability.damage.length < 2) {
+                this.logCombat(`${ability.name} fizzles...`, 'miss');
+                this.updateBars();
+                return;
+            }
+
             const baseDamage = ability.damage[0] + Math.floor(Math.random() * (ability.damage[1] - ability.damage[0] + 1));
             let damage;
 
@@ -318,31 +362,36 @@ const Combat = {
         const fleeChance = 40 + (GameState.player.speed - this.enemy.speed) * 5;
         if (Math.random() * 100 < fleeChance) {
             this.logCombat('You manage to escape!', 'info');
-            setTimeout(() => this.endCombat('flee'), 800);
+            this._setTimeout(() => this.endCombat('flee'), 800);
         } else {
             this.logCombat('You fail to escape!', 'miss');
-            setTimeout(() => this.enemyTurn(), 600);
+            this._setTimeout(() => {
+                if (this.active) this.enemyTurn();
+            }, 600);
         }
     },
 
     enemyTurn() {
-        if (!this.active || this.enemy.hp <= 0) return;
+        if (!this.active || !this.enemy || this.enemy.hp <= 0) return;
 
         // Process enemy debuffs (poison etc.)
+        let enemyDied = false;
         this.enemyBuffs = this.enemyBuffs.filter(b => {
             if (b.type === 'poison' && b.duration > 0) {
                 this.enemy.hp = Math.max(0, this.enemy.hp - b.damage);
                 this.logCombat(`${this.enemy.name} takes ${b.damage} poison damage!`, 'player-attack');
                 b.duration--;
                 if (this.enemy.hp <= 0) {
-                    this.handleVictory();
-                    return false;
+                    enemyDied = true;
                 }
             }
             return b.duration > 0;
         });
 
-        if (this.enemy.hp <= 0) return;
+        if (enemyDied) {
+            this.handleVictory();
+            return;
+        }
 
         // Check boss phases
         if (this.enemy.isBoss) {
@@ -350,24 +399,48 @@ const Combat = {
         }
 
         // Enemy heal ability
-        const healAbility = this.enemy.abilities.find(a => a.type === 'heal');
-        if (healAbility && this.enemy.hp < this.enemy.maxHp * 0.5 && Math.random() < 0.3) {
-            const healAmount = healAbility.amount || 20;
-            this.enemy.hp = Math.min(this.enemy.maxHp, this.enemy.hp + healAmount);
-            this.logCombat(`${this.enemy.name} regenerates ${healAmount} HP!`, 'heal');
+        if (this.enemy.abilities && this.enemy.abilities.length > 0) {
+            const healAbility = this.enemy.abilities.find(a => a && a.type === 'heal');
+            if (healAbility && this.enemy.hp < this.enemy.maxHp * 0.5 && Math.random() < 0.3) {
+                const healAmount = healAbility.amount || 20;
+                this.enemy.hp = Math.min(this.enemy.maxHp, this.enemy.hp + healAmount);
+                this.logCombat(`${this.enemy.name} regenerates ${healAmount} HP!`, 'heal');
+                this.updateBars();
+                this.finishEnemyTurn();
+                return;
+            }
+        }
+
+        // Choose enemy ability — guard against empty abilities
+        if (!this.enemy.abilities || this.enemy.abilities.length === 0) {
+            const damage = this.calculateDamage(this.enemy.attack, GameState.player.defense);
+            GameState.player.hp = Math.max(0, GameState.player.hp - damage);
+            this.logCombat(`${this.enemy.name} attacks for ${damage} damage!`, 'enemy-attack');
             this.updateBars();
+
+            if (GameState.player.hp <= 0) {
+                this.handleDefeat();
+                return;
+            }
             this.finishEnemyTurn();
             return;
         }
 
-        // Choose enemy ability
         const validAbilities = this.enemy.abilities.filter(a => {
-            if (a.threshold && (this.enemy.hp / this.enemy.maxHp) > a.threshold) return false;
+            if (!a) return false;
+            if (a.threshold && this.enemy.maxHp > 0 && (this.enemy.hp / this.enemy.maxHp) > a.threshold) return false;
             if (a.type === 'buff' || a.type === 'debuff') return Math.random() < 0.3;
             return true;
         });
 
-        const ability = validAbilities[Math.floor(Math.random() * validAbilities.length)] || this.enemy.abilities[0];
+        const ability = validAbilities.length > 0
+            ? validAbilities[Math.floor(Math.random() * validAbilities.length)]
+            : this.enemy.abilities[0];
+
+        if (!ability) {
+            this.finishEnemyTurn();
+            return;
+        }
 
         if (ability.type === 'buff') {
             this.logCombat(`${this.enemy.name} uses ${ability.name}!`, 'info');
@@ -377,6 +450,21 @@ const Combat = {
                 this.playerBuffs.push({ type: 'weaken', duration: 2 });
             }
         } else {
+            // Check for miss BEFORE applying damage
+            const miss = Math.random() < 0.1;
+            if (miss) {
+                this.logCombat(`${this.enemy.name} uses ${ability.name} but misses!`, 'miss');
+                this.updateBars();
+                this.finishEnemyTurn();
+                return;
+            }
+
+            if (!ability.damage || ability.damage.length < 2) {
+                this.logCombat(`${this.enemy.name} uses ${ability.name}!`, 'enemy-attack');
+                this.finishEnemyTurn();
+                return;
+            }
+
             const baseDmg = ability.damage[0] + Math.floor(Math.random() * (ability.damage[1] - ability.damage[0] + 1));
             let damage;
 
@@ -419,25 +507,23 @@ const Combat = {
                 }
             }
 
-            GameState.player.hp = Math.max(0, GameState.player.hp - damage);
+            // Ensure damage doesn't go below 0
+            damage = Math.max(0, damage);
 
-            const miss = Math.random() < 0.1;
-            if (miss) {
-                this.logCombat(`${this.enemy.name} uses ${ability.name} but misses!`, 'miss');
-            } else {
-                this.logCombat(`${this.enemy.name} uses ${ability.name} for ${damage} damage!`, 'enemy-attack');
-            }
+            GameState.player.hp = Math.max(0, GameState.player.hp - damage);
+            this.logCombat(`${this.enemy.name} uses ${ability.name} for ${damage} damage!`, 'enemy-attack');
 
             // Lifesteal
-            if (ability.lifesteal && !miss) {
+            if (ability.lifesteal) {
                 const steal = Math.floor(damage * (ability.lifesteal / 100));
                 this.enemy.hp = Math.min(this.enemy.maxHp, this.enemy.hp + steal);
                 this.logCombat(`${this.enemy.name} drains ${steal} HP!`, 'heal');
             }
 
             // Debuffs
-            if (ability.debuff && !miss) {
+            if (ability.debuff) {
                 if (ability.debuff === 'poison') {
+                    if (!GameState.player.statusEffects) GameState.player.statusEffects = [];
                     GameState.player.statusEffects.push({ type: 'poison', damage: 3, duration: 3 });
                     this.logCombat('You have been poisoned!', 'enemy-attack');
                 }
@@ -455,6 +541,8 @@ const Combat = {
     },
 
     finishEnemyTurn() {
+        if (!this.active) return;
+
         // Tick down player buffs
         this.playerBuffs = this.playerBuffs.filter(b => {
             b.duration--;
@@ -462,14 +550,16 @@ const Combat = {
         });
 
         // Tick player status effects
-        GameState.player.statusEffects = GameState.player.statusEffects.filter(se => {
-            if (se.type === 'poison') {
-                GameState.player.hp = Math.max(1, GameState.player.hp - se.damage);
-                this.logCombat(`Poison deals ${se.damage} damage!`, 'enemy-attack');
-            }
-            se.duration--;
-            return se.duration > 0;
-        });
+        if (GameState.player.statusEffects) {
+            GameState.player.statusEffects = GameState.player.statusEffects.filter(se => {
+                if (se.type === 'poison') {
+                    GameState.player.hp = Math.max(1, GameState.player.hp - se.damage);
+                    this.logCombat(`Poison deals ${se.damage} damage!`, 'enemy-attack');
+                }
+                se.duration--;
+                return se.duration > 0;
+            });
+        }
 
         this.updateBars();
 
@@ -483,11 +573,14 @@ const Combat = {
     },
 
     checkBossPhase() {
+        if (!this.enemy || !this.enemy.phases || this.enemy.phases.length === 0) return;
+        if (this.enemy.maxHp <= 0) return;
+
         const hpPercent = this.enemy.hp / this.enemy.maxHp;
         const phases = this.enemy.phases;
 
         for (let i = phases.length - 1; i > this.enemy.currentPhase; i--) {
-            if (hpPercent <= phases[i].hpPercent) {
+            if (phases[i] && hpPercent <= phases[i].hpPercent) {
                 this.enemy.currentPhase = i;
                 this.logCombat(phases[i].message, 'info');
 
@@ -505,33 +598,43 @@ const Combat = {
     calculateDamage(attackPower, defense) {
         const base = Math.max(1, attackPower - Math.floor(defense * 0.5));
         const variance = Math.floor(base * 0.2);
-        return base + Math.floor(Math.random() * variance) - Math.floor(variance / 2);
+        return Math.max(1, base + Math.floor(Math.random() * (variance + 1)) - Math.floor(variance / 2));
     },
 
     applyDamageToEnemy(damage) {
+        if (!this.enemy) return;
         this.enemy.hp = Math.max(0, this.enemy.hp - damage);
         this.updateBars();
     },
 
     updateBars() {
+        // Enemy HP bar
         const enemyHpBar = document.getElementById('enemy-hp-bar');
         const enemyHpText = document.getElementById('enemy-hp-text');
-        if (enemyHpBar) {
-            enemyHpBar.style.width = `${Math.max(0, (this.enemy.hp / this.enemy.maxHp) * 100)}%`;
+        if (enemyHpBar && this.enemy) {
+            const pct = this.enemy.maxHp > 0 ? Math.min(100, Math.max(0, (this.enemy.hp / this.enemy.maxHp) * 100)) : 0;
+            enemyHpBar.style.width = `${pct}%`;
         }
-        if (enemyHpText) {
+        if (enemyHpText && this.enemy) {
             enemyHpText.textContent = `${Math.max(0, this.enemy.hp)} / ${this.enemy.maxHp}`;
         }
 
+        // Player HP bar
         const playerHpBar = document.getElementById('player-combat-hp');
-        const playerMpBar = document.getElementById('player-combat-mp');
         if (playerHpBar) {
-            playerHpBar.style.width = `${(GameState.player.hp / GameState.player.maxHp) * 100}%`;
-            playerHpBar.parentElement.querySelector('.combat-bar-text').textContent = `${GameState.player.hp} / ${GameState.player.maxHp} HP`;
+            const hpPct = GameState.player.maxHp > 0 ? Math.min(100, Math.max(0, (GameState.player.hp / GameState.player.maxHp) * 100)) : 0;
+            playerHpBar.style.width = `${hpPct}%`;
+            const hpText = playerHpBar.parentElement ? playerHpBar.parentElement.querySelector('.combat-bar-text') : null;
+            if (hpText) hpText.textContent = `${GameState.player.hp} / ${GameState.player.maxHp} HP`;
         }
+
+        // Player MP bar
+        const playerMpBar = document.getElementById('player-combat-mp');
         if (playerMpBar) {
-            playerMpBar.style.width = `${(GameState.player.mp / GameState.player.maxMp) * 100}%`;
-            playerMpBar.parentElement.querySelector('.combat-bar-text').textContent = `${GameState.player.mp} / ${GameState.player.maxMp} MP`;
+            const mpPct = GameState.player.maxMp > 0 ? Math.min(100, Math.max(0, (GameState.player.mp / GameState.player.maxMp) * 100)) : 0;
+            playerMpBar.style.width = `${mpPct}%`;
+            const mpText = playerMpBar.parentElement ? playerMpBar.parentElement.querySelector('.combat-bar-text') : null;
+            if (mpText) mpText.textContent = `${GameState.player.mp} / ${GameState.player.maxMp} MP`;
         }
 
         HUD.update();
@@ -539,6 +642,7 @@ const Combat = {
 
     logCombat(text, type = 'info') {
         if (!this.log) this.log = document.getElementById('combat-log');
+        if (!this.log) return;
 
         const entry = document.createElement('div');
         entry.className = `combat-entry ${type}`;
@@ -551,20 +655,23 @@ const Combat = {
         const el = document.getElementById(id);
         if (el) {
             el.classList.add('shake');
-            setTimeout(() => el.classList.remove('shake'), 300);
+            this._setTimeout(() => el.classList.remove('shake'), 300);
         }
     },
 
     handleVictory() {
+        if (!this.active) return;
         this.active = false;
+        this._clearTimers();
+
         const enemy = this.enemy;
-        const template = ENEMIES[enemy.key];
+        if (!enemy) return;
 
         this.logCombat(`The ${enemy.name} has been defeated!`, 'victory');
 
         // XP
-        let xp = enemy.xpReward;
-        if (RACES[GameState.player.race].name === 'Human') {
+        let xp = enemy.xpReward || 0;
+        if (RACES[GameState.player.race] && RACES[GameState.player.race].name === 'Human') {
             xp = Math.floor(xp * 1.1);
         }
         const leveled = GameState.gainXp(xp);
@@ -572,18 +679,20 @@ const Combat = {
 
         if (leveled) {
             this.logCombat(`LEVEL UP! You are now level ${GameState.player.level}!`, 'victory');
-            setTimeout(() => Effects.levelUp(), 500);
+            this._setTimeout(() => Effects.levelUp(), 500);
         }
 
         // Gold
-        const goldMin = enemy.goldReward[0];
-        const goldMax = enemy.goldReward[1];
+        const goldReward = enemy.goldReward || [0, 0];
+        const goldMin = goldReward[0] || 0;
+        const goldMax = goldReward[1] || goldMin;
         const gold = goldMin + Math.floor(Math.random() * (goldMax - goldMin + 1));
         GameState.player.gold += gold;
         this.logCombat(`Found ${gold} gold!`, 'info');
 
         // Loot
-        if (template.lootTable) {
+        const template = ENEMIES[enemy.key];
+        if (template && template.lootTable) {
             for (const [itemKey, chance] of Object.entries(template.lootTable)) {
                 if (Math.random() < chance) {
                     GameState.addToInventory(itemKey);
@@ -597,7 +706,9 @@ const Combat = {
 
         // Track boss defeats
         if (enemy.isBoss) {
-            GameState.bossesDefeated.push(enemy.key);
+            if (!GameState.bossesDefeated.includes(enemy.key)) {
+                GameState.bossesDefeated.push(enemy.key);
+            }
 
             if (enemy.key === 'the_ashen_king') {
                 GameState.unlockRegion('hollowfen');
@@ -615,26 +726,35 @@ const Combat = {
             GameState.completeObjective('main', null, 'first_combat');
         }
 
+        // Clear player combat debuffs
+        GameState.player.statusEffects = [];
+
         GameState.save();
 
         // Return to game after a delay
-        setTimeout(() => {
+        this._setTimeout(() => {
             this.returnToGame();
         }, 2500);
     },
 
     handleDefeat() {
+        if (!this.active) return;
         this.active = false;
+        this._clearTimers();
+
         this.logCombat('You have fallen...', 'defeat');
         this.logCombat('Darkness takes you, but something pulls you back...', 'info');
 
-        setTimeout(() => {
+        this._setTimeout(() => {
             // Revive at half health in the current region's first location
             GameState.player.hp = Math.floor(GameState.player.maxHp * 0.5);
             GameState.player.mp = Math.floor(GameState.player.maxMp * 0.5);
 
+            // Clear combat debuffs
+            GameState.player.statusEffects = [];
+
             const region = WORLD.regions[GameState.currentRegion];
-            if (region) {
+            if (region && region.locations && region.locations.length > 0) {
                 GameState.currentLocation = region.locations[0];
             }
 
@@ -649,24 +769,34 @@ const Combat = {
         Exploration.showCurrentLocation();
         HUD.update();
 
-        if (this.onCombatEnd) {
-            this.onCombatEnd(this.enemy.hp <= 0 ? 'victory' : 'defeat');
-            this.onCombatEnd = null;
+        const callback = this.onCombatEnd;
+        this.onCombatEnd = null;
+
+        if (callback && this.enemy) {
+            callback(this.enemy.hp <= 0 ? 'victory' : 'defeat');
         }
     },
 
     endCombat(reason) {
         this.active = false;
+        this._clearTimers();
         ScreenManager.showScreen('game');
         HUD.update();
+
+        // Clear combat debuffs
+        if (GameState.player && GameState.player.statusEffects) {
+            GameState.player.statusEffects = [];
+        }
 
         if (reason === 'flee') {
             Narrative.addSystem('You escaped from combat.');
         }
 
-        if (this.onCombatEnd) {
-            this.onCombatEnd(reason);
-            this.onCombatEnd = null;
+        const callback = this.onCombatEnd;
+        this.onCombatEnd = null;
+
+        if (callback) {
+            callback(reason);
         }
     }
 };

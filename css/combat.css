@@ -69,6 +69,8 @@
 .combat-bar {
     height: 100%;
     transition: width 0.4s ease;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .combat-bar.enemy-hp {

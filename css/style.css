@@ -465,6 +465,8 @@ body {
     height: 100%;
     transition: width var(--transition-medium);
     position: relative;
+    max-width: 100%;
+    min-width: 0;
 }
 
 .hp-bar { background: linear-gradient(90deg, var(--hp-color), var(--hp-color-bright)); }
@@ -1000,9 +1002,48 @@ body {
     .screen-title { font-size: 1.8rem; }
     .option-grid { grid-template-columns: repeat(3, 1fr); }
     #narrative-log { padding: 1rem 1.5rem; }
-    .inventory-grid { grid-template-columns: repeat(5, 1fr); }
+    .inventory-grid { grid-template-columns: repeat(6, 1fr); }
     .dialogue-box { flex-direction: row; text-align: left; align-items: flex-start; }
     #dialogue-portrait { border-radius: 8px; margin-bottom: 0; margin-right: 1rem; width: 70px; height: 70px; }
+
+    /* Tablet HUD — row layout */
+    #hud {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .hud-row-top { flex: 0 0 auto; }
+    .hud-row-bars { flex: 1; min-width: 200px; }
+    .hud-row-location { flex: 0 0 auto; text-align: right; }
+
+    /* Tablet side panel — half-screen overlay */
+    #side-panel {
+        left: 40%;
+        padding-top: 1rem;
+    }
+    .side-panel-close { top: 0.3rem; }
+
+    /* Tablet nav tabs — slightly larger */
+    .nav-tab { font-size: 0.65rem; padding: 0.6rem 0.3rem; }
+    .tab-icon { font-size: 1.2rem; }
+    .tab-label { font-size: 0.65rem; }
+
+    /* Tablet action buttons */
+    #action-buttons { gap: 0.5rem; }
+    .action-btn { font-size: 0.85rem; padding: 0.6rem 1.2rem; }
+
+    /* Equipment grid for tablet */
+    .equipment-slots { grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+
+    /* Wider narrative on tablet */
+    .narrative-entry { font-size: 1rem; line-height: 1.7; }
+
+    /* Journal entries wider */
+    .journal-entry { padding: 0.8rem 1rem; }
+
+    /* Better char sheet on tablet */
+    .char-sheet .stat-row { font-size: 0.9rem; padding: 0.4rem 0; }
 }
 
 @media (min-width: 900px) {

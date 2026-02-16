@@ -4,8 +4,13 @@
 
 const Touch = {
     deferredPrompt: null,
+    _initialized: false,
 
     init() {
+        // Prevent double-initialization
+        if (this._initialized) return;
+        this._initialized = true;
+
         this.preventBounce();
         this.setupInstallPrompt();
         this.handleKeyboard();
@@ -58,7 +63,7 @@ const Touch = {
     async installApp() {
         if (!this.deferredPrompt) return;
         this.deferredPrompt.prompt();
-        const result = await this.deferredPrompt.userChoice;
+        await this.deferredPrompt.userChoice;
         this.deferredPrompt = null;
 
         const promptEl = document.getElementById('install-prompt');
@@ -67,10 +72,6 @@ const Touch = {
 
     // Handle keyboard appearing on mobile (resize viewport)
     handleKeyboard() {
-        const viewport = document.querySelector('meta[name=viewport]');
-        if (!viewport) return;
-
-        // On iOS, the virtual keyboard triggers resize
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', () => {
                 document.documentElement.style.setProperty(
@@ -85,29 +86,33 @@ const Touch = {
     setupSwipeBack() {
         let startX = 0;
         let startY = 0;
-        const sidePanel = document.getElementById('side-panel');
 
         document.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
+            if (e.touches && e.touches.length > 0) {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            }
         }, { passive: true });
 
         document.addEventListener('touchend', (e) => {
+            const sidePanel = document.getElementById('side-panel');
             if (!sidePanel || sidePanel.classList.contains('hidden')) return;
 
-            const endX = e.changedTouches[0].clientX;
-            const endY = e.changedTouches[0].clientY;
-            const diffX = endX - startX;
-            const diffY = Math.abs(endY - startY);
+            if (e.changedTouches && e.changedTouches.length > 0) {
+                const endX = e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].clientY;
+                const diffX = endX - startX;
+                const diffY = Math.abs(endY - startY);
 
-            // Swipe right to close (must be mostly horizontal)
-            if (diffX > 80 && diffY < 50) {
-                sidePanel.classList.add('hidden');
-                // Reset explore tab
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                const exploreTab = document.querySelector('.nav-tab[data-tab="explore"]');
-                if (exploreTab) exploreTab.classList.add('active');
-                Exploration.updateActions();
+                // Swipe right to close (must be mostly horizontal)
+                if (diffX > 80 && diffY < 50) {
+                    sidePanel.classList.add('hidden');
+                    // Reset explore tab
+                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                    const exploreTab = document.querySelector('.nav-tab[data-tab="explore"]');
+                    if (exploreTab) exploreTab.classList.add('active');
+                    Exploration.updateActions();
+                }
             }
         }, { passive: true });
     },

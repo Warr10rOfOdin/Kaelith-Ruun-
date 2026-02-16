@@ -8,31 +8,41 @@ const HUD = {
         if (!p) return;
 
         // Name and level
-        document.getElementById('hud-name').textContent = p.name;
-        document.getElementById('hud-level').textContent = `Lv.${p.level}`;
+        const hudName = document.getElementById('hud-name');
+        const hudLevel = document.getElementById('hud-level');
+        if (hudName) hudName.textContent = p.name;
+        if (hudLevel) hudLevel.textContent = `Lv.${p.level}`;
 
-        // HP bar
-        const hpPercent = (p.hp / p.maxHp) * 100;
-        document.getElementById('hp-bar').style.width = `${hpPercent}%`;
-        document.getElementById('hp-text').textContent = `HP ${p.hp}/${p.maxHp}`;
+        // HP bar — guard against division by zero, clamp 0-100%
+        const hpPercent = p.maxHp > 0 ? Math.min(100, Math.max(0, (p.hp / p.maxHp) * 100)) : 0;
+        const hpBar = document.getElementById('hp-bar');
+        const hpText = document.getElementById('hp-text');
+        if (hpBar) hpBar.style.width = `${hpPercent}%`;
+        if (hpText) hpText.textContent = `HP ${p.hp}/${p.maxHp}`;
 
         // MP bar
-        const mpPercent = (p.mp / p.maxMp) * 100;
-        document.getElementById('mp-bar').style.width = `${mpPercent}%`;
-        document.getElementById('mp-text').textContent = `MP ${p.mp}/${p.maxMp}`;
+        const mpPercent = p.maxMp > 0 ? Math.min(100, Math.max(0, (p.mp / p.maxMp) * 100)) : 0;
+        const mpBar = document.getElementById('mp-bar');
+        const mpText = document.getElementById('mp-text');
+        if (mpBar) mpBar.style.width = `${mpPercent}%`;
+        if (mpText) mpText.textContent = `MP ${p.mp}/${p.maxMp}`;
 
         // XP bar
-        const xpPercent = (p.xp / p.xpToNext) * 100;
-        document.getElementById('xp-bar').style.width = `${xpPercent}%`;
-        document.getElementById('xp-text').textContent = `XP ${p.xp}/${p.xpToNext}`;
+        const xpPercent = p.xpToNext > 0 ? Math.min(100, Math.max(0, (p.xp / p.xpToNext) * 100)) : 0;
+        const xpBar = document.getElementById('xp-bar');
+        const xpText = document.getElementById('xp-text');
+        if (xpBar) xpBar.style.width = `${xpPercent}%`;
+        if (xpText) xpText.textContent = `XP ${p.xp}/${p.xpToNext}`;
 
         // Gold
-        document.getElementById('hud-gold').textContent = `Gold: ${p.gold}`;
+        const hudGold = document.getElementById('hud-gold');
+        if (hudGold) hudGold.textContent = `Gold: ${p.gold}`;
 
         // Location
         const location = WORLD.locations[GameState.currentLocation];
-        if (location) {
-            document.getElementById('hud-location').textContent = location.name;
+        const hudLocation = document.getElementById('hud-location');
+        if (hudLocation && location) {
+            hudLocation.textContent = location.name;
         }
     }
 };

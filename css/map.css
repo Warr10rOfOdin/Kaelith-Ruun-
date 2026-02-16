@@ -68,6 +68,15 @@
     font-family: var(--font-heading);
 }
 
+/* Tablet */
+@media (min-width: 600px) {
+    .world-map { padding: 0.8rem; }
+    .world-location { padding: 0.8rem; gap: 0.8rem; }
+    .world-location .loc-icon { font-size: 1.4rem; }
+    .world-location .loc-name { font-size: 0.88rem; }
+    .world-location .loc-desc { white-space: normal; font-size: 0.8rem; }
+}
+
 /* Desktop */
 @media (min-width: 900px) {
     .world-location:hover {

@@ -16,9 +16,12 @@ const GameState = {
     visitedLocations: [],
     dialogueHistory: [],
 
+    MAX_INVENTORY_SIZE: 40,
+
     initialize(name, raceKey, classKey) {
         const race = RACES[raceKey];
         const cls = CLASSES[classKey];
+        if (!race || !cls) return;
 
         const baseStats = {
             str: 5 + race.stats.str + cls.stats.str,
@@ -57,8 +60,8 @@ const GameState = {
 
             abilities: [...cls.startingAbilities],
             equipment: {
-                weapon: cls.startingEquipment[0],
-                armor: cls.startingEquipment[1],
+                weapon: cls.startingEquipment[0] || null,
+                armor: cls.startingEquipment[1] || null,
                 offhand: null,
                 accessory: null
             },
@@ -93,6 +96,7 @@ const GameState = {
         if (!this.player) return;
         const p = this.player;
         const cls = CLASSES[p.class];
+        if (!cls) return;
 
         let bonusAttack = 0, bonusDefense = 0, bonusMagicAttack = 0;
         let bonusMagicDefense = 0, bonusSpeed = 0, bonusCritChance = 0;
@@ -122,6 +126,7 @@ const GameState = {
     },
 
     addToInventory(itemKey, quantity = 1) {
+        if (!this.player) return false;
         const item = ITEMS[itemKey];
         if (!item) return false;
 
@@ -129,11 +134,23 @@ const GameState = {
             const existing = this.player.inventory.find(i => i.key === itemKey);
             if (existing) {
                 existing.quantity += quantity;
-            } else {
-                this.player.inventory.push({ key: itemKey, quantity });
+                return true;
             }
+            if (this.player.inventory.length >= this.MAX_INVENTORY_SIZE) {
+                if (typeof Notifications !== 'undefined') {
+                    Notifications.show('Inventory is full!', 'red');
+                }
+                return false;
+            }
+            this.player.inventory.push({ key: itemKey, quantity });
         } else {
             for (let i = 0; i < quantity; i++) {
+                if (this.player.inventory.length >= this.MAX_INVENTORY_SIZE) {
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show('Inventory is full!', 'red');
+                    }
+                    return i > 0;
+                }
                 this.player.inventory.push({ key: itemKey, quantity: 1 });
             }
         }
@@ -141,6 +158,7 @@ const GameState = {
     },
 
     removeFromInventory(itemKey, quantity = 1) {
+        if (!this.player) return false;
         const idx = this.player.inventory.findIndex(i => i.key === itemKey);
         if (idx === -1) return false;
 
@@ -153,13 +171,14 @@ const GameState = {
     },
 
     getInventoryCount(itemKey) {
+        if (!this.player) return 0;
         const entry = this.player.inventory.find(i => i.key === itemKey);
         return entry ? entry.quantity : 0;
     },
 
     equipItem(itemKey) {
         const item = ITEMS[itemKey];
-        if (!item || !item.slot) return false;
+        if (!item || !item.slot || !this.player) return false;
 
         const currentEquipped = this.player.equipment[item.slot];
         if (currentEquipped) {
@@ -173,6 +192,7 @@ const GameState = {
     },
 
     gainXp(amount) {
+        if (!this.player) return false;
         this.player.xp += amount;
         let leveled = false;
 
@@ -182,15 +202,21 @@ const GameState = {
             this.player.xpToNext = Math.floor(100 * Math.pow(1.5, this.player.level - 1));
 
             const cls = CLASSES[this.player.class];
+            if (!cls) break;
+
             this.player.maxHp += cls.hpPerLevel + Math.floor(this.player.stats.con * 0.5);
             this.player.maxMp += cls.mpPerLevel + Math.floor(this.player.stats.int * 0.3);
             this.player.hp = this.player.maxHp;
             this.player.mp = this.player.maxMp;
 
-            // Stat growth
-            this.player.stats[cls.primaryStat] += 1;
-            if (Math.random() < 0.5) {
-                this.player.stats[cls.secondaryStat] += 1;
+            // Stat growth — validate stat keys exist
+            if (cls.primaryStat && this.player.stats[cls.primaryStat] !== undefined) {
+                this.player.stats[cls.primaryStat] += 1;
+            }
+            if (cls.secondaryStat && this.player.stats[cls.secondaryStat] !== undefined) {
+                if (Math.random() < 0.5) {
+                    this.player.stats[cls.secondaryStat] += 1;
+                }
             }
 
             this.recalculateStats();
@@ -201,6 +227,7 @@ const GameState = {
     },
 
     healPlayer(hp, mp = 0) {
+        if (!this.player) return;
         if (hp > 0) {
             this.player.hp = Math.min(this.player.maxHp, this.player.hp + hp);
         }
@@ -210,6 +237,7 @@ const GameState = {
     },
 
     damagePlayer(amount) {
+        if (!this.player) return 0;
         const actualDamage = Math.max(1, amount - this.player.defense);
         this.player.hp = Math.max(0, this.player.hp - actualDamage);
         return actualDamage;
@@ -226,11 +254,20 @@ const GameState = {
     },
 
     completeObjective(questType, questId, objectiveId) {
+        if (!this.questProgress) return;
+
         if (questType === 'main') {
-            if (!this.questProgress.main.objectives[objectiveId]) {
-                this.questProgress.main.objectives[objectiveId] = true;
+            if (!this.questProgress.main) {
+                this.questProgress.main = { stage: 0, objectives: {} };
             }
+            if (!this.questProgress.main.objectives) {
+                this.questProgress.main.objectives = {};
+            }
+            this.questProgress.main.objectives[objectiveId] = true;
         } else {
+            if (!this.questProgress.side) {
+                this.questProgress.side = {};
+            }
             if (!this.questProgress.side[questId]) {
                 this.questProgress.side[questId] = {};
             }
@@ -239,15 +276,23 @@ const GameState = {
     },
 
     isObjectiveComplete(questType, questId, objectiveId) {
+        if (!this.questProgress) return false;
+
         if (questType === 'main') {
-            return !!this.questProgress.main.objectives[objectiveId];
+            return !!(this.questProgress.main &&
+                      this.questProgress.main.objectives &&
+                      this.questProgress.main.objectives[objectiveId]);
         }
-        return !!(this.questProgress.side[questId] && this.questProgress.side[questId][objectiveId]);
+        return !!(this.questProgress.side &&
+                  this.questProgress.side[questId] &&
+                  this.questProgress.side[questId][objectiveId]);
     },
 
     save() {
         try {
+            if (!this.player) return;
             const saveData = {
+                version: 2,
                 player: this.player,
                 currentRegion: this.currentRegion,
                 currentLocation: this.currentLocation,
@@ -271,10 +316,46 @@ const GameState = {
             if (!data) return false;
 
             const saveData = JSON.parse(data);
+
+            // Validate save has required fields
+            if (!saveData.player || !saveData.player.name || !saveData.player.race || !saveData.player.class) {
+                console.warn('Invalid save data — missing player data');
+                return false;
+            }
+
             this.player = saveData.player;
-            this.currentRegion = saveData.currentRegion;
-            this.currentLocation = saveData.currentLocation;
-            this.questProgress = saveData.questProgress;
+
+            // Ensure all required player fields exist (handle old saves)
+            if (!this.player.buffs) this.player.buffs = [];
+            if (!this.player.debuffs) this.player.debuffs = [];
+            if (!this.player.statusEffects) this.player.statusEffects = [];
+            if (!this.player.inventory) this.player.inventory = [];
+            if (!this.player.abilities) this.player.abilities = [];
+            if (!this.player.equipment) {
+                this.player.equipment = { weapon: null, armor: null, offhand: null, accessory: null };
+            }
+            if (!this.player.stats) {
+                this.player.stats = { str: 5, dex: 5, int: 5, wis: 5, con: 5, cha: 5 };
+            }
+            if (typeof this.player.gold !== 'number') this.player.gold = 0;
+            if (typeof this.player.xp !== 'number') this.player.xp = 0;
+            if (typeof this.player.xpToNext !== 'number') this.player.xpToNext = 100;
+            if (typeof this.player.maxHp !== 'number' || this.player.maxHp <= 0) this.player.maxHp = 50;
+            if (typeof this.player.maxMp !== 'number' || this.player.maxMp <= 0) this.player.maxMp = 30;
+
+            // Clamp HP/MP to valid range
+            this.player.hp = Math.max(1, Math.min(this.player.hp || 1, this.player.maxHp));
+            this.player.mp = Math.max(0, Math.min(this.player.mp || 0, this.player.maxMp));
+
+            this.currentRegion = saveData.currentRegion || 'ashen_wastes';
+            this.currentLocation = saveData.currentLocation || 'ruined_outpost';
+
+            // Validate quest progress structure
+            this.questProgress = saveData.questProgress || { main: { stage: 0, objectives: {} }, side: {} };
+            if (!this.questProgress.main) this.questProgress.main = { stage: 0, objectives: {} };
+            if (!this.questProgress.main.objectives) this.questProgress.main.objectives = {};
+            if (!this.questProgress.side) this.questProgress.side = {};
+
             this.flags = saveData.flags || {};
             this.turnCount = saveData.turnCount || 0;
             this.discoveredLore = saveData.discoveredLore || [];

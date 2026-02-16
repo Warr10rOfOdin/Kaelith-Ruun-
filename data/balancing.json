@@ -1,0 +1,40 @@
+{
+	"player": {
+		"starting_health": 100.0,
+		"starting_sustenance": 100.0,
+		"base_move_speed": 200.0,
+		"base_damage": 10.0,
+		"health_regen_per_second": 1.0,
+		"sustenance_drain_per_second": 0.5,
+		"corruption_drain_per_second": 0.2
+	},
+	"world": {
+		"day_length_seconds": 600.0,
+		"night_start_time": 0.75,
+		"day_start_time": 0.25,
+		"corruption_storm_chance": 0.3,
+		"global_heat_base": 50.0
+	},
+	"farming": {
+		"crop_growth_base_rate": 0.01,
+		"heat_tolerance_range": 20.0,
+		"corruption_penalty_multiplier": 0.5
+	},
+	"combat": {
+		"corruption_damage_bonus_per_point": 0.2,
+		"corruption_aggro_multiplier_per_point": 0.02,
+		"heavy_attack_corruption_cost": 10.0,
+		"enemy_spawn_corruption_multiplier": 1.5
+	},
+	"building": {
+		"max_modules": 20,
+		"min_module_spacing": 50.0,
+		"max_distance_from_core": 500.0
+	},
+	"crafting": {
+		"infusion_base_stability": 0.8,
+		"veil_binding_base_success": 0.7,
+		"veil_binding_legendary_chance": 0.1,
+		"veil_binding_cursed_chance": 0.2
+	}
+}

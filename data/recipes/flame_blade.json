@@ -1,0 +1,21 @@
+{
+	"id": "flame_blade",
+	"name": "Flame-Infused Blade",
+	"description": "An iron sword infused with elemental fire. Deals bonus damage.",
+	"tier": 2,
+	"category": "weapon",
+	"inputs": [
+		{"item_id": "iron_sword", "quantity": 1},
+		{"item_id": "flame_essence", "quantity": 5},
+		{"item_id": "ember_root", "quantity": 3}
+	],
+	"output": {
+		"item_id": "flame_blade",
+		"quantity": 1
+	},
+	"craft_time": 10.0,
+	"crafting_station": "infusion_forge",
+	"required_heat": 70.0,
+	"stability_threshold": 0.75,
+	"unlock_requirement": "craft_10_tier1_items"
+}

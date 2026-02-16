@@ -1,0 +1,11 @@
+{
+	"id": "iron_ingot",
+	"name": "Iron Ingot",
+	"description": "Smelted iron ready for crafting. Essential for tools and weapons.",
+	"type": "resource",
+	"icon": "res://assets/sprites/items/iron_ingot.png",
+	"stack_size": 99,
+	"rarity": "common",
+	"value": 20,
+	"tags": ["metal", "ingot", "crafting_material"]
+}

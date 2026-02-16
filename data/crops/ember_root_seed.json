@@ -1,0 +1,14 @@
+{
+	"id": "ember_root_seed",
+	"name": "Ember Root Seed",
+	"description": "Plant in moderate heat. Grows into ember root after 5 minutes.",
+	"required_heat": 60.0,
+	"corruption_tolerance": 20.0,
+	"growth_rate": 0.0033,
+	"growth_phases": 3,
+	"base_yield": 3,
+	"yield_variation": 0.3,
+	"harvest_item_id": "ember_root",
+	"special_effect": "Increases local warmth slightly while growing",
+	"icon": "res://assets/sprites/crops/ember_root_seed.png"
+}

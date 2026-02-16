@@ -1,0 +1,21 @@
+{
+	"id": "ash_crawler",
+	"name": "Ash Crawler",
+	"description": "A small insectoid creature adapted to warm environments. Weak but numerous.",
+	"type": "basic",
+	"tier": 1,
+	"max_health": 30.0,
+	"damage": 5.0,
+	"move_speed": 80.0,
+	"attack_range": 30.0,
+	"attack_cooldown": 1.5,
+	"aggro_range": 150.0,
+	"corruption_affinity": 0.2,
+	"biomes": ["ember_fields", "ashwood_forest"],
+	"drops": [
+		{"item_id": "chitin", "quantity": 1, "chance": 0.6},
+		{"item_id": "ash_residue", "quantity": 1, "chance": 0.3}
+	],
+	"ai_behavior": "patrol_and_chase",
+	"sprite": "res://assets/sprites/enemies/ash_crawler.png"
+}

@@ -1,0 +1,23 @@
+{
+	"id": "veil_wraith",
+	"name": "Veil Wraith",
+	"description": "A manifestation of pure corruption. Highly dangerous and unpredictable.",
+	"type": "elite",
+	"tier": 3,
+	"max_health": 150.0,
+	"damage": 25.0,
+	"move_speed": 120.0,
+	"attack_range": 50.0,
+	"attack_cooldown": 2.0,
+	"aggro_range": 250.0,
+	"corruption_affinity": 0.9,
+	"biomes": ["veil_caverns"],
+	"drops": [
+		{"item_id": "veil_essence", "quantity": 2, "chance": 0.8},
+		{"item_id": "corruption_shard", "quantity": 1, "chance": 0.5},
+		{"item_id": "veil_crystal", "quantity": 1, "chance": 0.2}
+	],
+	"ai_behavior": "aggressive_hunter",
+	"special_abilities": ["teleport_dash", "corruption_aura"],
+	"sprite": "res://assets/sprites/enemies/veil_wraith.png"
+}

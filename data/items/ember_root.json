@@ -1,0 +1,11 @@
+{
+	"id": "ember_root",
+	"name": "Ember Root",
+	"description": "A glowing root that thrives in moderate heat. Used in basic crafting and cooking.",
+	"type": "resource",
+	"icon": "res://assets/sprites/items/ember_root.png",
+	"stack_size": 99,
+	"rarity": "common",
+	"value": 5,
+	"tags": ["plant", "heat", "crafting_material"]
+}

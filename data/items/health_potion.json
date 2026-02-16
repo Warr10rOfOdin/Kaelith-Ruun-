@@ -1,0 +1,14 @@
+{
+	"id": "health_potion",
+	"name": "Vital Flame Potion",
+	"description": "Restores 50 Vital Flame when consumed.",
+	"type": "consumable",
+	"icon": "res://assets/sprites/items/health_potion.png",
+	"stack_size": 10,
+	"rarity": "uncommon",
+	"value": 50,
+	"tags": ["potion", "healing"],
+	"effects": {
+		"heal": 50.0
+	}
+}

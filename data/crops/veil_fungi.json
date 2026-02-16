@@ -1,0 +1,14 @@
+{
+	"id": "veil_fungi",
+	"name": "Veil Fungi",
+	"description": "Thrives in low heat, high corruption zones. Reduces nearby corruption.",
+	"required_heat": 20.0,
+	"corruption_tolerance": 80.0,
+	"growth_rate": 0.002,
+	"growth_phases": 4,
+	"base_yield": 2,
+	"yield_variation": 0.5,
+	"harvest_item_id": "veil_fungi_cap",
+	"special_effect": "Reduces corruption in small radius",
+	"icon": "res://assets/sprites/crops/veil_fungi.png"
+}

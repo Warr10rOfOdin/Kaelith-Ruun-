@@ -1,0 +1,23 @@
+{
+	"id": "veil_caverns",
+	"name": "Veil Caverns",
+	"description": "Deep caves saturated with corruption. Dangerous but rich in rare materials.",
+	"tier": 3,
+	"base_heat": 30.0,
+	"heat_variation": 10.0,
+	"base_corruption": 60.0,
+	"corruption_variation": 20.0,
+	"enemy_spawn_rate": 0.8,
+	"resources": [
+		{"item_id": "veil_crystal", "spawn_chance": 0.3},
+		{"item_id": "dark_ore", "spawn_chance": 0.4},
+		{"item_id": "veil_fungi", "spawn_chance": 0.5}
+	],
+	"enemies": [
+		{"enemy_id": "veil_wraith", "spawn_weight": 0.5},
+		{"enemy_id": "corruption_beast", "spawn_weight": 0.3},
+		{"enemy_id": "shadow_stalker", "spawn_weight": 0.2}
+	],
+	"music_track": "caverns_theme",
+	"ambient_sound": "cave_drips"
+}

@@ -1,0 +1,24 @@
+{
+	"id": "ember_reactor",
+	"name": "Ember Reactor",
+	"description": "A powerful heat generator that warms a large area around the Sanctum.",
+	"type": "utility",
+	"max_level": 3,
+	"cost": [
+		{"item_id": "iron_ingot", "quantity": 20},
+		{"item_id": "ember_root", "quantity": 30},
+		{"item_id": "flame_essence", "quantity": 5}
+	],
+	"upgrade_cost": [
+		{"item_id": "flame_essence", "quantity": 10}
+	],
+	"max_health": 150.0,
+	"heat_output": 80.0,
+	"heat_radius": 300.0,
+	"corruption_resistance": 5.0,
+	"sanctum_heat_delta": 15.0,
+	"effects": {
+		"increases_crop_growth": true,
+		"heat_multiplier": 1.5
+	}
+}

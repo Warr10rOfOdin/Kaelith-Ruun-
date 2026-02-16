@@ -1,0 +1,11 @@
+{
+	"id": "iron_ore",
+	"name": "Iron Ore",
+	"description": "Raw iron ore extracted from the earth. Can be smelted into iron ingots.",
+	"type": "resource",
+	"icon": "res://assets/sprites/items/iron_ore.png",
+	"stack_size": 99,
+	"rarity": "common",
+	"value": 10,
+	"tags": ["ore", "metal", "crafting_material"]
+}

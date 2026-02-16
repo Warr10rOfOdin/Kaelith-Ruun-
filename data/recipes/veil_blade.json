@@ -1,0 +1,23 @@
+{
+	"id": "veil_blade",
+	"name": "Veil-Bound Blade",
+	"description": "A weapon forged through dangerous veil binding. Powerful but risky to create.",
+	"tier": 3,
+	"category": "weapon",
+	"inputs": [
+		{"item_id": "flame_blade", "quantity": 1},
+		{"item_id": "veil_crystal", "quantity": 3},
+		{"item_id": "corruption_shard", "quantity": 5}
+	],
+	"output": {
+		"item_id": "veil_blade",
+		"quantity": 1
+	},
+	"craft_time": 20.0,
+	"crafting_station": "ritual_chamber",
+	"required_corruption": 50.0,
+	"success_chance": 0.7,
+	"legendary_chance": 0.1,
+	"cursed_chance": 0.2,
+	"unlock_requirement": "enter_veil_caverns"
+}

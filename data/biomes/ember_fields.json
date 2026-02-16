@@ -1,0 +1,22 @@
+{
+	"id": "ember_fields",
+	"name": "Ember Fields",
+	"description": "Warm grasslands with scattered heat vents. Safe for beginners.",
+	"tier": 1,
+	"base_heat": 55.0,
+	"heat_variation": 15.0,
+	"base_corruption": 5.0,
+	"corruption_variation": 5.0,
+	"enemy_spawn_rate": 0.3,
+	"resources": [
+		{"item_id": "ember_root", "spawn_chance": 0.4},
+		{"item_id": "iron_ore", "spawn_chance": 0.2},
+		{"item_id": "wood", "spawn_chance": 0.6}
+	],
+	"enemies": [
+		{"enemy_id": "ash_crawler", "spawn_weight": 0.7},
+		{"enemy_id": "ember_sprite", "spawn_weight": 0.3}
+	],
+	"music_track": "ember_fields_theme",
+	"ambient_sound": "warm_wind"
+}

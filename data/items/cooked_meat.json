@@ -1,0 +1,15 @@
+{
+	"id": "cooked_meat",
+	"name": "Cooked Meat",
+	"description": "Restores sustenance and provides a small health boost.",
+	"type": "consumable",
+	"icon": "res://assets/sprites/items/cooked_meat.png",
+	"stack_size": 20,
+	"rarity": "common",
+	"value": 15,
+	"tags": ["food"],
+	"effects": {
+		"sustenance": 30.0,
+		"heal": 10.0
+	}
+}

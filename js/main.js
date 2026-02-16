@@ -6,6 +6,7 @@ const Game = {
     init() {
         ScreenManager.init();
         Narrative.init();
+        Touch.init();
 
         this.setupTitleScreen();
         this.setupCreationScreen();

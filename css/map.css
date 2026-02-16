@@ -1,122 +1,80 @@
 /* ============================================
-   MAP STYLES
+   MAP STYLES — Mobile-First
    ============================================ */
 
-.map-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    overflow: hidden;
-}
-
-.map-grid {
-    display: grid;
-    gap: 2px;
-    padding: 0.5rem;
-}
-
-.map-cell {
-    aspect-ratio: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    border: 1px solid transparent;
-    transition: all 0.15s ease;
-    position: relative;
-    cursor: pointer;
-}
-
-.map-cell.wall { background: #1a1a22; color: var(--text-dim); }
-.map-cell.floor { background: var(--bg-medium); }
-.map-cell.door { background: #2a2a15; border-color: var(--accent-gold-dim); }
-.map-cell.player { background: var(--bg-light); color: var(--accent-gold); font-weight: bold; }
-.map-cell.enemy { color: var(--accent-red-bright); }
-.map-cell.npc { color: var(--accent-blue-bright); }
-.map-cell.item-cell { color: var(--accent-green-bright); }
-.map-cell.exit { background: #1a2a1a; border-color: var(--accent-green); }
-.map-cell.fog { background: var(--bg-darkest); color: transparent; }
-.map-cell.explored { opacity: 0.5; }
-.map-cell.current { box-shadow: 0 0 10px rgba(201, 168, 76, 0.4); }
-
-.map-cell:hover:not(.wall):not(.fog) {
-    border-color: var(--accent-gold-dim);
-}
-
-/* World Map */
 .world-map {
-    padding: 1rem;
+    padding: 0.5rem;
 }
 
 .world-location {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    padding: 0.8rem;
-    margin-bottom: 0.5rem;
+    gap: 0.6rem;
+    padding: 0.7rem;
+    margin-bottom: 0.4rem;
     background: var(--bg-medium);
     border: 1px solid var(--border-color);
     cursor: pointer;
     transition: all 0.2s ease;
+    border-radius: 4px;
+    min-height: 52px;
 }
 
-.world-location:hover {
+.world-location:active {
     border-color: var(--accent-gold-dim);
     background: var(--bg-light);
 }
 
 .world-location.current {
     border-color: var(--accent-gold);
-    box-shadow: 0 0 15px rgba(201, 168, 76, 0.15);
+    box-shadow: 0 0 12px rgba(201, 168, 76, 0.15);
 }
 
 .world-location.locked {
     opacity: 0.4;
-    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .world-location .loc-icon {
-    font-size: 1.5rem;
-    width: 40px;
+    font-size: 1.3rem;
+    width: 36px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .world-location .loc-info {
     flex: 1;
+    min-width: 0;
 }
 
 .world-location .loc-name {
     font-family: var(--font-heading);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--accent-gold);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
 }
 
 .world-location .loc-desc {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .world-location .loc-level {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: var(--text-dim);
     font-family: var(--font-heading);
 }
 
-/* Map Legend */
-.map-legend {
-    display: flex;
-    gap: 1rem;
-    padding: 0.5rem;
-    font-size: 0.75rem;
-    color: var(--text-dim);
-    border-top: 1px solid var(--border-color);
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
+/* Desktop */
+@media (min-width: 900px) {
+    .world-location:hover {
+        border-color: var(--accent-gold-dim);
+        background: var(--bg-light);
+    }
+    .world-location .loc-icon { font-size: 1.5rem; width: 40px; }
+    .world-location .loc-name { font-size: 0.9rem; }
+    .world-location .loc-desc { white-space: normal; }
 }

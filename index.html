@@ -2,8 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <!-- Mobile App Meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Kaelith Ruun">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a0f">
+    <meta name="msapplication-navbutton-color" content="#0a0a0f">
+    <meta name="msapplication-TileColor" content="#0a0a0f">
+    <meta name="format-detection" content="telephone=no">
+
     <title>Kaelith Ruun — Shattered Realms</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/combat.css">
     <link rel="stylesheet" href="css/map.css">
@@ -23,32 +40,35 @@
                 <button id="btn-lore" class="menu-btn">World Lore</button>
             </div>
             <p class="version-info">v0.1.0 — The Awakening</p>
+            <p id="install-prompt" class="install-hint hidden">Tap to install as app</p>
         </div>
 
         <!-- Character Creation Screen -->
         <div id="creation-screen" class="screen">
-            <h2 class="screen-title">Forge Your Identity</h2>
-            <div class="creation-container">
-                <div class="creation-step" id="step-name">
-                    <label for="char-name">What name echoes through the void?</label>
-                    <input type="text" id="char-name" maxlength="20" placeholder="Enter your name..." autocomplete="off">
-                </div>
-                <div class="creation-step hidden" id="step-race">
-                    <p class="step-label">Choose your lineage:</p>
-                    <div id="race-options" class="option-grid"></div>
-                    <div id="race-description" class="description-box"></div>
-                </div>
-                <div class="creation-step hidden" id="step-class">
-                    <p class="step-label">Choose your path:</p>
-                    <div id="class-options" class="option-grid"></div>
-                    <div id="class-description" class="description-box"></div>
-                </div>
-                <div class="creation-step hidden" id="step-confirm">
-                    <div id="char-preview" class="char-preview"></div>
-                </div>
-                <div class="creation-nav">
-                    <button id="btn-creation-back" class="nav-btn hidden">Back</button>
-                    <button id="btn-creation-next" class="nav-btn">Next</button>
+            <div class="screen-scroll">
+                <h2 class="screen-title">Forge Your Identity</h2>
+                <div class="creation-container">
+                    <div class="creation-step" id="step-name">
+                        <label for="char-name">What name echoes through the void?</label>
+                        <input type="text" id="char-name" maxlength="20" placeholder="Enter your name..." autocomplete="off">
+                    </div>
+                    <div class="creation-step hidden" id="step-race">
+                        <p class="step-label">Choose your lineage:</p>
+                        <div id="race-options" class="option-grid"></div>
+                        <div id="race-description" class="description-box"></div>
+                    </div>
+                    <div class="creation-step hidden" id="step-class">
+                        <p class="step-label">Choose your path:</p>
+                        <div id="class-options" class="option-grid"></div>
+                        <div id="class-description" class="description-box"></div>
+                    </div>
+                    <div class="creation-step hidden" id="step-confirm">
+                        <div id="char-preview" class="char-preview"></div>
+                    </div>
+                    <div class="creation-nav">
+                        <button id="btn-creation-back" class="nav-btn hidden">Back</button>
+                        <button id="btn-creation-next" class="nav-btn">Next</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -57,11 +77,12 @@
         <div id="game-screen" class="screen">
             <!-- Top HUD -->
             <div id="hud">
-                <div class="hud-left">
+                <div class="hud-row-top">
                     <span id="hud-name" class="hud-item"></span>
                     <span id="hud-level" class="hud-item"></span>
+                    <span id="hud-gold" class="hud-item">Gold: 0</span>
                 </div>
-                <div class="hud-center">
+                <div class="hud-row-bars">
                     <div class="bar-container">
                         <div id="hp-bar" class="resource-bar hp-bar">
                             <span id="hp-text" class="bar-text"></span>
@@ -78,8 +99,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="hud-right">
-                    <span id="hud-gold" class="hud-item">Gold: 0</span>
+                <div class="hud-row-location">
                     <span id="hud-location" class="hud-item"></span>
                 </div>
             </div>
@@ -91,8 +111,9 @@
                     <div id="narrative-log"></div>
                 </div>
 
-                <!-- Side Panel (Inventory, Map, etc.) -->
+                <!-- Side Panel (Inventory, Map, etc.) — slides over on mobile -->
                 <div id="side-panel" class="hidden">
+                    <button id="side-panel-close" class="side-panel-close" onclick="document.getElementById('side-panel').classList.add('hidden')">Back</button>
                     <div id="side-panel-content"></div>
                 </div>
             </div>
@@ -104,11 +125,26 @@
 
             <!-- Bottom Navigation -->
             <div id="bottom-nav">
-                <button class="nav-tab active" data-tab="explore">Explore</button>
-                <button class="nav-tab" data-tab="inventory">Inventory</button>
-                <button class="nav-tab" data-tab="character">Character</button>
-                <button class="nav-tab" data-tab="map">Map</button>
-                <button class="nav-tab" data-tab="journal">Journal</button>
+                <button class="nav-tab active" data-tab="explore">
+                    <span class="tab-icon">&#x2694;&#xFE0F;</span>
+                    <span class="tab-label">Explore</span>
+                </button>
+                <button class="nav-tab" data-tab="inventory">
+                    <span class="tab-icon">&#x1F392;</span>
+                    <span class="tab-label">Items</span>
+                </button>
+                <button class="nav-tab" data-tab="character">
+                    <span class="tab-icon">&#x1F464;</span>
+                    <span class="tab-label">Stats</span>
+                </button>
+                <button class="nav-tab" data-tab="map">
+                    <span class="tab-icon">&#x1F5FA;&#xFE0F;</span>
+                    <span class="tab-label">Map</span>
+                </button>
+                <button class="nav-tab" data-tab="journal">
+                    <span class="tab-icon">&#x1F4DC;</span>
+                    <span class="tab-label">Quests</span>
+                </button>
             </div>
         </div>
 
@@ -131,9 +167,11 @@
 
         <!-- Lore Screen -->
         <div id="lore-screen" class="screen">
-            <h2 class="screen-title">The World of Kaelith Ruun</h2>
-            <div id="lore-content"></div>
-            <button id="btn-lore-back" class="nav-btn">Return</button>
+            <div class="screen-scroll">
+                <h2 class="screen-title">The World of Kaelith Ruun</h2>
+                <div id="lore-content"></div>
+                <button id="btn-lore-back" class="nav-btn">Return</button>
+            </div>
         </div>
 
         <!-- Dialogue Overlay -->
@@ -172,6 +210,14 @@
     <script src="js/ui/actions.js"></script>
     <script src="js/ui/map.js"></script>
     <script src="js/ui/effects.js"></script>
+    <script src="js/ui/touch.js"></script>
     <script src="js/main.js"></script>
+
+    <script>
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+    </script>
 </body>
 </html>

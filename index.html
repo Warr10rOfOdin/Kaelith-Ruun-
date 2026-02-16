@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaelith Ruun — Shattered Realms</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/combat.css">
+    <link rel="stylesheet" href="css/map.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Title Screen -->
+        <div id="title-screen" class="screen active">
+            <div class="title-art">
+                <pre id="title-ascii"></pre>
+            </div>
+            <h1 class="game-title">Kaelith Ruun</h1>
+            <p class="subtitle">Shattered Realms</p>
+            <div class="title-menu">
+                <button id="btn-new-game" class="menu-btn">New Journey</button>
+                <button id="btn-continue" class="menu-btn" disabled>Continue</button>
+                <button id="btn-lore" class="menu-btn">World Lore</button>
+            </div>
+            <p class="version-info">v0.1.0 — The Awakening</p>
+        </div>
+
+        <!-- Character Creation Screen -->
+        <div id="creation-screen" class="screen">
+            <h2 class="screen-title">Forge Your Identity</h2>
+            <div class="creation-container">
+                <div class="creation-step" id="step-name">
+                    <label for="char-name">What name echoes through the void?</label>
+                    <input type="text" id="char-name" maxlength="20" placeholder="Enter your name..." autocomplete="off">
+                </div>
+                <div class="creation-step hidden" id="step-race">
+                    <p class="step-label">Choose your lineage:</p>
+                    <div id="race-options" class="option-grid"></div>
+                    <div id="race-description" class="description-box"></div>
+                </div>
+                <div class="creation-step hidden" id="step-class">
+                    <p class="step-label">Choose your path:</p>
+                    <div id="class-options" class="option-grid"></div>
+                    <div id="class-description" class="description-box"></div>
+                </div>
+                <div class="creation-step hidden" id="step-confirm">
+                    <div id="char-preview" class="char-preview"></div>
+                </div>
+                <div class="creation-nav">
+                    <button id="btn-creation-back" class="nav-btn hidden">Back</button>
+                    <button id="btn-creation-next" class="nav-btn">Next</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Game Screen -->
+        <div id="game-screen" class="screen">
+            <!-- Top HUD -->
+            <div id="hud">
+                <div class="hud-left">
+                    <span id="hud-name" class="hud-item"></span>
+                    <span id="hud-level" class="hud-item"></span>
+                </div>
+                <div class="hud-center">
+                    <div class="bar-container">
+                        <div id="hp-bar" class="resource-bar hp-bar">
+                            <span id="hp-text" class="bar-text"></span>
+                        </div>
+                    </div>
+                    <div class="bar-container">
+                        <div id="mp-bar" class="resource-bar mp-bar">
+                            <span id="mp-text" class="bar-text"></span>
+                        </div>
+                    </div>
+                    <div class="bar-container">
+                        <div id="xp-bar" class="resource-bar xp-bar">
+                            <span id="xp-text" class="bar-text"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hud-right">
+                    <span id="hud-gold" class="hud-item">Gold: 0</span>
+                    <span id="hud-location" class="hud-item"></span>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div id="main-content">
+                <!-- Narrative Panel -->
+                <div id="narrative-panel">
+                    <div id="narrative-log"></div>
+                </div>
+
+                <!-- Side Panel (Inventory, Map, etc.) -->
+                <div id="side-panel" class="hidden">
+                    <div id="side-panel-content"></div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div id="action-bar">
+                <div id="action-buttons"></div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div id="bottom-nav">
+                <button class="nav-tab active" data-tab="explore">Explore</button>
+                <button class="nav-tab" data-tab="inventory">Inventory</button>
+                <button class="nav-tab" data-tab="character">Character</button>
+                <button class="nav-tab" data-tab="map">Map</button>
+                <button class="nav-tab" data-tab="journal">Journal</button>
+            </div>
+        </div>
+
+        <!-- Combat Screen -->
+        <div id="combat-screen" class="screen">
+            <div id="combat-arena">
+                <div id="enemy-section">
+                    <div id="enemy-display"></div>
+                    <div id="enemy-bars"></div>
+                </div>
+                <div id="combat-log-container">
+                    <div id="combat-log"></div>
+                </div>
+                <div id="player-combat-section">
+                    <div id="player-combat-bars"></div>
+                    <div id="combat-actions"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lore Screen -->
+        <div id="lore-screen" class="screen">
+            <h2 class="screen-title">The World of Kaelith Ruun</h2>
+            <div id="lore-content"></div>
+            <button id="btn-lore-back" class="nav-btn">Return</button>
+        </div>
+
+        <!-- Dialogue Overlay -->
+        <div id="dialogue-overlay" class="overlay hidden">
+            <div class="dialogue-box">
+                <div id="dialogue-portrait"></div>
+                <div id="dialogue-content">
+                    <p id="dialogue-speaker"></p>
+                    <p id="dialogue-text"></p>
+                </div>
+                <div id="dialogue-choices"></div>
+            </div>
+        </div>
+
+        <!-- Notification Area -->
+        <div id="notifications"></div>
+    </div>
+
+    <script src="js/data/races.js"></script>
+    <script src="js/data/classes.js"></script>
+    <script src="js/data/items.js"></script>
+    <script src="js/data/enemies.js"></script>
+    <script src="js/data/world.js"></script>
+    <script src="js/data/lore.js"></script>
+    <script src="js/data/npcs.js"></script>
+    <script src="js/data/quests.js"></script>
+    <script src="js/engine/state.js"></script>
+    <script src="js/engine/narrative.js"></script>
+    <script src="js/engine/combat.js"></script>
+    <script src="js/engine/inventory.js"></script>
+    <script src="js/engine/exploration.js"></script>
+    <script src="js/engine/dialogue.js"></script>
+    <script src="js/engine/progression.js"></script>
+    <script src="js/ui/screens.js"></script>
+    <script src="js/ui/hud.js"></script>
+    <script src="js/ui/actions.js"></script>
+    <script src="js/ui/map.js"></script>
+    <script src="js/ui/effects.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

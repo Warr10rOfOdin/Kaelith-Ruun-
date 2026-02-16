@@ -1,0 +1,242 @@
+/* ============================================
+   COMBAT SCREEN STYLES
+   ============================================ */
+
+#combat-screen {
+    background: radial-gradient(ellipse at center bottom, #1a0a0a 0%, var(--bg-darkest) 70%);
+}
+
+#combat-arena {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1rem;
+}
+
+/* Enemy Section */
+#enemy-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    flex-shrink: 0;
+}
+
+#enemy-display {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.enemy-art {
+    font-size: 4rem;
+    margin-bottom: 0.5rem;
+    animation: enemyIdle 2s ease-in-out infinite;
+}
+
+@keyframes enemyIdle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.enemy-name {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    color: var(--accent-red-bright);
+    letter-spacing: 0.15em;
+}
+
+.enemy-level {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+#enemy-bars {
+    width: 100%;
+    max-width: 400px;
+}
+
+.combat-bar-container {
+    height: 22px;
+    background: var(--bg-darkest);
+    border: 1px solid var(--border-color);
+    position: relative;
+    margin-bottom: 0.3rem;
+}
+
+.combat-bar {
+    height: 100%;
+    transition: width 0.4s ease;
+}
+
+.combat-bar.enemy-hp {
+    background: linear-gradient(90deg, #5a1a1a, #8b2e2e);
+}
+
+.combat-bar-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-heading);
+    font-size: 0.65rem;
+    color: var(--text-bright);
+    text-shadow: 1px 1px 2px #000;
+}
+
+/* Combat Log */
+#combat-log-container {
+    flex: 1;
+    overflow: hidden;
+    margin: 0.5rem 0;
+    position: relative;
+}
+
+#combat-log {
+    height: 100%;
+    overflow-y: auto;
+    padding: 0.5rem 1rem;
+}
+
+.combat-entry {
+    padding: 0.2rem 0;
+    font-size: 0.9rem;
+    animation: combatFade 0.2s ease;
+}
+
+@keyframes combatFade {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.combat-entry.player-attack { color: var(--accent-blue-bright); }
+.combat-entry.enemy-attack { color: var(--accent-red-bright); }
+.combat-entry.heal { color: var(--accent-green-bright); }
+.combat-entry.buff { color: var(--accent-purple-bright); }
+.combat-entry.miss { color: var(--text-dim); font-style: italic; }
+.combat-entry.critical { color: var(--accent-gold); font-weight: 600; }
+.combat-entry.info { color: var(--text-secondary); }
+.combat-entry.victory { color: var(--accent-gold); font-family: var(--font-heading); font-size: 1.1rem; text-align: center; }
+.combat-entry.defeat { color: var(--accent-red-bright); font-family: var(--font-heading); font-size: 1.1rem; text-align: center; }
+
+/* Player Combat Section */
+#player-combat-section {
+    flex-shrink: 0;
+    padding: 0.5rem 0;
+}
+
+#player-combat-bars {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#player-combat-bars .combat-bar-container {
+    flex: 1;
+}
+
+.combat-bar.player-hp {
+    background: linear-gradient(90deg, var(--hp-color), var(--hp-color-bright));
+}
+
+.combat-bar.player-mp {
+    background: linear-gradient(90deg, var(--mp-color), var(--mp-color-bright));
+}
+
+/* Combat Actions */
+#combat-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.combat-btn {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    padding: 0.6rem 1.5rem;
+    background: var(--bg-medium);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    letter-spacing: 0.05em;
+    min-width: 100px;
+}
+
+.combat-btn:hover {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+    background: var(--bg-light);
+}
+
+.combat-btn.attack { border-color: var(--accent-red); }
+.combat-btn.attack:hover { border-color: var(--accent-red-bright); color: var(--accent-red-bright); }
+.combat-btn.magic { border-color: var(--accent-blue); }
+.combat-btn.magic:hover { border-color: var(--accent-blue-bright); color: var(--accent-blue-bright); }
+.combat-btn.defend { border-color: var(--accent-green); }
+.combat-btn.defend:hover { border-color: var(--accent-green-bright); color: var(--accent-green-bright); }
+.combat-btn.item { border-color: var(--accent-purple); }
+.combat-btn.item:hover { border-color: var(--accent-purple-bright); color: var(--accent-purple-bright); }
+.combat-btn.flee { border-color: var(--text-dim); }
+.combat-btn.flee:hover { color: var(--text-secondary); }
+
+.combat-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Damage Numbers */
+.damage-number {
+    position: absolute;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.5rem;
+    pointer-events: none;
+    animation: damageFloat 1s ease-out forwards;
+    z-index: 10;
+}
+
+.damage-number.physical { color: var(--accent-red-bright); }
+.damage-number.magical { color: var(--accent-blue-bright); }
+.damage-number.healing { color: var(--accent-green-bright); }
+.damage-number.critical { font-size: 2rem; color: var(--accent-gold); }
+
+@keyframes damageFloat {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-60px) scale(0.8); opacity: 0; }
+}
+
+/* Combat Shake */
+.shake {
+    animation: combatShake 0.3s ease;
+}
+
+@keyframes combatShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-3px); }
+}
+
+/* Spell Effects */
+.spell-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.spell-overlay.fire { background: radial-gradient(circle, rgba(200,50,20,0.2) 0%, transparent 70%); animation: spellFlash 0.5s ease; }
+.spell-overlay.ice { background: radial-gradient(circle, rgba(20,100,200,0.2) 0%, transparent 70%); animation: spellFlash 0.5s ease; }
+.spell-overlay.shadow { background: radial-gradient(circle, rgba(80,20,120,0.3) 0%, transparent 70%); animation: spellFlash 0.5s ease; }
+.spell-overlay.holy { background: radial-gradient(circle, rgba(200,180,60,0.2) 0%, transparent 70%); animation: spellFlash 0.5s ease; }
+
+@keyframes spellFlash {
+    0% { opacity: 0; }
+    30% { opacity: 1; }
+    100% { opacity: 0; }
+}

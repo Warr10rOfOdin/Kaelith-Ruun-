@@ -3,7 +3,7 @@
 // Enables offline play and mobile app install
 // ============================================
 
-const CACHE_NAME = 'kaelith-ruun-v3';
+const CACHE_NAME = 'kaelith-ruun-v4';
 const ASSETS = [
     '/',
     '/index.html',
@@ -27,6 +27,7 @@ const ASSETS = [
     '/js/engine/exploration.js',
     '/js/engine/dialogue.js',
     '/js/engine/progression.js',
+    '/js/engine/sprites.js',
     '/js/engine/worldmap.js',
     '/js/engine/base.js',
     '/js/ui/screens.js',

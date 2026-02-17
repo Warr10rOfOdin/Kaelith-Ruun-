@@ -444,6 +444,11 @@ const Game = {
                 sidePanel.classList.remove('hidden');
                 this.showBaseMenu();
                 break;
+
+            case 'settings':
+                sidePanel.classList.remove('hidden');
+                Settings.render();
+                break;
         }
     }
 };

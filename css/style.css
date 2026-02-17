@@ -468,6 +468,7 @@ body {
 .hp-bar { background: linear-gradient(90deg, var(--hp-color), var(--hp-color-bright)); }
 .mp-bar { background: linear-gradient(90deg, var(--mp-color), var(--mp-color-bright)); }
 .xp-bar { background: linear-gradient(90deg, var(--xp-color-dim), var(--xp-color)); }
+.stamina-bar { background: linear-gradient(90deg, #8a7a20, #ccba44); }
 
 .bar-text {
     position: absolute;

@@ -28,7 +28,15 @@ const WorldMap = {
     TS: 32,
 
     // Input state (held keys)
-    keys: { up: false, down: false, left: false, right: false },
+    keys: { up: false, down: false, left: false, right: false, sprint: false },
+
+    // Sprint / Stamina
+    stamina: 100,
+    maxStamina: 100,
+    staminaDrain: 30,     // per second while sprinting
+    staminaRegen: 20,     // per second while not sprinting
+    isSprinting: false,
+    sprintMultiplier: 1.8,
 
     // Entity / resource tracking
     entityMap: {},
@@ -189,6 +197,9 @@ const WorldMap = {
 
         // Update diegetic overlay
         if (typeof DiegeticFX !== 'undefined') DiegeticFX.update();
+
+        // Update stamina bar in HUD (fast path, every frame)
+        if (typeof HUD !== 'undefined' && HUD.updateStamina) HUD.updateStamina();
     },
 
     handleMovement(dt) {
@@ -207,6 +218,15 @@ const WorldMap = {
 
         this.isMoving = dx !== 0 || dy !== 0;
 
+        // Sprint / Stamina management
+        this.isSprinting = this.keys.sprint && this.isMoving && this.stamina > 0;
+        if (this.isSprinting) {
+            this.stamina = Math.max(0, this.stamina - this.staminaDrain * dt);
+            if (this.stamina <= 0) this.isSprinting = false;
+        } else {
+            this.stamina = Math.min(this.maxStamina, this.stamina + this.staminaRegen * dt);
+        }
+
         if (!this.isMoving) {
             this.walkFrame = 0;
             this.walkTimer = 0;
@@ -220,7 +240,8 @@ const WorldMap = {
             this.facing = dy > 0 ? 'down' : 'up';
         }
 
-        const speed = this.moveSpeed * dt;
+        const speedMult = this.isSprinting ? this.sprintMultiplier : 1.0;
+        const speed = this.moveSpeed * speedMult * dt;
         const newX = this.px + dx * speed;
         const newY = this.py + dy * speed;
 
@@ -811,34 +832,40 @@ const WorldMap = {
 
     // ---- CONTROLS ----
     bindControls() {
-        // Keyboard
+        // Keyboard — uses Settings keybindings
         document.addEventListener('keydown', (e) => {
             if (GameState.currentScreen !== 'game') return;
-            switch (e.key) {
-                case 'ArrowUp': case 'w': case 'W':
-                    e.preventDefault(); this.keys.up = true; break;
-                case 'ArrowDown': case 's': case 'S':
-                    e.preventDefault(); this.keys.down = true; break;
-                case 'ArrowLeft': case 'a': case 'A':
-                    e.preventDefault(); this.keys.left = true; break;
-                case 'ArrowRight': case 'd': case 'D':
-                    e.preventDefault(); this.keys.right = true; break;
-                case ' ': case 'e': case 'E': case 'Enter':
-                    e.preventDefault(); this.interact(); break;
+            // Skip if rebinding is active
+            if (typeof Settings !== 'undefined' && Settings._rebinding) return;
+
+            const S = typeof Settings !== 'undefined' ? Settings : null;
+            const isA = S ? (key, act) => S.isAction(key, act) : () => false;
+
+            if (isA(e.key, 'moveUp')) { e.preventDefault(); this.keys.up = true; }
+            else if (isA(e.key, 'moveDown')) { e.preventDefault(); this.keys.down = true; }
+            else if (isA(e.key, 'moveLeft')) { e.preventDefault(); this.keys.left = true; }
+            else if (isA(e.key, 'moveRight')) { e.preventDefault(); this.keys.right = true; }
+            else if (isA(e.key, 'interact')) { e.preventDefault(); this.interact(); }
+            else if (isA(e.key, 'sprint')) { e.preventDefault(); this.keys.sprint = true; }
+            // Quick-access tabs
+            else if (isA(e.key, 'map')) { e.preventDefault(); Game.handleTabChange('map'); document.getElementById('side-panel').classList.remove('hidden'); }
+            else if (isA(e.key, 'inventory')) { e.preventDefault(); Game.handleTabChange('inventory'); document.getElementById('side-panel').classList.remove('hidden'); }
+            else if (isA(e.key, 'character')) { e.preventDefault(); Game.handleTabChange('character'); document.getElementById('side-panel').classList.remove('hidden'); }
+            else if (e.key === 'Escape') {
+                const sp = document.getElementById('side-panel');
+                if (sp && !sp.classList.contains('hidden')) { sp.classList.add('hidden'); e.preventDefault(); }
             }
         });
 
         document.addEventListener('keyup', (e) => {
-            switch (e.key) {
-                case 'ArrowUp': case 'w': case 'W':
-                    this.keys.up = false; break;
-                case 'ArrowDown': case 's': case 'S':
-                    this.keys.down = false; break;
-                case 'ArrowLeft': case 'a': case 'A':
-                    this.keys.left = false; break;
-                case 'ArrowRight': case 'd': case 'D':
-                    this.keys.right = false; break;
-            }
+            const S = typeof Settings !== 'undefined' ? Settings : null;
+            const isA = S ? (key, act) => S.isAction(key, act) : () => false;
+
+            if (isA(e.key, 'moveUp')) this.keys.up = false;
+            else if (isA(e.key, 'moveDown')) this.keys.down = false;
+            else if (isA(e.key, 'moveLeft')) this.keys.left = false;
+            else if (isA(e.key, 'moveRight')) this.keys.right = false;
+            else if (isA(e.key, 'sprint')) this.keys.sprint = false;
         });
 
         // D-pad buttons (continuous hold)

@@ -55,17 +55,28 @@ const WorldMap = {
         this.bindControls();
 
         window.addEventListener('resize', () => this.resizeCanvas());
+
+        // Deferred resize — container may not be laid out when init() runs
+        requestAnimationFrame(() => this.resizeCanvas());
     },
 
     resizeCanvas() {
         if (!this.canvas) return;
         const container = this.canvas.parentElement;
         if (!container) return;
+        const oldW = this.vpW;
+        const oldH = this.vpH;
         this.vpW = container.clientWidth;
         this.vpH = container.clientHeight;
         this.canvas.width = this.vpW;
         this.canvas.height = this.vpH;
         if (this.ctx) this.ctx.imageSmoothingEnabled = false;
+
+        // If viewport went from 0 to nonzero (container wasn't laid out yet), re-snap camera
+        if ((oldW === 0 || oldH === 0) && this.vpW > 0 && this.vpH > 0 && this.terrain) {
+            this.camX = this.px - this.vpW / 2;
+            this.camY = this.py - this.vpH / 2;
+        }
     },
 
     // ---- MAP LOADING ----
@@ -338,8 +349,13 @@ const WorldMap = {
         const h = this.vpH;
         const T = this.TS;
 
-        // Clear
-        ctx.fillStyle = '#0a0a0f';
+        // Clear with biome-appropriate color (no more black void)
+        const bgColors = {
+            ashen_wastes: '#2a1f14',
+            hollowfen: '#0f1a1f',
+            void_sanctum: '#15081a'
+        };
+        ctx.fillStyle = bgColors[GameState.currentRegion] || '#1a2a15';
         ctx.fillRect(0, 0, w, h);
 
         // Which tiles are visible
@@ -351,18 +367,38 @@ const WorldMap = {
         const mapH = this.terrain.length;
         const mapW = this.terrain[0].length;
 
-        // Draw terrain tiles
+        // Draw terrain tiles (including OOB as ground so world fills the screen)
         for (let ty = startTY; ty <= endTY; ty++) {
             for (let tx = startTX; tx <= endTX; tx++) {
-                if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
-
                 const screenX = Math.floor(tx * T - this.camX);
                 const screenY = Math.floor(ty * T - this.camY);
+
+                if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) {
+                    // Out-of-bounds: draw repeating ground so no black void
+                    const oobTile = Sprites.getTile('.', Math.abs(tx) % 64, Math.abs(ty) % 64);
+                    if (oobTile) ctx.drawImage(oobTile, screenX, screenY, T, T);
+                    continue;
+                }
 
                 const ch = this.getTerrainChar(tx, ty);
                 const tileCanvas = Sprites.getTile(ch, tx, ty);
                 if (tileCanvas) {
                     ctx.drawImage(tileCanvas, screenX, screenY, T, T);
+                }
+            }
+        }
+
+        // Terrain shadow pass — tall objects cast directional shadows (southeast)
+        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        for (let ty = startTY; ty <= endTY; ty++) {
+            for (let tx = startTX; tx <= endTX; tx++) {
+                if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
+                const ch = this.getTerrainChar(tx, ty);
+                if (ch === 'T' || ch === '#' || ch === 'R') {
+                    // Shadow offset: 4px right, 4px down
+                    const sx = Math.floor(tx * T - this.camX) + 4;
+                    const sy = Math.floor(ty * T - this.camY) + 4;
+                    ctx.fillRect(sx, sy, T, T);
                 }
             }
         }
@@ -872,8 +908,11 @@ const WorldMap = {
                 this.loadMap(data.currentMap);
                 this.px = data.playerX;
                 this.py = data.playerY;
-                this.camX = this.px - this.vpW / 2;
-                this.camY = this.py - this.vpH / 2;
+                // Snap camera (if vpW is still 0, resizeCanvas will re-snap later)
+                if (this.vpW > 0 && this.vpH > 0) {
+                    this.camX = this.px - this.vpW / 2;
+                    this.camY = this.py - this.vpH / 2;
+                }
             } else {
                 // Old tile-based save — convert
                 this.loadMap(data.currentMap, data.playerX, data.playerY);

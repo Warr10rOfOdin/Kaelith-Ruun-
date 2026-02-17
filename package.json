@@ -4,7 +4,8 @@
   "description": "Dark fantasy text RPG — native mobile game with web fallback",
   "main": "index.html",
   "scripts": {
-    "cap:sync": "npx cap sync",
+    "build": "node scripts/build.js",
+    "cap:sync": "npm run build && npx cap sync",
     "cap:open:ios": "npx cap open ios",
     "cap:open:android": "npx cap open android",
     "cap:run:ios": "npx cap run ios",
@@ -20,10 +21,12 @@
   "author": "Warr10rOfOdin",
   "license": "ISC",
   "dependencies": {
+    "@capacitor/android": "^8.1.0",
     "@capacitor/app": "^8.0.1",
     "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0",
     "@capacitor/haptics": "^8.0.0",
+    "@capacitor/ios": "^8.1.0",
     "@capacitor/keyboard": "^8.0.0",
     "@capacitor/preferences": "^8.0.1",
     "@capacitor/splash-screen": "^8.0.1",

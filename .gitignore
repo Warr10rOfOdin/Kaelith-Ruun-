@@ -8,6 +8,7 @@ android/
 # Build artifacts
 .capacitor/
 dist/
+www/
 
 # IDE
 .vscode/

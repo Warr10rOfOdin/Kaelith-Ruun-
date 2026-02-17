@@ -492,6 +492,7 @@ body {
     display: flex;
     overflow: hidden;
     position: relative;
+    min-height: 0;
 }
 
 #narrative-panel {
@@ -499,6 +500,7 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
 }
 
 #narrative-log {

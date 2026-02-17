@@ -3,7 +3,7 @@
 // Enables offline play and mobile app install
 // ============================================
 
-const CACHE_NAME = 'kaelith-ruun-v1';
+const CACHE_NAME = 'kaelith-ruun-v2';
 const ASSETS = [
     '/',
     '/index.html',
@@ -18,6 +18,7 @@ const ASSETS = [
     '/js/data/lore.js',
     '/js/data/npcs.js',
     '/js/data/quests.js',
+    '/js/data/maps.js',
     '/js/engine/state.js',
     '/js/engine/narrative.js',
     '/js/engine/combat.js',
@@ -25,6 +26,8 @@ const ASSETS = [
     '/js/engine/exploration.js',
     '/js/engine/dialogue.js',
     '/js/engine/progression.js',
+    '/js/engine/worldmap.js',
+    '/js/engine/base.js',
     '/js/ui/screens.js',
     '/js/ui/hud.js',
     '/js/ui/actions.js',
@@ -32,6 +35,7 @@ const ASSETS = [
     '/js/ui/effects.js',
     '/js/ui/touch.js',
     '/js/main.js',
+    '/js/native-bridge.js',
     '/icons/icon.svg',
     '/manifest.json'
 ];

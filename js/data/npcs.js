@@ -3,6 +3,313 @@
 // ============================================
 
 const NPCS = {
+    // ---- VILLAGE NPCs ----
+    emberhold_blacksmith: {
+        name: 'Tormund',
+        icon: '🔨',
+        title: 'Blacksmith of Emberhold',
+        location: 'emberhold',
+        description: 'A burly man with burns up both arms. He forges tools and weapons from scrap metal and sheer stubbornness.',
+        dialogues: {
+            initial: {
+                text: "Steel and fire — the only two things I trust in this world. You look like someone who could use both. My forge is open if you've got coin, or if you need repairs.",
+                choices: [
+                    { text: "Show me your wares.", next: 'shop', shopType: 'blacksmith' },
+                    { text: "What can you tell me about Emberhold?", next: 'about_town' },
+                    { text: "I'll be going.", next: 'farewell' }
+                ]
+            },
+            about_town: {
+                text: "We built this place from nothing after the Sundering. Sixty-three souls, give or take. The walls keep most things out, but the wastes are getting worse. More creatures every week. If you're the fighting type, we could use someone like you.",
+                choices: [
+                    { text: "I'll do what I can.", next: 'farewell_kind' },
+                    { text: "Let me see your stock.", next: 'shop', shopType: 'blacksmith' }
+                ]
+            },
+            shop: {
+                text: "Take a look. Everything's hand-forged right here in Emberhold. Nothing fancy, but it'll keep you alive — and that's what counts.",
+                choices: [],
+                isShop: true,
+                shopType: 'blacksmith'
+            },
+            farewell: {
+                text: "Watch yourself out there. The wastes don't forgive mistakes.",
+                choices: []
+            },
+            farewell_kind: {
+                text: "Good. We need more fighters and fewer corpses. Come back alive and I'll have something special on the anvil for you.",
+                choices: []
+            }
+        }
+    },
+    emberhold_herbalist: {
+        name: 'Miriel',
+        icon: '🌿',
+        title: 'Herbalist of Emberhold',
+        location: 'emberhold',
+        description: 'A quiet woman who grows medicinal herbs in impossible conditions. Her remedies have saved more lives than any sword.',
+        dialogues: {
+            initial: {
+                text: "The wastes may be dead, but life finds a way. Even here, things grow — if you know where to look. I've got salves, potions, and remedies. What do you need?",
+                choices: [
+                    { text: "What do you have for sale?", next: 'shop', shopType: 'herbalist' },
+                    { text: "How do you grow anything here?", next: 'about_garden' },
+                    { text: "Nothing right now, thanks.", next: 'farewell' }
+                ]
+            },
+            about_garden: {
+                text: "Ember roots thrive in heat — the hotter, the better. I've got a patch growing right next to the forge exhaust. The trick is knowing what wants to grow, not forcing what doesn't. Same lesson applies to people, I find.",
+                choices: [
+                    { text: "Could I grow things at my camp?", next: 'garden_advice' },
+                    { text: "Let me see your remedies.", next: 'shop', shopType: 'herbalist' }
+                ]
+            },
+            garden_advice: {
+                text: "With the right setup? Absolutely. Build a garden plot, keep it sheltered from the ash wind, and start with ember roots — they're nearly impossible to kill. Once you've got a garden going, you'll never run out of remedies.",
+                choices: [
+                    { text: "Good advice. Thanks.", next: 'farewell_kind' }
+                ]
+            },
+            shop: {
+                text: "Here's what I've got. Everything's fresh — well, as fresh as anything gets in the wastes.",
+                choices: [],
+                isShop: true,
+                shopType: 'herbalist'
+            },
+            farewell: { text: "Stay safe. And eat something — you look half-starved.", choices: [] },
+            farewell_kind: { text: "You've got good instincts. Trust them.", choices: [] }
+        }
+    },
+    emberhold_innkeeper: {
+        name: 'Old Renna',
+        icon: '🍺',
+        title: 'Innkeeper of Emberhold',
+        location: 'emberhold',
+        description: 'A stout woman who runs the only inn in Emberhold. Her stew is legendary, and her patience is not.',
+        dialogues: {
+            initial: {
+                text: "Welcome to the Ember's Rest — only inn in the wastes, so lower your standards accordingly. I've got stew, beds, and stories. What'll it be?",
+                choices: [
+                    { text: "[Rest] A bed for the night. (20g — Full heal)", next: 'rest', cost: 20 },
+                    { text: "[Buy] Bowl of stew. (8g)", next: 'buy_stew', cost: 8, item: 'hearth_stew' },
+                    { text: "Any news or rumors?", next: 'rumors' },
+                    { text: "Just passing through.", next: 'farewell' }
+                ]
+            },
+            rest: {
+                text: "Room's upstairs, second on the left. Don't mind the noises — that's just the building settling. Probably.",
+                choices: [],
+                restAtInn: true
+            },
+            buy_stew: {
+                text: "Best stew in the wastes. Also the only stew in the wastes. Eat up.",
+                choices: [{ text: "Thanks.", next: 'initial' }]
+            },
+            rumors: {
+                text: "Word is the creatures from the throne have been pushing further out. Bolder every night. Some folk say they've seen lights in the old palace — like someone's stoking the fires in there. And there's been talk of a camp on the eastern ridge. Might be bandits, might be survivors. Hard to tell the difference anymore.",
+                choices: [
+                    { text: "Interesting. Thanks.", next: 'initial' },
+                    { text: "I should rest.", next: 'rest', cost: 20 }
+                ]
+            },
+            farewell: {
+                text: "Don't be a stranger. Or do. I don't much care either way.",
+                choices: []
+            }
+        }
+    },
+
+    // ---- STILTHAVEN NPCs ----
+    stilthaven_blacksmith: {
+        name: 'Dreg',
+        icon: '🔨',
+        title: 'Ironworker of Stilthaven',
+        location: 'stilthaven',
+        description: 'A wiry man with webbed fingers — a mutation from years of swamp exposure. His metalwork is surprisingly delicate.',
+        dialogues: {
+            initial: {
+                text: "Heh. Don't stare at the fingers — they're better for hammering than you'd think. I work iron, bone, and whatever else washes up. Interested?",
+                choices: [
+                    { text: "Show me what you've got.", next: 'shop', shopType: 'blacksmith' },
+                    { text: "What's it like living here?", next: 'about_town' },
+                    { text: "Not today.", next: 'farewell' }
+                ]
+            },
+            about_town: {
+                text: "Wet. Dark. Dangerous. But the fen provides if you know how to take without taking too much. The Mother's been stirring lately — bad sign. The water level's been rising. If someone doesn't deal with her soon, Stilthaven might sink for good.",
+                choices: [
+                    { text: "I'll handle it.", next: 'farewell_kind' },
+                    { text: "Let me see your wares.", next: 'shop', shopType: 'blacksmith' }
+                ]
+            },
+            shop: {
+                text: "Everything's been treated against the damp. Can't have your sword rusting mid-swing, can we?",
+                choices: [],
+                isShop: true,
+                shopType: 'blacksmith'
+            },
+            farewell: { text: "Mind the boardwalks. Rotten ones'll dump you in the water, and you do NOT want to be in the water.", choices: [] },
+            farewell_kind: { text: "Ha! You've got guts. Don't let the fen take them. Literally.", choices: [] }
+        }
+    },
+    stilthaven_herbalist: {
+        name: 'Yarrow',
+        icon: '🌿',
+        title: 'Root Doctor of Stilthaven',
+        location: 'stilthaven',
+        description: 'A young woman with mushrooms growing from her hat. Whether intentionally or not is unclear.',
+        dialogues: {
+            initial: {
+                text: "Oh! A customer! Or a patient? Both? The fen provides the best ingredients for healing — and the best reasons to need healing. Funny how that works. What can I get you?",
+                choices: [
+                    { text: "What do you have?", next: 'shop', shopType: 'herbalist' },
+                    { text: "Nothing right now.", next: 'farewell' }
+                ]
+            },
+            shop: {
+                text: "Fresh from the fen! Some of it's still wriggling, but that just means it's potent!",
+                choices: [],
+                isShop: true,
+                shopType: 'herbalist'
+            },
+            farewell: { text: "Don't drink the water! Or do! It builds character! And also parasites!", choices: [] }
+        }
+    },
+    stilthaven_innkeeper: {
+        name: 'Barnaby',
+        icon: '🍺',
+        title: 'Keeper of the Soggy Stump',
+        location: 'stilthaven',
+        description: 'A cheerful man who runs an inn built inside a hollowed-out giant tree stump.',
+        dialogues: {
+            initial: {
+                text: "Welcome to the Soggy Stump! Driest spot in the whole fen, I promise! We've got beds, bog-brew, and a roof that only leaks in three places. What'll it be?",
+                choices: [
+                    { text: "[Rest] A dry bed, please. (25g — Full heal)", next: 'rest', cost: 25 },
+                    { text: "[Buy] Bowl of stew. (8g)", next: 'buy_stew', cost: 8, item: 'hearth_stew' },
+                    { text: "Any word from the swamp?", next: 'rumors' },
+                    { text: "Just browsing.", next: 'farewell' }
+                ]
+            },
+            rest: {
+                text: "Upstairs, mind the third step — it's alive. Sweet dreams!",
+                choices: [],
+                restAtInn: true
+            },
+            buy_stew: {
+                text: "Mystery stew! I genuinely don't know what's in it! It's delicious though!",
+                choices: [{ text: "...Thanks.", next: 'initial' }]
+            },
+            rumors: {
+                text: "The witch has been more talkative than usual. She says the Mother is preparing something — gathering her children closer. And folk who go too deep don't come back anymore. Used to be they'd come back changed. Now they just... don't.",
+                choices: [
+                    { text: "Noted.", next: 'initial' }
+                ]
+            },
+            farewell: { text: "Come back anytime! The Stump never closes! Mostly because the door's broken!", choices: [] }
+        }
+    },
+
+    // ---- LAST VIGIL NPCs ----
+    vigil_blacksmith: {
+        name: 'Commander Syl',
+        icon: '🔨',
+        title: 'Armorer of the Last Vigil',
+        location: 'last_vigil',
+        description: 'A stern woman who maintains the weapons and armor of the reality defenders. Every piece she makes is inscribed with wards.',
+        dialogues: {
+            initial: {
+                text: "You've made it to the Vigil. That means you're either strong or lucky, and we don't believe in luck here. I can equip you for what lies ahead — but nothing will fully prepare you for Ruun.",
+                choices: [
+                    { text: "I need gear.", next: 'shop', shopType: 'blacksmith' },
+                    { text: "What is this place?", next: 'about_town' },
+                    { text: "I'm ready.", next: 'farewell' }
+                ]
+            },
+            about_town: {
+                text: "The Last Vigil is exactly what it sounds like — the last line of defense between reality and the void. We've been holding this position for decades. Every year, we lose more ground. Every year, the void pushes closer. If you're heading to the Throne... you might be our last hope.",
+                choices: [
+                    { text: "I won't let you down.", next: 'farewell_kind' },
+                    { text: "Equip me for the fight.", next: 'shop', shopType: 'blacksmith' }
+                ]
+            },
+            shop: {
+                text: "Everything here is warded against void corruption. It's the best we can make — may it be enough.",
+                choices: [],
+                isShop: true,
+                shopType: 'blacksmith'
+            },
+            farewell: { text: "Stay sharp. Reality is fragile here.", choices: [] },
+            farewell_kind: { text: "We'll hold the line as long as we can. Go. End this.", choices: [] }
+        }
+    },
+    vigil_herbalist: {
+        name: 'Warden Asha',
+        icon: '🌿',
+        title: 'Apothecary of the Last Vigil',
+        location: 'last_vigil',
+        description: 'A healer who specializes in treating void exposure. Her patients include those who have looked into the abyss — and those the abyss looked back at.',
+        dialogues: {
+            initial: {
+                text: "You look relatively sane. That's good. The void eats at the mind as much as the body. I've got remedies for both — within limits.",
+                choices: [
+                    { text: "What do you have?", next: 'shop', shopType: 'herbalist' },
+                    { text: "How do you resist the void?", next: 'void_advice' },
+                    { text: "I'm fine.", next: 'farewell' }
+                ]
+            },
+            void_advice: {
+                text: "Focus on what's real. The void shows you things — memories, fears, futures that will never be. Don't listen. Don't look. And whatever you do, don't answer when it calls your name. It WILL call your name.",
+                choices: [
+                    { text: "I'll remember that.", next: 'farewell_kind' }
+                ]
+            },
+            shop: {
+                text: "Stock up. Where you're going, there are no second chances.",
+                choices: [],
+                isShop: true,
+                shopType: 'herbalist'
+            },
+            farewell: { text: "May reality hold firm beneath your feet.", choices: [] },
+            farewell_kind: { text: "You've got a strong mind. You'll need it.", choices: [] }
+        }
+    },
+    vigil_innkeeper: {
+        name: 'Keeper Dorin',
+        icon: '🍺',
+        title: 'Quartermaster of the Last Vigil',
+        location: 'last_vigil',
+        description: 'A grizzled old soldier who manages the Vigil\'s supplies and sleeping quarters.',
+        dialogues: {
+            initial: {
+                text: "We don't have an inn — we have barracks. But a bed's a bed, and sleep is weapon against the void. Rest, eat, and prepare.",
+                choices: [
+                    { text: "[Rest] I need sleep. (30g — Full heal)", next: 'rest', cost: 30 },
+                    { text: "[Buy] Rations. (8g)", next: 'buy_stew', cost: 8, item: 'hearth_stew' },
+                    { text: "What's the situation?", next: 'rumors' },
+                    { text: "I'm fine.", next: 'farewell' }
+                ]
+            },
+            rest: {
+                text: "Third bunk on the right. Wake-up call is whenever reality starts screaming. So... probably soon.",
+                choices: [],
+                restAtInn: true
+            },
+            buy_stew: {
+                text: "Standard rations. Keeps you alive. Tastes like it knows that's its only job.",
+                choices: [{ text: "Good enough.", next: 'initial' }]
+            },
+            rumors: {
+                text: "Ruun's been more active. The walls of reality thin further every day. Last week, three defenders walked into a corridor that didn't exist. We haven't seen them since. If you're going to make a move on the Throne of Unmaking, do it soon. We might not have a Vigil to come back to much longer.",
+                choices: [
+                    { text: "Understood.", next: 'initial' }
+                ]
+            },
+            farewell: { text: "Don't die before morning. It's bad for morale.", choices: [] }
+        }
+    },
+
+    // ---- ORIGINAL NPCs ----
     granny_moss: {
         name: 'Granny Moss',
         icon: '🧙',

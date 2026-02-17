@@ -847,7 +847,9 @@ const WorldMap = {
         if (!data) return;
         this.removedResources = data.removedResources || {};
         this.removedEntities = data.removedEntities || {};
-        this.facing = data.facing || 'down';
+        // Convert old facing values (north/south/east/west) to new (up/down/left/right)
+        const facingMap = { north: 'up', south: 'down', east: 'right', west: 'left' };
+        this.facing = facingMap[data.facing] || data.facing || 'down';
         if (data.currentMap && MAPS[data.currentMap]) {
             // If save has pixel positions, use them; otherwise convert tile coords
             if (data.playerX > 100) {

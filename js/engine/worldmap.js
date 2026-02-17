@@ -171,6 +171,13 @@ const WorldMap = {
 
         // Update particles
         Sprites.updateParticles(dt);
+
+        // Update ambient particles
+        Sprites.updateAmbientParticles(dt, GameState.currentRegion,
+            this.camX, this.camY, this.vpW, this.vpH);
+
+        // Update diegetic overlay
+        if (typeof DiegeticFX !== 'undefined') DiegeticFX.update();
     },
 
     handleMovement(dt) {
@@ -379,11 +386,19 @@ const WorldMap = {
         // Draw interaction prompt
         this.drawInteractPrompt(ctx);
 
-        // Particles
+        // Gathering particles
         Sprites.drawParticles(ctx, this.camX, this.camY);
+
+        // Ambient biome particles (ash, fog, corruption motes)
+        Sprites.drawAmbientParticles(ctx, this.camX, this.camY);
 
         // Region tint
         Sprites.applyRegionTint(ctx, w, h, GameState.currentRegion);
+
+        // Dynamic lighting (darkness + light sources)
+        Sprites.collectLightSources(this.terrain, this.entityMap,
+            this.camX, this.camY, w, h, this.TS);
+        Sprites.drawLighting(ctx, w, h, GameState.currentRegion);
 
         // Vignette
         Sprites.drawVignette(ctx, w, h);

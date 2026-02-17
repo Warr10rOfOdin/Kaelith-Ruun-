@@ -1,17 +1,22 @@
 // ============================================
-// NARRATIVE ENGINE
+// NARRATIVE ENGINE — Hidden Log + Floating Messages
 // ============================================
 
 const Narrative = {
     log: null,
+    floatingContainer: null,
+    maxFloating: 5,
 
     init() {
         this.log = document.getElementById('narrative-log');
+        this.floatingContainer = document.getElementById('floating-narrative');
     },
 
+    // Add to both hidden log and floating display
     addEntry(text, type = 'normal', delay = 0) {
         if (!this.log) this.init();
 
+        // Add to hidden log (for journal)
         const entry = document.createElement('div');
         entry.className = `narrative-entry ${type}`;
 
@@ -20,14 +25,42 @@ const Narrative = {
             setTimeout(() => {
                 entry.textContent = text;
                 entry.style.opacity = '';
-                this.log.appendChild(entry);
-                this.scrollToBottom();
+                if (this.log) {
+                    this.log.appendChild(entry);
+                    this.scrollToBottom();
+                }
+                this.showFloatingMessage(text, type);
             }, delay);
         } else {
             entry.textContent = text;
-            this.log.appendChild(entry);
-            this.scrollToBottom();
+            if (this.log) {
+                this.log.appendChild(entry);
+                this.scrollToBottom();
+            }
+            this.showFloatingMessage(text, type);
         }
+    },
+
+    // Show a floating message over the game world
+    showFloatingMessage(text, type) {
+        if (!this.floatingContainer) this.init();
+        if (!this.floatingContainer) return;
+
+        // Limit visible messages
+        while (this.floatingContainer.children.length >= this.maxFloating) {
+            this.floatingContainer.removeChild(this.floatingContainer.firstChild);
+        }
+
+        const msg = document.createElement('div');
+        msg.className = `float-msg ${type}`;
+        msg.textContent = text;
+        this.floatingContainer.appendChild(msg);
+
+        // Auto-remove after animation
+        const duration = type === 'story' ? 6000 : 4500;
+        setTimeout(() => {
+            if (msg.parentNode) msg.remove();
+        }, duration);
     },
 
     addStory(text) {
@@ -59,7 +92,14 @@ const Narrative = {
     },
 
     addSeparator() {
-        this.addEntry('— — —', 'separator');
+        // Only add to log, not floating
+        if (!this.log) this.init();
+        if (this.log) {
+            const entry = document.createElement('div');
+            entry.className = 'narrative-entry separator';
+            entry.textContent = '— — —';
+            this.log.appendChild(entry);
+        }
     },
 
     addTypedEntry(text, type = 'story', speed = 30) {
@@ -67,7 +107,7 @@ const Narrative = {
 
         const entry = document.createElement('div');
         entry.className = `narrative-entry ${type}`;
-        this.log.appendChild(entry);
+        if (this.log) this.log.appendChild(entry);
 
         let i = 0;
         const typeChar = () => {
@@ -79,11 +119,15 @@ const Narrative = {
             }
         };
         typeChar();
+
+        // Also show as floating
+        this.showFloatingMessage(text, type);
     },
 
     clear() {
         if (!this.log) this.init();
-        this.log.innerHTML = '';
+        if (this.log) this.log.innerHTML = '';
+        if (this.floatingContainer) this.floatingContainer.innerHTML = '';
     },
 
     scrollToBottom() {

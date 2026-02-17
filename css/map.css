@@ -1,23 +1,17 @@
 /* ============================================
-   MAP & WORLD STYLES — Mobile-First
+   MAP & WORLD STYLES — Immersive Full-Screen
    ============================================ */
 
-/* ---- TILE MAP VIEWPORT ---- */
-#game-play-area {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-}
-
+/* ---- FULL-SCREEN CANVAS VIEWPORT ---- */
 #map-viewport {
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
     background: #0a0a0f;
-    border-bottom: 1px solid var(--border-color);
-    flex: 1;
     overflow: hidden;
-    width: 100%;
-    min-height: 200px;
 }
 
 #game-canvas {
@@ -28,33 +22,143 @@
     image-rendering: crisp-edges;
 }
 
-/* ---- D-PAD CONTROLS ---- */
-#dpad-container {
+/* ---- OVERLAY HUD (translucent top bar) ---- */
+#game-screen #hud {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: rgba(10, 10, 15, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(58, 58, 82, 0.4);
+    padding: 0.3rem 0.6rem;
+    padding-top: calc(0.3rem + var(--sat));
+    gap: 0.15rem;
+}
+
+/* ---- FLOATING NARRATIVE ---- */
+#floating-narrative {
+    position: absolute;
+    bottom: 140px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    pointer-events: none;
     display: flex;
-    justify-content: center;
-    padding: 0.3rem 0;
-    background: var(--bg-dark);
-    border-top: 1px solid var(--border-color);
-    flex-shrink: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    max-width: 85%;
+    width: 400px;
+}
+
+.float-msg {
+    padding: 6px 14px;
+    background: rgba(10, 10, 15, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(58, 58, 82, 0.4);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    line-height: 1.4;
+    text-align: center;
+    animation: floatMsgIn 0.3s ease, floatMsgOut 0.5s ease 3.5s forwards;
+    max-width: 100%;
+}
+
+.float-msg.story {
+    color: var(--text-bright);
+    border-left: 2px solid var(--accent-gold-dim);
+    animation: floatMsgIn 0.3s ease, floatMsgOut 0.5s ease 5s forwards;
+}
+
+.float-msg.loot {
+    color: var(--accent-green-bright);
+    border-color: var(--accent-green);
+}
+
+.float-msg.damage {
+    color: var(--accent-red-bright);
+    border-color: var(--accent-red);
+}
+
+.float-msg.heal {
+    color: var(--accent-green-bright);
+}
+
+.float-msg.system {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+}
+
+.float-msg.action {
+    color: var(--accent-gold);
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+}
+
+@keyframes floatMsgIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatMsgOut {
+    from { opacity: 1; }
+    to { opacity: 0; transform: translateY(-8px); }
+}
+
+/* ---- DIEGETIC OVERLAY ---- */
+#diegetic-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 8;
+    pointer-events: none;
+    transition: all 0.5s ease;
+}
+
+/* ---- D-PAD CONTROLS (overlay) ---- */
+#dpad-container {
+    position: absolute;
+    bottom: calc(58px + var(--sab));
+    left: 10px;
+    z-index: 12;
+    opacity: 0.65;
+    transition: opacity 0.2s ease;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+#dpad-container:active,
+#dpad-container:hover {
+    opacity: 0.9;
 }
 
 .dpad-grid {
     display: grid;
-    grid-template-columns: repeat(3, 48px);
-    grid-template-rows: repeat(3, 40px);
-    gap: 3px;
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(3, 38px);
+    gap: 2px;
 }
 
 .dpad-btn {
-    background: var(--bg-medium);
-    border: 1px solid var(--border-color);
+    background: rgba(18, 18, 28, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(58, 58, 82, 0.5);
     color: var(--text-secondary);
-    font-size: 1rem;
+    font-size: 0.9rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: all 0.1s ease;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
@@ -63,26 +167,75 @@
 }
 
 .dpad-btn:active {
-    background: var(--bg-light);
+    background: rgba(37, 37, 64, 0.8);
     border-color: var(--accent-gold-dim);
     color: var(--accent-gold);
-    transform: scale(0.95);
+    transform: scale(0.93);
 }
 
 .dpad-center {
-    background: var(--bg-light);
-    border-color: var(--accent-gold-dim);
+    background: rgba(37, 37, 64, 0.7);
+    border-color: rgba(201, 168, 76, 0.4);
     color: var(--accent-gold);
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 .dpad-center:active {
-    background: var(--accent-gold-dim);
+    background: rgba(201, 168, 76, 0.2);
     color: var(--text-bright);
 }
 
 .dpad-spacer {
     /* empty grid cell */
+}
+
+/* ---- ACTION BAR (overlay) ---- */
+#action-bar {
+    position: absolute;
+    bottom: calc(62px + var(--sab));
+    right: 10px;
+    z-index: 12;
+    background: rgba(10, 10, 15, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(58, 58, 82, 0.4);
+    border-radius: 8px;
+    padding: 4px;
+    max-width: 200px;
+}
+
+#action-buttons {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* ---- BOTTOM NAV (compact overlay) ---- */
+#bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 12;
+    background: rgba(10, 10, 15, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(58, 58, 82, 0.4);
+    padding-bottom: var(--sab);
+}
+
+/* ---- SIDE PANEL (overlay) ---- */
+#game-screen #side-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    background: rgba(12, 12, 20, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 /* ---- WORLD MAP (Travel Panel) ---- */
@@ -322,17 +475,21 @@
     .world-location .loc-desc { white-space: normal; font-size: 0.8rem; }
 
     .dpad-grid {
-        grid-template-columns: repeat(3, 56px);
-        grid-template-rows: repeat(3, 46px);
-        gap: 4px;
+        grid-template-columns: repeat(3, 52px);
+        grid-template-rows: repeat(3, 44px);
+        gap: 3px;
     }
 
     .dpad-btn {
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
 
     .farm-plots {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    #floating-narrative {
+        width: 450px;
     }
 }
 
@@ -346,35 +503,19 @@
     .world-location .loc-name { font-size: 0.9rem; }
     .world-location .loc-desc { white-space: normal; }
 
-    #game-play-area {
-        flex-direction: row;
-    }
-
-    #map-viewport {
-        border-bottom: none;
-        border-right: 1px solid var(--border-color);
-        flex: 2;
-        min-width: 300px;
-    }
-
-    #narrative-panel {
-        flex: 1;
-        min-width: 200px;
-    }
-
-    .dpad-grid {
-        grid-template-columns: repeat(3, 60px);
-        grid-template-rows: repeat(3, 50px);
+    /* Hide D-pad on desktop (keyboard controls) */
+    #dpad-container {
+        display: none;
     }
 
     .dpad-btn:hover {
-        background: var(--bg-light);
+        background: rgba(37, 37, 64, 0.7);
         border-color: var(--accent-gold-dim);
         color: var(--accent-gold);
     }
 
     .dpad-center:hover {
-        background: var(--accent-gold-dim);
+        background: rgba(201, 168, 76, 0.2);
         color: var(--text-bright);
     }
 
@@ -382,5 +523,17 @@
     .craft-item:not(.locked):hover {
         border-color: var(--accent-gold-dim);
         background: var(--bg-light);
+    }
+
+    /* Side panel becomes right sidebar on desktop */
+    #game-screen #side-panel {
+        left: auto;
+        width: 380px;
+        border-left: 1px solid rgba(58, 58, 82, 0.5);
+    }
+
+    #floating-narrative {
+        width: 500px;
+        bottom: 80px;
     }
 }

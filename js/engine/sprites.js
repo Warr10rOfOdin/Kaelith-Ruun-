@@ -1249,17 +1249,17 @@ const Sprites = {
         ctx.fillText(text, x, py + h / 2);
     },
 
-    // ── Region Tinting ──────────────────────
+    // ── Region Tinting (enhanced biome identity) ──
 
     applyRegionTint(ctx, w, h, region) {
         if (region === 'hollowfen') {
-            ctx.fillStyle = 'rgba(20,40,60,0.12)';
+            ctx.fillStyle = 'rgba(15,35,50,0.14)';
             ctx.fillRect(0, 0, w, h);
         } else if (region === 'void_sanctum') {
-            ctx.fillStyle = 'rgba(40,10,50,0.18)';
+            ctx.fillStyle = 'rgba(35,10,45,0.2)';
             ctx.fillRect(0, 0, w, h);
         } else if (region === 'ashen_wastes') {
-            ctx.fillStyle = 'rgba(40,25,10,0.08)';
+            ctx.fillStyle = 'rgba(40,25,10,0.1)';
             ctx.fillRect(0, 0, w, h);
         }
     },
@@ -1267,11 +1267,276 @@ const Sprites = {
     // ── Vignette Effect ─────────────────────
 
     drawVignette(ctx, w, h) {
-        const grd = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.max(w, h) * 0.7);
+        const grd = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.3, w / 2, h / 2, Math.max(w, h) * 0.65);
         grd.addColorStop(0, 'rgba(0,0,0,0)');
-        grd.addColorStop(1, 'rgba(0,0,0,0.3)');
+        grd.addColorStop(1, 'rgba(0,0,0,0.35)');
         ctx.fillStyle = grd;
         ctx.fillRect(0, 0, w, h);
+    },
+
+    // ── Dynamic Lighting System ─────────────
+
+    lightSources: [],
+    _lightCanvas: null,
+    _lightCtx: null,
+
+    collectLightSources(terrain, entityMap, camX, camY, vpW, vpH, TS) {
+        this.lightSources = [];
+        if (!terrain) return;
+
+        const startTX = Math.floor(camX / TS) - 2;
+        const startTY = Math.floor(camY / TS) - 2;
+        const endTX = Math.ceil((camX + vpW) / TS) + 2;
+        const endTY = Math.ceil((camY + vpH) / TS) + 2;
+        const mapH = terrain.length;
+        const mapW = terrain[0] ? terrain[0].length : 0;
+
+        for (let ty = startTY; ty <= endTY; ty++) {
+            for (let tx = startTX; tx <= endTX; tx++) {
+                if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
+                const ch = terrain[ty][tx];
+
+                // Campfires emit warm light
+                if (ch === 'F') {
+                    const flicker = 0.9 + Math.sin(this.animFrame * 2.1 + tx * 3.7) * 0.1;
+                    this.lightSources.push({
+                        x: tx * TS + TS / 2 - camX,
+                        y: ty * TS + TS / 2 - camY,
+                        radius: 100 * flicker,
+                        color: [255, 160, 60],
+                        intensity: 0.7 * flicker
+                    });
+                }
+                // Lanterns emit steady warm glow
+                if (ch === 'L') {
+                    this.lightSources.push({
+                        x: tx * TS + TS / 2 - camX,
+                        y: ty * TS + TS / 2 - camY,
+                        radius: 80,
+                        color: [255, 200, 80],
+                        intensity: 0.5
+                    });
+                }
+                // Ember roots glow faintly
+                if (ch === 'E') {
+                    this.lightSources.push({
+                        x: tx * TS + TS / 2 - camX,
+                        y: ty * TS + TS / 2 - camY,
+                        radius: 45,
+                        color: [220, 100, 30],
+                        intensity: 0.3
+                    });
+                }
+                // Veil crystals emit purple light
+                if (ch === 'V') {
+                    const pulse = 0.8 + Math.sin(this.animFrame * 1.5 + tx * 2.3) * 0.2;
+                    this.lightSources.push({
+                        x: tx * TS + TS / 2 - camX,
+                        y: ty * TS + TS / 2 - camY,
+                        radius: 55 * pulse,
+                        color: [150, 80, 220],
+                        intensity: 0.35 * pulse
+                    });
+                }
+            }
+        }
+
+        // Entity-based lights (campfire entities)
+        for (const key in entityMap) {
+            const entity = entityMap[key];
+            if (entity.type === 'campfire') {
+                const [ex, ey] = key.split(',').map(Number);
+                const flicker = 0.85 + Math.sin(this.animFrame * 2.5 + ex * 4.1) * 0.15;
+                this.lightSources.push({
+                    x: ex * TS + TS / 2 - camX,
+                    y: ey * TS + TS / 2 - camY,
+                    radius: 120 * flicker,
+                    color: [255, 140, 50],
+                    intensity: 0.8 * flicker
+                });
+            }
+        }
+    },
+
+    drawLighting(ctx, w, h, region) {
+        // Determine ambient darkness level by region
+        let ambientDark = 0.25; // base darkness
+        if (region === 'void_sanctum') ambientDark = 0.4;
+        else if (region === 'hollowfen') ambientDark = 0.3;
+
+        // Create or reuse offscreen lighting canvas
+        if (!this._lightCanvas || this._lightCanvas.width !== w || this._lightCanvas.height !== h) {
+            this._lightCanvas = document.createElement('canvas');
+            this._lightCanvas.width = w;
+            this._lightCanvas.height = h;
+            this._lightCtx = this._lightCanvas.getContext('2d');
+        }
+
+        const lctx = this._lightCtx;
+
+        // Fill with ambient darkness
+        lctx.globalCompositeOperation = 'source-over';
+        lctx.fillStyle = `rgba(0,0,0,${ambientDark})`;
+        lctx.fillRect(0, 0, w, h);
+
+        // Cut out light circles (additive blending to remove darkness)
+        lctx.globalCompositeOperation = 'destination-out';
+        for (const light of this.lightSources) {
+            const grd = lctx.createRadialGradient(
+                light.x, light.y, 0,
+                light.x, light.y, light.radius
+            );
+            grd.addColorStop(0, `rgba(0,0,0,${light.intensity})`);
+            grd.addColorStop(0.5, `rgba(0,0,0,${light.intensity * 0.4})`);
+            grd.addColorStop(1, 'rgba(0,0,0,0)');
+            lctx.fillStyle = grd;
+            lctx.fillRect(light.x - light.radius, light.y - light.radius,
+                light.radius * 2, light.radius * 2);
+        }
+
+        // Player emits a small personal light
+        const px = w / 2, py = h / 2;
+        const playerGrd = lctx.createRadialGradient(px, py, 0, px, py, 70);
+        playerGrd.addColorStop(0, 'rgba(0,0,0,0.35)');
+        playerGrd.addColorStop(1, 'rgba(0,0,0,0)');
+        lctx.fillStyle = playerGrd;
+        lctx.fillRect(px - 70, py - 70, 140, 140);
+
+        // Apply darkness overlay to main canvas
+        ctx.drawImage(this._lightCanvas, 0, 0);
+
+        // Now add colored light glows on top (screen blend feel)
+        lctx.globalCompositeOperation = 'source-over';
+        lctx.clearRect(0, 0, w, h);
+        for (const light of this.lightSources) {
+            const grd = lctx.createRadialGradient(
+                light.x, light.y, 0,
+                light.x, light.y, light.radius * 0.7
+            );
+            const [r, g, b] = light.color;
+            grd.addColorStop(0, `rgba(${r},${g},${b},${light.intensity * 0.15})`);
+            grd.addColorStop(1, 'rgba(0,0,0,0)');
+            lctx.fillStyle = grd;
+            lctx.fillRect(light.x - light.radius, light.y - light.radius,
+                light.radius * 2, light.radius * 2);
+        }
+        ctx.drawImage(this._lightCanvas, 0, 0);
+    },
+
+    // ── Ambient Particle System ─────────────
+
+    ambientParticles: [],
+    _ambientTimer: 0,
+    _currentBiome: null,
+
+    updateAmbientParticles(dt, region, camX, camY, vpW, vpH) {
+        this._ambientTimer += dt;
+
+        // Spawn new ambient particles periodically
+        const spawnRate = region === 'void_sanctum' ? 0.08 : 0.15;
+        if (this._ambientTimer >= spawnRate) {
+            this._ambientTimer -= spawnRate;
+            this.spawnAmbientParticle(region, camX, camY, vpW, vpH);
+        }
+
+        // Update existing particles
+        for (let i = this.ambientParticles.length - 1; i >= 0; i--) {
+            const p = this.ambientParticles[i];
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+
+            // Slight wave motion
+            if (p.wave) {
+                p.x += Math.sin(p.life * p.waveFreq + p.waveOffset) * p.waveAmp * dt;
+            }
+
+            p.life -= dt;
+            if (p.life <= 0) {
+                this.ambientParticles.splice(i, 1);
+            }
+        }
+
+        // Cap particle count
+        while (this.ambientParticles.length > 80) {
+            this.ambientParticles.shift();
+        }
+    },
+
+    spawnAmbientParticle(region, camX, camY, vpW, vpH) {
+        const worldX = camX + Math.random() * vpW;
+        const worldY = camY + Math.random() * vpH;
+
+        if (region === 'ashen_wastes') {
+            // Drifting ash particles — rise slowly
+            this.ambientParticles.push({
+                x: worldX, y: worldY,
+                vx: (Math.random() - 0.5) * 15,
+                vy: -8 - Math.random() * 12,
+                life: 3 + Math.random() * 3,
+                maxLife: 3 + Math.random() * 3,
+                color: Math.random() < 0.5 ? '#8a7a6a' : '#6a5a4a',
+                size: 1 + Math.random() * 2,
+                wave: true,
+                waveFreq: 2 + Math.random() * 2,
+                waveAmp: 8 + Math.random() * 5,
+                waveOffset: Math.random() * 6.28
+            });
+        } else if (region === 'hollowfen') {
+            // Fog wisps — slow horizontal drift
+            this.ambientParticles.push({
+                x: worldX, y: worldY,
+                vx: 5 + Math.random() * 10,
+                vy: (Math.random() - 0.5) * 3,
+                life: 4 + Math.random() * 4,
+                maxLife: 4 + Math.random() * 4,
+                color: 'rgba(120,150,170,0.15)',
+                size: 6 + Math.random() * 10,
+                wave: true,
+                waveFreq: 0.5 + Math.random(),
+                waveAmp: 3,
+                waveOffset: Math.random() * 6.28,
+                isBlob: true
+            });
+        } else if (region === 'void_sanctum') {
+            // Corruption motes — erratic, purple
+            this.ambientParticles.push({
+                x: worldX, y: worldY,
+                vx: (Math.random() - 0.5) * 20,
+                vy: -5 + (Math.random() - 0.5) * 15,
+                life: 2 + Math.random() * 3,
+                maxLife: 2 + Math.random() * 3,
+                color: Math.random() < 0.5 ? '#8a3aaa' : '#6a2a8a',
+                size: 1 + Math.random() * 2.5,
+                wave: true,
+                waveFreq: 3 + Math.random() * 3,
+                waveAmp: 12 + Math.random() * 8,
+                waveOffset: Math.random() * 6.28
+            });
+        }
+    },
+
+    drawAmbientParticles(ctx, camX, camY) {
+        for (const p of this.ambientParticles) {
+            const alpha = Math.min(1, (p.life / p.maxLife) * 2) * Math.min(1, p.life);
+            if (alpha <= 0) continue;
+
+            const sx = p.x - camX;
+            const sy = p.y - camY;
+
+            if (p.isBlob) {
+                // Fog blob
+                ctx.globalAlpha = alpha * 0.3;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.ellipse(sx, sy, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                ctx.globalAlpha = alpha * 0.7;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(sx, sy, p.size, p.size);
+            }
+        }
+        ctx.globalAlpha = 1;
     },
 
     // ── Gathering Particles ─────────────────

@@ -75,7 +75,12 @@
 
         <!-- Main Game Screen -->
         <div id="game-screen" class="screen">
-            <!-- Top HUD -->
+            <!-- Full-Screen Canvas Viewport (base layer) -->
+            <div id="map-viewport">
+                <canvas id="game-canvas"></canvas>
+            </div>
+
+            <!-- Overlay HUD (translucent top bar) -->
             <div id="hud">
                 <div class="hud-row-top">
                     <span id="hud-name" class="hud-item"></span>
@@ -104,29 +109,18 @@
                 </div>
             </div>
 
-            <!-- Main Content Area -->
-            <div id="main-content">
-                <!-- Map + Narrative split -->
-                <div id="game-play-area">
-                    <!-- Canvas Game Viewport -->
-                    <div id="map-viewport">
-                        <canvas id="game-canvas"></canvas>
-                    </div>
+            <!-- Floating Narrative Messages (over the world) -->
+            <div id="floating-narrative"></div>
 
-                    <!-- Narrative Panel (below the map) -->
-                    <div id="narrative-panel">
-                        <div id="narrative-log"></div>
-                    </div>
-                </div>
-
-                <!-- Side Panel (Inventory, Map, etc.) — slides over on mobile -->
-                <div id="side-panel" class="hidden">
-                    <button id="side-panel-close" class="side-panel-close" onclick="document.getElementById('side-panel').classList.add('hidden')">Back</button>
-                    <div id="side-panel-content"></div>
-                </div>
+            <!-- Hidden Narrative Log (preserved for journal) -->
+            <div id="narrative-panel" style="display:none">
+                <div id="narrative-log"></div>
             </div>
 
-            <!-- D-Pad Controls -->
+            <!-- Diegetic Overlay Effects -->
+            <div id="diegetic-overlay"></div>
+
+            <!-- D-Pad Controls (semi-transparent overlay) -->
             <div id="dpad-container">
                 <div class="dpad-grid">
                     <div class="dpad-spacer"></div>
@@ -141,12 +135,12 @@
                 </div>
             </div>
 
-            <!-- Action Bar -->
+            <!-- Action Bar (overlay) -->
             <div id="action-bar">
                 <div id="action-buttons"></div>
             </div>
 
-            <!-- Bottom Navigation -->
+            <!-- Bottom Navigation (compact overlay) -->
             <div id="bottom-nav">
                 <button class="nav-tab active" data-tab="explore">
                     <span class="tab-icon">&#x2694;&#xFE0F;</span>
@@ -172,6 +166,12 @@
                     <span class="tab-icon">&#x1F4DC;</span>
                     <span class="tab-label">Quests</span>
                 </button>
+            </div>
+
+            <!-- Side Panel (slides over) -->
+            <div id="side-panel" class="hidden">
+                <button id="side-panel-close" class="side-panel-close" onclick="document.getElementById('side-panel').classList.add('hidden')">Back</button>
+                <div id="side-panel-content"></div>
             </div>
         </div>
 

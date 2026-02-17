@@ -11,7 +11,7 @@ const WORLD = {
             levelRange: [1, 4],
             enemies: ['void_rat', 'ashen_wraith', 'scorched_bandit', 'ember_hound'],
             boss: 'the_ashen_king',
-            locations: ['ruined_outpost', 'scorched_village', 'ashen_throne'],
+            locations: ['ruined_outpost', 'emberhold', 'scorched_village', 'player_camp', 'ashen_throne'],
             unlocked: true,
             explored: false,
             ambientText: [
@@ -29,7 +29,7 @@ const WORLD = {
             levelRange: [3, 6],
             enemies: ['bog_crawler', 'fen_witch', 'drowned_knight'],
             boss: 'mother_of_the_fen',
-            locations: ['sunken_chapel', 'witchs_hut', 'heart_of_the_fen'],
+            locations: ['sunken_chapel', 'stilthaven', 'witchs_hut', 'heart_of_the_fen'],
             unlocked: false,
             unlockCondition: 'Defeat the Ashen King',
             explored: false,
@@ -48,7 +48,7 @@ const WORLD = {
             levelRange: [5, 10],
             enemies: ['void_acolyte', 'reality_shard', 'shadow_sentinel'],
             boss: 'ruun_the_unraveler',
-            locations: ['outer_gate', 'hall_of_echoes', 'throne_of_unmaking'],
+            locations: ['outer_gate', 'last_vigil', 'hall_of_echoes', 'throne_of_unmaking'],
             unlocked: false,
             unlockCondition: 'Defeat the Mother of the Fen',
             explored: false,
@@ -77,6 +77,65 @@ const WORLD = {
                     'You search through the rubble and find a supply cache, partially intact.',
                     'A rat the size of a dog watches you from a collapsed doorway. Its eyes glow faintly violet.',
                     'Among the debris, you find a soldier\'s journal. The last entry reads: "The sky opened. The sky opened and it LOOKED AT US."'
+                ]
+            }
+        },
+        emberhold: {
+            name: 'Emberhold',
+            icon: '🏘️',
+            region: 'ashen_wastes',
+            description: 'A survivor settlement built in the ruins of a fortress. Walls of scrap metal and determination keep the wastes at bay.',
+            type: 'village',
+            services: ['blacksmith', 'herbalist', 'inn', 'notice_board'],
+            narrative: {
+                enter: 'Firelight spills through gaps in the makeshift walls. Emberhold — a defiant spark of civilization in the dead wastes. Guards nod as you approach the gate. "Another survivor," one mutters. "Welcome to what passes for home."',
+                ambient: [
+                    'A blacksmith hammers at an anvil, sparks flying like angry fireflies.',
+                    'Children chase each other between the shelters, laughing despite everything.',
+                    'The smell of cooking stew drifts from the inn. Your stomach growls.',
+                    'An old man sits by the gate, carving runes into stone with practiced hands.',
+                    'A woman tends a small garden of ember roots, their faint glow warming her face.'
+                ]
+            },
+            npcs: ['emberhold_blacksmith', 'emberhold_herbalist', 'emberhold_innkeeper'],
+            shops: {
+                blacksmith: {
+                    name: 'Tormund\'s Forge',
+                    icon: '🔨',
+                    items: [
+                        { item: 'iron_longsword', cost: 40 },
+                        { item: 'chainmail_vest', cost: 45 },
+                        { item: 'soul_shield', cost: 20 },
+                        { item: 'iron_ore', cost: 8 },
+                        { item: 'iron_ingot', cost: 18 }
+                    ]
+                },
+                herbalist: {
+                    name: 'Miriel\'s Remedies',
+                    icon: '🌿',
+                    items: [
+                        { item: 'health_vial', cost: 12 },
+                        { item: 'mana_vial', cost: 12 },
+                        { item: 'antidote', cost: 18 },
+                        { item: 'ember_root', cost: 10 }
+                    ]
+                }
+            }
+        },
+        player_camp: {
+            name: 'Your Camp',
+            icon: '🏕️',
+            region: 'ashen_wastes',
+            description: 'A sheltered spot you\'ve claimed as your own. With time and resources, it could become something more.',
+            type: 'base',
+            narrative: {
+                enter: 'You return to your camp. The fire crackles in its ring of stones, a tiny defiance against the endless dark. This place is yours — humble, but yours.',
+                ambient: [
+                    'The campfire pops and hisses, sending embers drifting upward.',
+                    'Your supplies are arranged neatly against the wall. A place for everything.',
+                    'The wind howls outside, but here, behind your walls, it is almost quiet.',
+                    'A crow perches on your fence, watching you with knowing eyes.',
+                    'For a moment, this ruined world feels almost like home.'
                 ]
             }
         },
@@ -126,6 +185,49 @@ const WORLD = {
                 ]
             }
         },
+        stilthaven: {
+            name: 'Stilthaven',
+            icon: '🏘️',
+            region: 'hollowfen',
+            description: 'A village built on stilts above the black water. Lanterns sway in the mist, and the boardwalks creak with every step.',
+            type: 'village',
+            services: ['blacksmith', 'herbalist', 'inn', 'notice_board'],
+            narrative: {
+                enter: 'Stilthaven rises from the mist like a fever dream — rickety platforms connected by swaying bridges, all perched on ancient stilts above the hungry water. Lanterns cast pools of amber light. The people here have a hardness to them, but they nod in greeting.',
+                ambient: [
+                    'A fisherman pulls something from the water. He cuts the line before you can see what it is.',
+                    'Two children dare each other to touch the water. Neither does.',
+                    'The herbalist hums as she dries bundles of swamp herbs over a smokeless flame.',
+                    'A dog barks at something in the mist. The dog whimpers and retreats inside.',
+                    'Somewhere below the boardwalk, you hear something large exhale.'
+                ]
+            },
+            npcs: ['stilthaven_blacksmith', 'stilthaven_herbalist', 'stilthaven_innkeeper'],
+            shops: {
+                blacksmith: {
+                    name: 'Dreg\'s Ironworks',
+                    icon: '🔨',
+                    items: [
+                        { item: 'voidtouched_blade', cost: 90 },
+                        { item: 'fen_staff', cost: 140 },
+                        { item: 'bog_leather', cost: 110 },
+                        { item: 'iron_ingot', cost: 18 },
+                        { item: 'bog_fiber', cost: 8 }
+                    ]
+                },
+                herbalist: {
+                    name: 'Root & Remedy',
+                    icon: '🌿',
+                    items: [
+                        { item: 'health_vial', cost: 12 },
+                        { item: 'greater_health_potion', cost: 45 },
+                        { item: 'antidote', cost: 15 },
+                        { item: 'blood_flask', cost: 18 },
+                        { item: 'ember_root', cost: 10 }
+                    ]
+                }
+            }
+        },
         witchs_hut: {
             name: "Witch's Hut",
             icon: '🏠',
@@ -166,6 +268,49 @@ const WORLD = {
                     'The floor beneath you shows a different room than the one you\'re standing in.',
                     'You find runes carved into the threshold. Reading them makes your nose bleed, but you understand: "WHAT ENTERS MAY NOT LEAVE UNCHANGED."'
                 ]
+            }
+        },
+        last_vigil: {
+            name: 'The Last Vigil',
+            icon: '🏘️',
+            region: 'void_sanctum',
+            description: 'An outpost of reality-defenders who stand against the void. The last sane place before the end.',
+            type: 'village',
+            services: ['blacksmith', 'herbalist', 'inn', 'notice_board'],
+            narrative: {
+                enter: 'They call it the Last Vigil — a ring of warded tents and reality-anchors at the edge of sanity. The defenders here wear sigils carved into their skin, and their eyes carry the look of people who have seen too much. "You\'re either very brave or very lost," says the gate warden. "Either way, rest while you can."',
+                ambient: [
+                    'A defender checks her reality-anchor for the hundredth time today.',
+                    'Two soldiers argue about whether the stars have moved since yesterday.',
+                    'The ward-keeper traces protective runes in the air with glowing fingertips.',
+                    'Someone screams in their sleep. No one looks surprised.',
+                    'The sky above shifts colors that have no name.'
+                ]
+            },
+            npcs: ['vigil_blacksmith', 'vigil_herbalist', 'vigil_innkeeper'],
+            shops: {
+                blacksmith: {
+                    name: 'The Reality Forge',
+                    icon: '🔨',
+                    items: [
+                        { item: 'emberforged_axe', cost: 220 },
+                        { item: 'runebound_plate', cost: 270 },
+                        { item: 'shadow_daggers', cost: 150 },
+                        { item: 'veil_crystal', cost: 50 },
+                        { item: 'shadow_silk', cost: 35 }
+                    ]
+                },
+                herbalist: {
+                    name: 'Warden\'s Apothecary',
+                    icon: '🌿',
+                    items: [
+                        { item: 'greater_health_potion', cost: 45 },
+                        { item: 'elixir_of_power', cost: 55 },
+                        { item: 'antidote', cost: 15 },
+                        { item: 'blood_flask', cost: 18 },
+                        { item: 'smoke_bomb', cost: 22 }
+                    ]
+                }
             }
         },
         hall_of_echoes: {

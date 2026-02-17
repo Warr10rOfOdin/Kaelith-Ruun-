@@ -11,7 +11,7 @@ const Inventory = {
         let html = '<h3>Equipment</h3>';
         html += '<div class="equipment-slots">';
 
-        const slots = ['weapon', 'armor', 'offhand', 'accessory'];
+        const slots = ['weapon', 'helmet', 'armor', 'boots', 'offhand', 'accessory'];
         slots.forEach(slot => {
             const itemKey = p.equipment[slot];
             const item = itemKey ? ITEMS[itemKey] : null;
@@ -83,12 +83,16 @@ const Inventory = {
 
         html += '<div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap">';
 
-        if (item.type === 'weapon' || item.type === 'armor') {
+        if (item.type === 'weapon' || item.type === 'armor' || item.type === 'tool') {
             html += `<button class="action-btn primary" onclick="Inventory.equipFromInventory('${itemKey}')">Equip</button>`;
         }
 
         if (item.type === 'consumable') {
             html += `<button class="action-btn primary" onclick="Inventory.useFromInventory('${itemKey}')">Use</button>`;
+        }
+
+        if (item.type === 'placeable') {
+            html += `<button class="action-btn primary" onclick="Base.placePlaceable('${itemKey}'); Inventory.render()">Place</button>`;
         }
 
         if (item.value > 0) {

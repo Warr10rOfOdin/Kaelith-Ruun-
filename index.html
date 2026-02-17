@@ -39,7 +39,7 @@
                 <button id="btn-continue" class="menu-btn" disabled>Continue</button>
                 <button id="btn-lore" class="menu-btn">World Lore</button>
             </div>
-            <p class="version-info">v0.1.0 — The Awakening</p>
+            <p class="version-info">v0.2.0 — Open World</p>
             <p id="install-prompt" class="install-hint hidden">Tap to install as app</p>
         </div>
 
@@ -106,15 +106,36 @@
 
             <!-- Main Content Area -->
             <div id="main-content">
-                <!-- Narrative Panel -->
-                <div id="narrative-panel">
-                    <div id="narrative-log"></div>
+                <!-- Map + Narrative split -->
+                <div id="game-play-area">
+                    <!-- Tile Map Viewport -->
+                    <div id="map-viewport"></div>
+
+                    <!-- Narrative Panel (below the map) -->
+                    <div id="narrative-panel">
+                        <div id="narrative-log"></div>
+                    </div>
                 </div>
 
                 <!-- Side Panel (Inventory, Map, etc.) — slides over on mobile -->
                 <div id="side-panel" class="hidden">
                     <button id="side-panel-close" class="side-panel-close" onclick="document.getElementById('side-panel').classList.add('hidden')">Back</button>
                     <div id="side-panel-content"></div>
+                </div>
+            </div>
+
+            <!-- D-Pad Controls -->
+            <div id="dpad-container">
+                <div class="dpad-grid">
+                    <div class="dpad-spacer"></div>
+                    <button id="dpad-up" class="dpad-btn dpad-up" aria-label="Move Up">&#x25B2;</button>
+                    <div class="dpad-spacer"></div>
+                    <button id="dpad-left" class="dpad-btn dpad-left" aria-label="Move Left">&#x25C0;</button>
+                    <button id="dpad-action" class="dpad-btn dpad-center" aria-label="Interact">&#x2726;</button>
+                    <button id="dpad-right" class="dpad-btn dpad-right" aria-label="Move Right">&#x25B6;</button>
+                    <div class="dpad-spacer"></div>
+                    <button id="dpad-down" class="dpad-btn dpad-down" aria-label="Move Down">&#x25BC;</button>
+                    <div class="dpad-spacer"></div>
                 </div>
             </div>
 
@@ -136,6 +157,10 @@
                 <button class="nav-tab" data-tab="character">
                     <span class="tab-icon">&#x1F464;</span>
                     <span class="tab-label">Stats</span>
+                </button>
+                <button class="nav-tab" data-tab="base">
+                    <span class="tab-icon">&#x1F3E0;</span>
+                    <span class="tab-label">Base</span>
                 </button>
                 <button class="nav-tab" data-tab="map">
                     <span class="tab-icon">&#x1F5FA;&#xFE0F;</span>
@@ -199,6 +224,8 @@
     <script src="js/data/lore.js"></script>
     <script src="js/data/npcs.js"></script>
     <script src="js/data/quests.js"></script>
+    <script src="js/data/maps.js"></script>
+    <script src="js/data/tech.js"></script>
     <script src="js/engine/state.js"></script>
     <script src="js/engine/narrative.js"></script>
     <script src="js/engine/combat.js"></script>
@@ -206,6 +233,8 @@
     <script src="js/engine/exploration.js"></script>
     <script src="js/engine/dialogue.js"></script>
     <script src="js/engine/progression.js"></script>
+    <script src="js/engine/worldmap.js"></script>
+    <script src="js/engine/base.js"></script>
     <script src="js/ui/screens.js"></script>
     <script src="js/ui/hud.js"></script>
     <script src="js/ui/actions.js"></script>

@@ -386,6 +386,30 @@ const Game = {
         });
     },
 
+    showBaseMenu() {
+        const panel = document.getElementById('side-panel-content');
+        if (!panel) return;
+
+        const tier = typeof TechTree !== 'undefined' ? TechTree.getUnlockedTier() : 0;
+        const tierData = typeof TECH_TREE !== 'undefined' ? TECH_TREE[`tier_${tier}`] : null;
+
+        let html = '<h3>Camp Management</h3>';
+        if (tierData) {
+            html += `<p style="color:var(--accent-gold-dim);margin-bottom:1rem;font-size:0.85rem">${tierData.icon} Tech Tier ${tier}: ${tierData.name}</p>`;
+        }
+
+        html += '<div style="display:flex;flex-direction:column;gap:0.5rem">';
+        html += '<button class="action-btn primary" onclick="Base.showBuildPanel()" style="padding:0.8rem;font-size:0.95rem">🏗️ Build Structures</button>';
+        html += '<button class="action-btn primary" onclick="Base.showCraftPanel()" style="padding:0.8rem;font-size:0.95rem">⚒️ Crafting</button>';
+        html += '<button class="action-btn primary" onclick="Base.showFarmPanel()" style="padding:0.8rem;font-size:0.95rem">🌾 Farming</button>';
+        html += '<button class="action-btn primary" onclick="Base.showPlaceablesPanel()" style="padding:0.8rem;font-size:0.95rem">🏠 Placeables</button>';
+        html += '<button class="action-btn primary" onclick="Base.showTechPanel()" style="padding:0.8rem;font-size:0.95rem">🔬 Tech Tree</button>';
+        html += '</div>';
+
+        html += `<button class="action-btn" onclick="document.getElementById('side-panel').classList.add('hidden')" style="margin-top:1rem">Close</button>`;
+        panel.innerHTML = html;
+    },
+
     handleTabChange(tabName) {
         const sidePanel = document.getElementById('side-panel');
         if (!sidePanel) return;
@@ -418,7 +442,7 @@ const Game = {
 
             case 'base':
                 sidePanel.classList.remove('hidden');
-                Base.showBuildPanel();
+                this.showBaseMenu();
                 break;
         }
     }

@@ -58,7 +58,9 @@ const GameState = {
             abilities: [...cls.startingAbilities],
             equipment: {
                 weapon: cls.startingEquipment[0] || null,
+                helmet: null,
                 armor: cls.startingEquipment[1] || null,
+                boots: null,
                 offhand: null,
                 accessory: null
             },
@@ -75,7 +77,7 @@ const GameState = {
         this.recalculateStats();
 
         this.questProgress = { main: { stage: 0, objectives: {} }, side: {} };
-        this.base = { buildings: {}, crops: [] };
+        this.base = { buildings: {}, crops: [], placeables: [] };
         this.currentRegion = 'ashen_wastes';
         this.currentLocation = 'ruined_outpost';
         this.playerMapPos = null;
@@ -90,16 +92,22 @@ const GameState = {
         if (!cls) return;
 
         let bAtk = 0, bDef = 0, bMAtk = 0, bMDef = 0, bSpd = 0, bCrit = 0;
+        let bHp = 0, bMp = 0;
         for (const slot of Object.keys(p.equipment)) {
             const itemKey = p.equipment[slot];
-            if (itemKey && ITEMS[itemKey] && ITEMS[itemKey].stats) {
-                const s = ITEMS[itemKey].stats;
-                bAtk += s.attack || 0;
-                bDef += s.defense || 0;
-                bMAtk += s.magicAttack || 0;
-                bMDef += s.magicDefense || 0;
-                bSpd += s.speed || 0;
-                bCrit += s.critChance || 0;
+            if (itemKey && ITEMS[itemKey]) {
+                const item = ITEMS[itemKey];
+                if (item.stats) {
+                    const s = item.stats;
+                    bAtk += s.attack || 0;
+                    bDef += s.defense || 0;
+                    bMAtk += s.magicAttack || 0;
+                    bMDef += s.magicDefense || 0;
+                    bSpd += s.speed || 0;
+                    bCrit += s.critChance || 0;
+                }
+                if (item.bonusHp) bHp += item.bonusHp;
+                if (item.bonusMp) bMp += item.bonusMp;
             }
         }
         p.attack = p.stats.str + (cls.stats.str * 2) + bAtk;
@@ -108,6 +116,15 @@ const GameState = {
         p.magicDefense = Math.floor(p.stats.wis * 0.8) + bMDef;
         p.speed = p.stats.dex + bSpd;
         p.critChance = 5 + Math.floor(p.stats.dex * 0.5) + bCrit;
+
+        // Apply bonus HP/MP from equipment (e.g., Ring of Vigor, Ring of Wisdom)
+        const race = RACES[p.race];
+        const baseMaxHp = 50 + (p.stats.con * 3) + (race ? race.hpBonus : 0) + ((p.level - 1) * (cls.hpPerLevel + Math.floor(p.stats.con * 0.5)));
+        const baseMaxMp = 30 + (p.stats.int * 2) + p.stats.wis + (race ? race.mpBonus : 0) + ((p.level - 1) * (cls.mpPerLevel + Math.floor(p.stats.int * 0.3)));
+        p.maxHp = baseMaxHp + bHp;
+        p.maxMp = baseMaxMp + bMp;
+        if (p.hp > p.maxHp) p.hp = p.maxHp;
+        if (p.mp > p.maxMp) p.mp = p.maxMp;
     },
 
     addToInventory(itemKey, quantity = 1) {
@@ -261,7 +278,9 @@ const GameState = {
             if (!this.player.statusEffects) this.player.statusEffects = [];
             if (!this.player.inventory) this.player.inventory = [];
             if (!this.player.abilities) this.player.abilities = [];
-            if (!this.player.equipment) this.player.equipment = { weapon: null, armor: null, offhand: null, accessory: null };
+            if (!this.player.equipment) this.player.equipment = { weapon: null, helmet: null, armor: null, boots: null, offhand: null, accessory: null };
+            if (this.player.equipment.helmet === undefined) this.player.equipment.helmet = null;
+            if (this.player.equipment.boots === undefined) this.player.equipment.boots = null;
             if (!this.player.stats) this.player.stats = { str: 5, dex: 5, int: 5, wis: 5, con: 5, cha: 5 };
             if (typeof this.player.gold !== 'number') this.player.gold = 0;
             if (typeof this.player.xp !== 'number') this.player.xp = 0;
@@ -283,9 +302,10 @@ const GameState = {
             this.discoveredLore = s.discoveredLore || [];
             this.bossesDefeated = s.bossesDefeated || [];
             this.visitedLocations = s.visitedLocations || [];
-            this.base = s.base || { buildings: {}, crops: [] };
+            this.base = s.base || { buildings: {}, crops: [], placeables: [] };
             if (!this.base.buildings) this.base.buildings = {};
             if (!this.base.crops) this.base.crops = [];
+            if (!this.base.placeables) this.base.placeables = [];
             this.MAX_INVENTORY_SIZE = s.maxInventorySize || 40;
 
             if (s.unlockedRegions) {

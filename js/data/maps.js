@@ -42,49 +42,60 @@ const TILE_TYPES = {
     'M': { name: 'Mushroom', passable: false, color: '#3a2a3a', emoji: '🍄' },
     'b': { name: 'Bridge', passable: true, color: '#5a4a2a', emoji: '' },
     'X': { name: 'Bones', passable: true, color: '#4a4a3a', emoji: '💀' },
-    'L': { name: 'Lantern', passable: false, color: '#5a5a2a', emoji: '🏮' }
+    'L': { name: 'Lantern', passable: false, color: '#5a5a2a', emoji: '🏮' },
+    'P': { name: 'Pine Tree', passable: false, color: '#1a4a1a', emoji: '🌲', resource: 'wood', gatherText: 'You fell the pine tree and collect wood.' },
+    'K': { name: 'Dead Tree', passable: false, color: '#4a3a2a', emoji: '🪵', resource: 'wood', gatherText: 'You chop the dead wood.' },
+    'h': { name: 'Hill', passable: true, color: '#5a7a3a', emoji: '' },
+    'g': { name: 'Tall Grass', passable: true, color: '#3a7a2a', emoji: '' },
+    'O': { name: 'Pond', passable: false, color: '#2a5a8a', emoji: '💧' },
+    'c': { name: 'Cave Entrance', passable: false, color: '#2a2a2a', emoji: '🕳️' },
+    'w': { name: 'Wildflower', passable: true, color: '#aa66aa', emoji: '🌸' }
 };
 
 // Map definitions — procedurally generated at load time via WorldGen
-// Each zone is now 60-80 tiles wide, giving a real open-world feel.
+// Each zone is now 90-100 tiles wide, giving a real open-world feel.
 
 const MAP_DEFS = {
     // =============================
     // ASHEN WASTES
     // =============================
     ruined_outpost: {
-        width: 70, height: 50, seed: 1001, biome: 'ashen_wastes',
-        playerStart: { x: 35, y: 25 },
+        width: 100, height: 70, seed: 1001, biome: 'ashen_wastes',
+        playerStart: { x: 50, y: 35 },
         structures: [
-            { x: 28, y: 20, w: 8, h: 6, type: 'ruin' },
-            { x: 42, y: 30, w: 6, h: 5, type: 'ruin' },
+            { x: 40, y: 28, w: 8, h: 6, type: 'ruin' },
+            { x: 60, y: 42, w: 6, h: 5, type: 'ruin' },
+            { x: 20, y: 15, w: 7, h: 5, type: 'ruin' },
+            { x: 75, y: 20, w: 8, h: 6, type: 'ruin' },
         ],
         paths: [
-            { from: { x: 35, y: 49 }, to: { x: 35, y: 25 } },
-            { from: { x: 35, y: 25 }, to: { x: 32, y: 22 } },
+            { from: { x: 50, y: 69 }, to: { x: 50, y: 35 } },
+            { from: { x: 50, y: 35 }, to: { x: 44, y: 30 } },
+            { from: { x: 22, y: 17 }, to: { x: 50, y: 35 } },
+            { from: { x: 50, y: 35 }, to: { x: 78, y: 22 } },
         ],
         exits: {
-            south: { to: 'scorched_village', entryX: 35, entryY: 3 }
+            south: { to: 'scorched_village', entryX: 50, entryY: 5 }
         },
         entities: [
-            { x: 30, y: 22, type: 'npc', id: 'spirit_of_aldric' },
-            { x: 50, y: 12, type: 'enemy_spawn', enemies: ['void_rat', 'ashen_wraith'] },
-            { x: 15, y: 35, type: 'enemy_spawn', enemies: ['void_rat'] },
-            { x: 55, y: 38, type: 'enemy_spawn', enemies: ['void_rat', 'scorched_bandit'] },
-            { x: 20, y: 15, type: 'enemy_spawn', enemies: ['void_rat'] },
-            { x: 60, y: 25, type: 'enemy_spawn', enemies: ['scorched_bandit'] },
-            { x: 10, y: 10, type: 'enemy_spawn', enemies: ['void_rat', 'void_rat'] },
-            { x: 45, y: 42, type: 'enemy_spawn', enemies: ['ashen_wraith'] },
-            { x: 45, y: 22, type: 'chest', loot: ['health_vial', 'health_vial'] },
-            { x: 58, y: 8, type: 'chest', loot: ['iron_ore', 'iron_ore', 'stone'] },
-            { x: 32, y: 22, type: 'campfire' },
-            { x: 55, y: 30, type: 'campfire' }
+            { x: 42, y: 30, type: 'npc', id: 'spirit_of_aldric' },
+            { x: 70, y: 18, type: 'enemy_spawn', enemies: ['void_rat', 'ashen_wraith'] },
+            { x: 20, y: 50, type: 'enemy_spawn', enemies: ['void_rat'] },
+            { x: 80, y: 55, type: 'enemy_spawn', enemies: ['void_rat', 'scorched_bandit'] },
+            { x: 30, y: 20, type: 'enemy_spawn', enemies: ['void_rat'] },
+            { x: 85, y: 35, type: 'enemy_spawn', enemies: ['scorched_bandit'] },
+            { x: 15, y: 12, type: 'enemy_spawn', enemies: ['void_rat', 'void_rat'] },
+            { x: 65, y: 58, type: 'enemy_spawn', enemies: ['ashen_wraith'] },
+            { x: 63, y: 30, type: 'chest', loot: ['health_vial', 'health_vial'] },
+            { x: 82, y: 12, type: 'chest', loot: ['iron_ore', 'iron_ore', 'stone'] },
+            { x: 44, y: 30, type: 'campfire' },
+            { x: 78, y: 45, type: 'campfire' }
         ]
     },
 
     scorched_village: {
-        width: 70, height: 50, seed: 1002, biome: 'ashen_wastes',
-        playerStart: { x: 35, y: 3 },
+        width: 100, height: 70, seed: 1002, biome: 'ashen_wastes',
+        playerStart: { x: 50, y: 5 },
         structures: [
             { x: 20, y: 15, w: 8, h: 6, type: 'ruin' },
             { x: 42, y: 15, w: 8, h: 6, type: 'ruin' },
@@ -94,29 +105,29 @@ const MAP_DEFS = {
             { x: 55, y: 10, w: 7, h: 5, type: 'ruin' },
         ],
         paths: [
-            { from: { x: 35, y: 0 }, to: { x: 35, y: 49 } },
-            { from: { x: 35, y: 25 }, to: { x: 69, y: 25 } },
-            { from: { x: 24, y: 20 }, to: { x: 46, y: 20 } },
-            { from: { x: 24, y: 35 }, to: { x: 46, y: 35 } },
-            { from: { x: 10, y: 44 }, to: { x: 35, y: 44 } },
+            { from: { x: 50, y: 0 }, to: { x: 50, y: 69 } },
+            { from: { x: 50, y: 33 }, to: { x: 99, y: 33 } },
+            { from: { x: 24, y: 25 }, to: { x: 70, y: 25 } },
+            { from: { x: 24, y: 50 }, to: { x: 70, y: 50 } },
+            { from: { x: 10, y: 60 }, to: { x: 50, y: 60 } },
         ],
         exits: {
-            north: { to: 'ruined_outpost', entryX: 35, entryY: 47 },
+            north: { to: 'ruined_outpost', entryX: 50, entryY: 67 },
             south: { to: 'emberhold', entryX: 35, entryY: 3 },
-            east: { to: 'player_camp', entryX: 3, entryY: 25 }
+            east: { to: 'player_camp', entryX: 3, entryY: 33 }
         },
         entities: [
-            { x: 35, y: 18, type: 'npc', id: 'wandering_merchant' },
-            { x: 25, y: 25, type: 'enemy_spawn', enemies: ['scorched_bandit', 'ember_hound'] },
-            { x: 50, y: 35, type: 'enemy_spawn', enemies: ['ashen_wraith', 'scorched_bandit'] },
-            { x: 15, y: 40, type: 'enemy_spawn', enemies: ['void_rat', 'ember_hound'] },
-            { x: 60, y: 15, type: 'enemy_spawn', enemies: ['scorched_bandit', 'scorched_bandit'] },
-            { x: 8, y: 10, type: 'enemy_spawn', enemies: ['void_rat', 'ember_hound'] },
-            { x: 55, y: 42, type: 'enemy_spawn', enemies: ['ashen_wraith'] },
-            { x: 22, y: 17, type: 'chest', loot: ['health_vial', 'mana_vial'] },
-            { x: 57, y: 12, type: 'chest', loot: ['ember_root', 'ember_root'] },
-            { x: 35, y: 35, type: 'campfire' },
-            { x: 12, y: 44, type: 'campfire' }
+            { x: 50, y: 25, type: 'npc', id: 'wandering_merchant' },
+            { x: 35, y: 35, type: 'enemy_spawn', enemies: ['scorched_bandit', 'ember_hound'] },
+            { x: 70, y: 50, type: 'enemy_spawn', enemies: ['ashen_wraith', 'scorched_bandit'] },
+            { x: 20, y: 55, type: 'enemy_spawn', enemies: ['void_rat', 'ember_hound'] },
+            { x: 85, y: 20, type: 'enemy_spawn', enemies: ['scorched_bandit', 'scorched_bandit'] },
+            { x: 12, y: 15, type: 'enemy_spawn', enemies: ['void_rat', 'ember_hound'] },
+            { x: 80, y: 60, type: 'enemy_spawn', enemies: ['ashen_wraith'] },
+            { x: 30, y: 22, type: 'chest', loot: ['health_vial', 'mana_vial'] },
+            { x: 80, y: 15, type: 'chest', loot: ['ember_root', 'ember_root'] },
+            { x: 50, y: 50, type: 'campfire' },
+            { x: 15, y: 60, type: 'campfire' }
         ]
     },
 
@@ -147,35 +158,35 @@ const MAP_DEFS = {
     },
 
     player_camp: {
-        width: 60, height: 44, seed: 1004, biome: 'camp',
-        playerStart: { x: 30, y: 22 },
+        width: 90, height: 65, seed: 1004, biome: 'camp',
+        playerStart: { x: 45, y: 33 },
         structures: [
-            { x: 3, y: 3, w: 54, h: 38, type: 'camp_fence' },
+            { x: 3, y: 3, w: 84, h: 59, type: 'camp_fence' },
         ],
         paths: [
-            { from: { x: 0, y: 22 }, to: { x: 30, y: 22 } },
-            { from: { x: 30, y: 6 }, to: { x: 30, y: 38 } },
-            { from: { x: 10, y: 22 }, to: { x: 50, y: 22 } },
+            { from: { x: 0, y: 33 }, to: { x: 45, y: 33 } },
+            { from: { x: 45, y: 6 }, to: { x: 45, y: 58 } },
+            { from: { x: 6, y: 33 }, to: { x: 84, y: 33 } },
         ],
         exits: {
-            west: { to: 'scorched_village', entryX: 67, entryY: 25 }
+            west: { to: 'scorched_village', entryX: 97, entryY: 33 }
         },
         entities: [
-            { x: 30, y: 16, type: 'campfire' }
+            { x: 45, y: 24, type: 'campfire' }
         ],
         isCamp: true,
         buildingSpots: [
-            { x: 12, y: 8, id: 'shelter', label: 'Shelter' },
-            { x: 30, y: 8, id: 'forge', label: 'Forge' },
-            { x: 48, y: 8, id: 'workshop', label: 'Workshop' },
-            { x: 12, y: 16, id: 'storage', label: 'Storage' },
-            { x: 48, y: 16, id: 'ward_stones', label: 'Ward Stones' },
-            { x: 12, y: 28, id: 'garden', label: 'Garden' },
-            { x: 30, y: 28, id: 'farm', label: 'Farm Plot' },
-            { x: 48, y: 28, id: 'herbalist_bench', label: 'Herb Bench' },
-            { x: 12, y: 36, id: 'house', label: 'House' },
-            { x: 30, y: 36, id: 'training_dummy', label: 'Training Grounds' },
-            { x: 48, y: 36, id: 'lookout', label: 'Lookout Tower' }
+            { x: 18, y: 12, id: 'shelter', label: 'Shelter' },
+            { x: 45, y: 12, id: 'forge', label: 'Forge' },
+            { x: 72, y: 12, id: 'workshop', label: 'Workshop' },
+            { x: 18, y: 24, id: 'storage', label: 'Storage' },
+            { x: 72, y: 24, id: 'ward_stones', label: 'Ward Stones' },
+            { x: 18, y: 42, id: 'garden', label: 'Garden' },
+            { x: 45, y: 42, id: 'farm', label: 'Farm Plot' },
+            { x: 72, y: 42, id: 'herbalist_bench', label: 'Herb Bench' },
+            { x: 18, y: 54, id: 'house', label: 'House' },
+            { x: 45, y: 54, id: 'training_dummy', label: 'Training Grounds' },
+            { x: 72, y: 54, id: 'lookout', label: 'Lookout Tower' }
         ]
     },
 
@@ -207,32 +218,35 @@ const MAP_DEFS = {
     // HOLLOWFEN
     // =============================
     sunken_chapel: {
-        width: 70, height: 50, seed: 2001, biome: 'hollowfen',
-        playerStart: { x: 35, y: 25 },
+        width: 100, height: 70, seed: 2001, biome: 'hollowfen',
+        playerStart: { x: 50, y: 35 },
         structures: [
-            { x: 28, y: 22, w: 8, h: 8, type: 'ruin' },
-            { x: 10, y: 8, w: 7, h: 5, type: 'ruin' },
-            { x: 52, y: 38, w: 6, h: 5, type: 'ruin' },
+            { x: 40, y: 30, w: 8, h: 8, type: 'ruin' },
+            { x: 15, y: 12, w: 7, h: 5, type: 'ruin' },
+            { x: 72, y: 52, w: 6, h: 5, type: 'ruin' },
+            { x: 75, y: 15, w: 7, h: 6, type: 'ruin' },
         ],
         paths: [
-            { from: { x: 35, y: 49 }, to: { x: 35, y: 25 } },
-            { from: { x: 35, y: 25 }, to: { x: 12, y: 10 } },
-            { from: { x: 35, y: 25 }, to: { x: 54, y: 40 } },
+            { from: { x: 50, y: 69 }, to: { x: 50, y: 35 } },
+            { from: { x: 50, y: 35 }, to: { x: 18, y: 14 } },
+            { from: { x: 50, y: 35 }, to: { x: 74, y: 54 } },
+            { from: { x: 50, y: 35 }, to: { x: 78, y: 17 } },
         ],
         exits: {
             south: { to: 'stilthaven', entryX: 30, entryY: 3 }
         },
         entities: [
-            { x: 32, y: 26, type: 'campfire' },
-            { x: 54, y: 40, type: 'campfire' },
-            { x: 18, y: 12, type: 'enemy_spawn', enemies: ['bog_crawler'] },
-            { x: 52, y: 18, type: 'enemy_spawn', enemies: ['bog_crawler', 'fen_witch'] },
-            { x: 25, y: 38, type: 'enemy_spawn', enemies: ['bog_crawler'] },
-            { x: 60, y: 10, type: 'enemy_spawn', enemies: ['fen_witch'] },
-            { x: 8, y: 40, type: 'enemy_spawn', enemies: ['bog_crawler', 'bog_crawler'] },
-            { x: 45, y: 8, type: 'enemy_spawn', enemies: ['fen_witch'] },
-            { x: 40, y: 35, type: 'chest', loot: ['health_vial', 'antidote', 'mana_vial'] },
-            { x: 12, y: 10, type: 'chest', loot: ['shadow_silk', 'bog_fiber'] }
+            { x: 46, y: 36, type: 'campfire' },
+            { x: 74, y: 54, type: 'campfire' },
+            { x: 25, y: 18, type: 'enemy_spawn', enemies: ['bog_crawler'] },
+            { x: 72, y: 25, type: 'enemy_spawn', enemies: ['bog_crawler', 'fen_witch'] },
+            { x: 35, y: 52, type: 'enemy_spawn', enemies: ['bog_crawler'] },
+            { x: 85, y: 14, type: 'enemy_spawn', enemies: ['fen_witch'] },
+            { x: 12, y: 55, type: 'enemy_spawn', enemies: ['bog_crawler', 'bog_crawler'] },
+            { x: 60, y: 12, type: 'enemy_spawn', enemies: ['fen_witch'] },
+            { x: 20, y: 45, type: 'enemy_spawn', enemies: ['bog_crawler'] },
+            { x: 55, y: 48, type: 'chest', loot: ['health_vial', 'antidote', 'mana_vial'] },
+            { x: 18, y: 14, type: 'chest', loot: ['shadow_silk', 'bog_fiber'] }
         ]
     },
 
@@ -261,41 +275,45 @@ const MAP_DEFS = {
     },
 
     witchs_hut: {
-        width: 70, height: 50, seed: 2003, biome: 'fen_wilderness',
-        playerStart: { x: 35, y: 3 },
+        width: 100, height: 70, seed: 2003, biome: 'fen_wilderness',
+        playerStart: { x: 50, y: 5 },
         structures: [
-            { x: 30, y: 22, w: 7, h: 7, type: 'building' },
+            { x: 45, y: 30, w: 7, h: 7, type: 'building' },
         ],
         paths: [
-            { from: { x: 35, y: 0 }, to: { x: 33, y: 24 } },
-            { from: { x: 33, y: 28 }, to: { x: 35, y: 49 } },
+            { from: { x: 50, y: 0 }, to: { x: 48, y: 32 } },
+            { from: { x: 48, y: 36 }, to: { x: 50, y: 69 } },
         ],
         exits: {
             north: { to: 'stilthaven', entryX: 30, entryY: 37 },
-            south: { to: 'heart_of_the_fen', entryX: 35, entryY: 3 }
+            south: { to: 'heart_of_the_fen', entryX: 45, entryY: 5 }
         },
         entities: [
-            { x: 33, y: 25, type: 'npc', id: 'granny_moss' },
-            { x: 18, y: 15, type: 'enemy_spawn', enemies: ['fen_witch'] },
-            { x: 50, y: 35, type: 'enemy_spawn', enemies: ['bog_crawler', 'drowned_knight'] },
-            { x: 20, y: 40, type: 'enemy_spawn', enemies: ['fen_witch'] }
+            { x: 48, y: 33, type: 'npc', id: 'granny_moss' },
+            { x: 25, y: 20, type: 'enemy_spawn', enemies: ['fen_witch'] },
+            { x: 70, y: 48, type: 'enemy_spawn', enemies: ['bog_crawler', 'drowned_knight'] },
+            { x: 28, y: 55, type: 'enemy_spawn', enemies: ['fen_witch'] },
+            { x: 80, y: 15, type: 'enemy_spawn', enemies: ['bog_crawler'] },
+            { x: 15, y: 40, type: 'enemy_spawn', enemies: ['drowned_knight'] }
         ]
     },
 
     heart_of_the_fen: {
-        width: 60, height: 44, seed: 2004, biome: 'fen_wilderness',
-        playerStart: { x: 30, y: 3 },
+        width: 90, height: 65, seed: 2004, biome: 'fen_wilderness',
+        playerStart: { x: 45, y: 5 },
         paths: [
-            { from: { x: 30, y: 0 }, to: { x: 30, y: 22 } },
+            { from: { x: 45, y: 0 }, to: { x: 45, y: 33 } },
         ],
         exits: {
-            north: { to: 'witchs_hut', entryX: 35, entryY: 47 }
+            north: { to: 'witchs_hut', entryX: 50, entryY: 67 }
         },
         entities: [
-            { x: 30, y: 22, type: 'boss', id: 'mother_of_the_fen' },
-            { x: 15, y: 12, type: 'enemy_spawn', enemies: ['drowned_knight'] },
-            { x: 45, y: 18, type: 'enemy_spawn', enemies: ['fen_witch', 'drowned_knight'] },
-            { x: 20, y: 35, type: 'enemy_spawn', enemies: ['bog_crawler', 'bog_crawler'] }
+            { x: 45, y: 33, type: 'boss', id: 'mother_of_the_fen' },
+            { x: 22, y: 18, type: 'enemy_spawn', enemies: ['drowned_knight'] },
+            { x: 65, y: 25, type: 'enemy_spawn', enemies: ['fen_witch', 'drowned_knight'] },
+            { x: 30, y: 50, type: 'enemy_spawn', enemies: ['bog_crawler', 'bog_crawler'] },
+            { x: 70, y: 45, type: 'enemy_spawn', enemies: ['fen_witch'] },
+            { x: 15, y: 40, type: 'enemy_spawn', enemies: ['bog_crawler'] }
         ],
         bossArea: true,
         regionUnlock: { boss: 'mother_of_the_fen', unlocks: 'void_sanctum' }
@@ -305,32 +323,35 @@ const MAP_DEFS = {
     // VOID SANCTUM
     // =============================
     outer_gate: {
-        width: 70, height: 50, seed: 3001, biome: 'void_sanctum',
-        playerStart: { x: 35, y: 25 },
+        width: 100, height: 70, seed: 3001, biome: 'void_sanctum',
+        playerStart: { x: 50, y: 35 },
         structures: [
-            { x: 25, y: 12, w: 10, h: 8, type: 'ruin' },
-            { x: 35, y: 30, w: 10, h: 8, type: 'ruin' },
-            { x: 8, y: 36, w: 7, h: 6, type: 'ruin' },
-            { x: 55, y: 12, w: 8, h: 6, type: 'ruin' },
+            { x: 35, y: 17, w: 10, h: 8, type: 'ruin' },
+            { x: 50, y: 42, w: 10, h: 8, type: 'ruin' },
+            { x: 12, y: 50, w: 7, h: 6, type: 'ruin' },
+            { x: 78, y: 17, w: 8, h: 6, type: 'ruin' },
         ],
         paths: [
-            { from: { x: 35, y: 25 }, to: { x: 35, y: 49 } },
-            { from: { x: 30, y: 16 }, to: { x: 40, y: 34 } },
-            { from: { x: 10, y: 38 }, to: { x: 35, y: 25 } },
-            { from: { x: 57, y: 14 }, to: { x: 35, y: 25 } },
+            { from: { x: 50, y: 35 }, to: { x: 50, y: 69 } },
+            { from: { x: 42, y: 22 }, to: { x: 55, y: 47 } },
+            { from: { x: 15, y: 52 }, to: { x: 50, y: 35 } },
+            { from: { x: 80, y: 20 }, to: { x: 50, y: 35 } },
         ],
         exits: {
             south: { to: 'last_vigil', entryX: 30, entryY: 3 }
         },
         entities: [
-            { x: 18, y: 15, type: 'enemy_spawn', enemies: ['void_acolyte'] },
-            { x: 50, y: 35, type: 'enemy_spawn', enemies: ['reality_shard', 'void_acolyte'] },
-            { x: 60, y: 14, type: 'enemy_spawn', enemies: ['shadow_sentinel'] },
-            { x: 10, y: 38, type: 'enemy_spawn', enemies: ['void_acolyte', 'void_acolyte'] },
-            { x: 35, y: 10, type: 'enemy_spawn', enemies: ['reality_shard'] },
-            { x: 30, y: 15, type: 'chest', loot: ['greater_health_potion', 'elixir_of_power'] },
-            { x: 10, y: 40, type: 'chest', loot: ['shadow_silk', 'veil_crystal'] },
-            { x: 35, y: 25, type: 'campfire' }
+            { x: 25, y: 20, type: 'enemy_spawn', enemies: ['void_acolyte'] },
+            { x: 70, y: 48, type: 'enemy_spawn', enemies: ['reality_shard', 'void_acolyte'] },
+            { x: 85, y: 20, type: 'enemy_spawn', enemies: ['shadow_sentinel'] },
+            { x: 15, y: 52, type: 'enemy_spawn', enemies: ['void_acolyte', 'void_acolyte'] },
+            { x: 50, y: 14, type: 'enemy_spawn', enemies: ['reality_shard'] },
+            { x: 20, y: 40, type: 'enemy_spawn', enemies: ['shadow_sentinel'] },
+            { x: 80, y: 55, type: 'enemy_spawn', enemies: ['void_acolyte'] },
+            { x: 42, y: 20, type: 'chest', loot: ['greater_health_potion', 'elixir_of_power'] },
+            { x: 15, y: 55, type: 'chest', loot: ['shadow_silk', 'veil_crystal'] },
+            { x: 50, y: 35, type: 'campfire' },
+            { x: 80, y: 45, type: 'campfire' }
         ]
     },
 
@@ -359,24 +380,31 @@ const MAP_DEFS = {
     },
 
     hall_of_echoes: {
-        width: 70, height: 50, seed: 3003, biome: 'void_wilderness',
-        playerStart: { x: 35, y: 3 },
+        width: 100, height: 70, seed: 3003, biome: 'void_wilderness',
+        playerStart: { x: 50, y: 5 },
         structures: [
-            { x: 25, y: 16, w: 10, h: 8, type: 'ruin' },
-            { x: 35, y: 30, w: 10, h: 8, type: 'ruin' },
+            { x: 35, y: 22, w: 10, h: 8, type: 'ruin' },
+            { x: 50, y: 42, w: 10, h: 8, type: 'ruin' },
+            { x: 75, y: 15, w: 8, h: 6, type: 'ruin' },
         ],
         paths: [
-            { from: { x: 35, y: 0 }, to: { x: 35, y: 49 } },
-            { from: { x: 30, y: 20 }, to: { x: 40, y: 34 } },
+            { from: { x: 50, y: 0 }, to: { x: 50, y: 69 } },
+            { from: { x: 42, y: 28 }, to: { x: 55, y: 47 } },
+            { from: { x: 50, y: 35 }, to: { x: 78, y: 18 } },
         ],
         exits: {
             north: { to: 'last_vigil', entryX: 30, entryY: 37 },
             south: { to: 'throne_of_unmaking', entryX: 25, entryY: 3 }
         },
         entities: [
-            { x: 15, y: 15, type: 'enemy_spawn', enemies: ['shadow_sentinel'] },
-            { x: 50, y: 30, type: 'enemy_spawn', enemies: ['reality_shard', 'void_acolyte'] },
-            { x: 35, y: 10, type: 'enemy_spawn', enemies: ['shadow_sentinel', 'void_acolyte'] }
+            { x: 20, y: 20, type: 'enemy_spawn', enemies: ['shadow_sentinel'] },
+            { x: 70, y: 42, type: 'enemy_spawn', enemies: ['reality_shard', 'void_acolyte'] },
+            { x: 50, y: 14, type: 'enemy_spawn', enemies: ['shadow_sentinel', 'void_acolyte'] },
+            { x: 80, y: 18, type: 'enemy_spawn', enemies: ['shadow_sentinel'] },
+            { x: 30, y: 55, type: 'enemy_spawn', enemies: ['void_acolyte', 'void_acolyte'] },
+            { x: 85, y: 50, type: 'enemy_spawn', enemies: ['reality_shard'] },
+            { x: 40, y: 25, type: 'chest', loot: ['greater_health_potion', 'veil_crystal'] },
+            { x: 50, y: 35, type: 'campfire' }
         ]
     },
 
@@ -411,17 +439,17 @@ const MAPS = {};
         // Generate terrain procedurally
         const terrain = WorldGen.generate(def);
 
-        // Open exits in the border
+        // Open exits in the border — use exit-specific coords or path endpoints
         let terrainArr = terrain;
         if (def.exits) {
             for (const [dir, exit] of Object.entries(def.exits)) {
-                // Figure out where the exit opens on THIS map's edge
+                // Find matching path endpoint for this exit direction to determine exact position
                 let openX, openY;
                 switch (dir) {
-                    case 'north': openX = def.playerStart.x; openY = 0; break;
-                    case 'south': openX = def.playerStart.x; openY = def.height - 1; break;
-                    case 'west': openX = 0; openY = def.playerStart.y; break;
-                    case 'east': openX = def.width - 1; openY = def.playerStart.y; break;
+                    case 'north': openX = exit.entryX !== undefined ? exit.entryX : def.playerStart.x; openY = 0; break;
+                    case 'south': openX = exit.entryX !== undefined ? exit.entryX : def.playerStart.x; openY = def.height - 1; break;
+                    case 'west': openX = 0; openY = exit.entryY !== undefined ? exit.entryY : def.playerStart.y; break;
+                    case 'east': openX = def.width - 1; openY = exit.entryY !== undefined ? exit.entryY : def.playerStart.y; break;
                 }
                 terrainArr = WorldGen.openExit(terrainArr, { entryX: openX, entryY: openY }, dir, def.width, def.height);
             }

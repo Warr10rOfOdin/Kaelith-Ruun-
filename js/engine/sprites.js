@@ -40,8 +40,8 @@ const Sprites = {
     // ── Color Palettes ──────────────────────
 
     PAL: {
-        // Grass
-        grass:   ['#3d6b2e','#4a7a2e','#5a8a3e','#6a9a4e','#3a6a1e'],
+        // Grass — rich Stardew Valley-inspired greens
+        grass:   ['#3d7b2e','#4a8a2e','#5a9a3e','#6aaa4e','#3a7a1e','#55a535','#48952a'],
         // Path
         path:    ['#8b7355','#7b6345','#9b8365','#6b5335'],
         // Water
@@ -50,7 +50,7 @@ const Sprites = {
         wall:    ['#4a4a4a','#3a3a3a','#5a5a5a','#555555'],
         // Tree
         trunk:   ['#5a3a1a','#6a4a2a','#4a2a10'],
-        leaves:  ['#1a5a0a','#2a7a1a','#1d5e0d','#3a8a2a','#4a9a3a'],
+        leaves:  ['#1a6a0a','#2a8a1a','#1d6e0d','#3a9a2a','#4aaa3a','#5abb4a'],
         // Rock
         rock:    ['#6a6a6a','#7a7a7a','#5a5a5a','#8a8a8a'],
         // Iron
@@ -82,7 +82,21 @@ const Sprites = {
         // Lantern
         lantern: ['#ffcc00','#ffdd44','#ffaa00'],
         // Void
-        void_:   ['#3a1a4a','#5a2a6a','#7a3a8a','#9a4aaa']
+        void_:   ['#3a1a4a','#5a2a6a','#7a3a8a','#9a4aaa'],
+        // Pine
+        pine:    ['#0a3a0a', '#1a4a1a', '#0d3d0d', '#2a5a1a'],
+        // Dead Wood
+        deadwood: ['#5a4a3a', '#4a3a2a', '#6a5a4a', '#3a2a1a'],
+        // Hill
+        hill:    ['#5a7a3a', '#4a6a2a', '#6a8a4a', '#7a9a5a'],
+        // Flower
+        flower:  ['#dd66aa', '#ee88cc', '#ff99dd', '#aa44ff', '#ffaa33', '#ff6666'],
+        // Tall Grass
+        tallgrass: ['#4a8a3a', '#5a9a4a', '#3a7a2a', '#6aaa5a'],
+        // Pond
+        pond:    ['#1a4a7a', '#2a5a8a', '#3a6a9a', '#1a3a6a'],
+        // Cave
+        cave:    ['#1a1a1a', '#2a2a2a', '#3a3a3a', '#111111']
     },
 
     // ── Terrain Tile Generation ─────────────
@@ -104,6 +118,23 @@ const Sprites = {
         for (let v = 0; v < 3; v++) {
             this.cache[`rock_${v}`] = this.drawRock(v);
         }
+        for (let v = 0; v < 3; v++) {
+            this.cache[`pine_${v}`] = this.drawPineTree(v);
+        }
+        for (let v = 0; v < 2; v++) {
+            this.cache[`deadtree_${v}`] = this.drawDeadTree(v);
+        }
+        for (let v = 0; v < 3; v++) {
+            this.cache[`hill_${v}`] = this.drawHill(v);
+        }
+        for (let v = 0; v < 4; v++) {
+            this.cache[`tallgrass_${v}`] = this.drawTallGrass(v);
+        }
+        for (let v = 0; v < 3; v++) {
+            this.cache[`flower_${v}`] = this.drawWildflower(v);
+        }
+        this.cache.pond = this.drawPond();
+        this.cache.cave = this.drawCaveEntrance();
 
         // Single variants
         this.cache.wall = this.drawWall();
@@ -156,6 +187,13 @@ const Sprites = {
             case 'b': return this.cache.bridge;
             case 'X': return this.cache.bones;
             case 'L': return this.cache.lantern;
+            case 'P': return this.cache[`pine_${h % 3}`];
+            case 'K': return this.cache[`deadtree_${h % 2}`];
+            case 'h': return this.cache[`hill_${h % 3}`];
+            case 'g': return this.cache[`tallgrass_${h % 4}`];
+            case 'w': return this.cache[`flower_${h % 3}`];
+            case 'O': return this.cache.pond;
+            case 'c': return this.cache.cave;
             default: return this.cache.grass_0;
         }
     },
@@ -1176,6 +1214,380 @@ const Sprites = {
         return c;
     },
 
+    drawPineTree(variant) {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const P = this.PAL;
+        const rng = this.seeded(variant * 5000 + 55);
+
+        // Grass base
+        ctx.fillStyle = P.grass[1];
+        ctx.fillRect(0, 0, T, T);
+        for (let i = 0; i < 6; i++) {
+            ctx.fillStyle = P.grass[Math.floor(rng() * P.grass.length)];
+            ctx.globalAlpha = 0.4;
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 3, 2);
+        }
+        ctx.globalAlpha = 1;
+
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.18)';
+        ctx.beginPath();
+        ctx.ellipse(16, 29, 10, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Trunk (thinner than regular tree)
+        ctx.fillStyle = P.trunk[0];
+        ctx.fillRect(14, 18, 4, 14);
+        ctx.fillStyle = P.trunk[1];
+        ctx.fillRect(15, 18, 2, 12);
+
+        // Pine triangular canopy - 3 layers
+        const cx = 16 + (variant - 1);
+        // Bottom layer (widest)
+        ctx.fillStyle = P.pine[0];
+        ctx.beginPath();
+        ctx.moveTo(cx - 12, 22);
+        ctx.lineTo(cx, 12);
+        ctx.lineTo(cx + 12, 22);
+        ctx.closePath();
+        ctx.fill();
+        // Middle layer
+        ctx.fillStyle = P.pine[1];
+        ctx.beginPath();
+        ctx.moveTo(cx - 9, 17);
+        ctx.lineTo(cx, 7);
+        ctx.lineTo(cx + 9, 17);
+        ctx.closePath();
+        ctx.fill();
+        // Top layer
+        ctx.fillStyle = P.pine[2];
+        ctx.beginPath();
+        ctx.moveTo(cx - 6, 12);
+        ctx.lineTo(cx, 2);
+        ctx.lineTo(cx + 6, 12);
+        ctx.closePath();
+        ctx.fill();
+        // Highlight
+        ctx.fillStyle = P.pine[3];
+        ctx.beginPath();
+        ctx.moveTo(cx - 3, 8);
+        ctx.lineTo(cx, 3);
+        ctx.lineTo(cx + 3, 8);
+        ctx.closePath();
+        ctx.fill();
+        // Snow/detail on variant 2
+        if (variant === 2) {
+            ctx.fillStyle = '#ffffff';
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(cx - 3, 5, 6, 1);
+            ctx.fillRect(cx - 5, 10, 4, 1);
+            ctx.globalAlpha = 1;
+        }
+        return c;
+    },
+
+    drawDeadTree(variant) {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const P = this.PAL;
+        const rng = this.seeded(variant * 6000 + 33);
+
+        // Grass base
+        ctx.fillStyle = P.grass[4];
+        ctx.fillRect(0, 0, T, T);
+        for (let i = 0; i < 4; i++) {
+            ctx.fillStyle = P.grass[Math.floor(rng() * P.grass.length)];
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 3, 2);
+        }
+        ctx.globalAlpha = 1;
+
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.beginPath();
+        ctx.ellipse(16, 28, 8, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Gnarled trunk
+        ctx.fillStyle = P.deadwood[0];
+        ctx.fillRect(13, 10, 6, 20);
+        ctx.fillStyle = P.deadwood[1];
+        ctx.fillRect(14, 10, 4, 18);
+
+        // Bare branches
+        ctx.strokeStyle = P.deadwood[2];
+        ctx.lineWidth = 2;
+        // Right branch
+        ctx.beginPath();
+        ctx.moveTo(17, 14);
+        ctx.lineTo(24, 8);
+        ctx.lineTo(27, 5);
+        ctx.stroke();
+        // Left branch
+        ctx.beginPath();
+        ctx.moveTo(15, 12);
+        ctx.lineTo(8, 6);
+        ctx.lineTo(5, 3);
+        ctx.stroke();
+        // Small twig
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(16, 18);
+        ctx.lineTo(22, 16);
+        ctx.stroke();
+
+        // Bark cracks
+        ctx.fillStyle = P.deadwood[3];
+        ctx.fillRect(14, 15, 4, 1);
+        ctx.fillRect(15, 22, 2, 1);
+
+        return c;
+    },
+
+    drawHill(variant) {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const P = this.PAL;
+        const rng = this.seeded(variant * 7000 + 77);
+
+        // Base grass
+        ctx.fillStyle = P.grass[1];
+        ctx.fillRect(0, 0, T, T);
+
+        // Hill mound
+        ctx.fillStyle = P.hill[variant % P.hill.length];
+        ctx.beginPath();
+        ctx.ellipse(16, 20, 15, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Lighter top
+        ctx.fillStyle = P.hill[3];
+        ctx.beginPath();
+        ctx.ellipse(14, 16, 10, 6, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Grass on hill
+        for (let i = 0; i < 6; i++) {
+            ctx.fillStyle = ['#6a9a4a', '#5a8a3a', '#7aaa5a'][Math.floor(rng() * 3)];
+            const x = 6 + Math.floor(rng() * 20);
+            const y = 12 + Math.floor(rng() * 12);
+            ctx.fillRect(x, y, 1, 2 + Math.floor(rng() * 2));
+        }
+
+        // Shadow at base
+        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        ctx.beginPath();
+        ctx.ellipse(16, 27, 14, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Small rocks on variant 1
+        if (variant === 1) {
+            ctx.fillStyle = '#7a7a6a';
+            ctx.fillRect(8, 22, 3, 2);
+            ctx.fillRect(22, 20, 2, 2);
+        }
+
+        return c;
+    },
+
+    drawTallGrass(variant) {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const P = this.PAL;
+        const rng = this.seeded(variant * 8000 + 11);
+
+        // Base grass (slightly darker)
+        ctx.fillStyle = P.grass[0];
+        ctx.fillRect(0, 0, T, T);
+        for (let i = 0; i < 8; i++) {
+            ctx.fillStyle = P.grass[Math.floor(rng() * P.grass.length)];
+            ctx.globalAlpha = 0.4;
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 3, 3);
+        }
+        ctx.globalAlpha = 1;
+
+        // Tall grass blades (many, varied height)
+        const colors = P.tallgrass;
+        for (let i = 0; i < 18; i++) {
+            const x = Math.floor(rng() * (T - 2));
+            const baseY = 14 + Math.floor(rng() * 12);
+            const h = 8 + Math.floor(rng() * 12);
+            const sway = (variant === 0 ? 1 : variant === 1 ? -1 : 0) * Math.floor(rng() * 3);
+            ctx.fillStyle = colors[Math.floor(rng() * colors.length)];
+            ctx.fillRect(x + sway, baseY - h, 1, h);
+            if (rng() > 0.4) ctx.fillRect(x + sway + 1, baseY - h + 2, 1, h - 3);
+        }
+
+        // Seeds/tips on some
+        if (variant === 2 || variant === 3) {
+            ctx.fillStyle = '#ccbb66';
+            for (let i = 0; i < 4; i++) {
+                ctx.fillRect(2 + Math.floor(rng() * 28), 3 + Math.floor(rng() * 8), 2, 2);
+            }
+        }
+
+        return c;
+    },
+
+    drawWildflower(variant) {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const P = this.PAL;
+        const rng = this.seeded(variant * 9000 + 22);
+
+        // Rich grass base
+        ctx.fillStyle = P.grass[1];
+        ctx.fillRect(0, 0, T, T);
+        for (let i = 0; i < 8; i++) {
+            ctx.fillStyle = P.grass[Math.floor(rng() * P.grass.length)];
+            ctx.globalAlpha = 0.4;
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 3, 2);
+        }
+        ctx.globalAlpha = 1;
+
+        // Grass blades
+        for (let i = 0; i < 6; i++) {
+            ctx.fillStyle = '#5a9a3e';
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * (T - 4)), 1, 3 + Math.floor(rng() * 3));
+        }
+
+        // Flowers — different colors per variant
+        const flowerColors = variant === 0 ? ['#dd66aa', '#ee88cc', '#ff99dd'] :
+                             variant === 1 ? ['#ffaa33', '#ffcc55', '#ff8811'] :
+                                            ['#aa44ff', '#cc66ff', '#8822dd'];
+        for (let i = 0; i < 5 + variant; i++) {
+            const fx = 3 + Math.floor(rng() * (T - 6));
+            const fy = 6 + Math.floor(rng() * (T - 12));
+            // Stem
+            ctx.fillStyle = '#3a7a2a';
+            ctx.fillRect(fx, fy + 2, 1, 4 + Math.floor(rng() * 3));
+            // Petals
+            ctx.fillStyle = flowerColors[Math.floor(rng() * flowerColors.length)];
+            ctx.beginPath();
+            ctx.arc(fx, fy, 2 + rng(), 0, Math.PI * 2);
+            ctx.fill();
+            // Center
+            ctx.fillStyle = '#ffee44';
+            ctx.fillRect(fx - 0.5, fy - 0.5, 1, 1);
+        }
+
+        return c;
+    },
+
+    drawPond() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const P = this.PAL;
+
+        // Grass base
+        ctx.fillStyle = P.grass[1];
+        ctx.fillRect(0, 0, T, T);
+
+        // Muddy shore
+        ctx.fillStyle = '#5a4a30';
+        ctx.beginPath();
+        ctx.ellipse(16, 17, 14, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Water surface
+        ctx.fillStyle = P.pond[0];
+        ctx.beginPath();
+        ctx.ellipse(16, 16, 12, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Depth variation
+        ctx.fillStyle = P.pond[3];
+        ctx.beginPath();
+        ctx.ellipse(15, 15, 8, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Lighter shallows
+        ctx.fillStyle = P.pond[2];
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.ellipse(20, 20, 5, 3, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // Highlight/reflection
+        ctx.fillStyle = 'rgba(200,230,255,0.3)';
+        ctx.fillRect(12, 12, 3, 1);
+        ctx.fillRect(14, 11, 2, 1);
+
+        // Lily pad
+        ctx.fillStyle = '#2a6a2a';
+        ctx.beginPath();
+        ctx.ellipse(20, 14, 3, 2, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#3a8a3a';
+        ctx.fillRect(19, 13, 2, 1);
+
+        // Reeds on edge
+        ctx.fillStyle = '#4a6a2a';
+        ctx.fillRect(6, 6, 1, 6);
+        ctx.fillRect(8, 8, 1, 5);
+        ctx.fillRect(25, 7, 1, 5);
+
+        return c;
+    },
+
+    drawCaveEntrance() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const P = this.PAL;
+
+        // Rock face background
+        ctx.fillStyle = P.rock[2];
+        ctx.fillRect(0, 0, T, T);
+
+        // Stone texture
+        for (let i = 0; i < 12; i++) {
+            ctx.fillStyle = P.cave[Math.floor(Math.random() * P.cave.length)];
+            ctx.fillRect(Math.random() * T, Math.random() * T, 3 + Math.random() * 5, 2 + Math.random() * 4);
+        }
+
+        // Dark cave opening
+        ctx.fillStyle = P.cave[3];
+        ctx.beginPath();
+        ctx.ellipse(16, 18, 10, 12, 0, 0, Math.PI);
+        ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.ellipse(16, 20, 7, 8, 0, 0, Math.PI);
+        ctx.fill();
+
+        // Darker interior gradient
+        const grd = ctx.createRadialGradient(16, 22, 0, 16, 22, 8);
+        grd.addColorStop(0, 'rgba(0,0,0,0.9)');
+        grd.addColorStop(1, 'rgba(0,0,0,0.3)');
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.ellipse(16, 22, 6, 6, 0, 0, Math.PI);
+        ctx.fill();
+
+        // Rock overhang (arch)
+        ctx.fillStyle = P.rock[0];
+        ctx.beginPath();
+        ctx.ellipse(16, 12, 12, 8, 0, Math.PI, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = P.rock[1];
+        ctx.beginPath();
+        ctx.ellipse(16, 12, 10, 6, 0, Math.PI, Math.PI * 2);
+        ctx.fill();
+
+        // Highlight on arch
+        ctx.fillStyle = P.rock[3];
+        ctx.fillRect(10, 8, 6, 1);
+
+        // Moss
+        ctx.fillStyle = '#3a5a2a';
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(4, 16, 3, 4);
+        ctx.fillRect(26, 14, 2, 5);
+        ctx.globalAlpha = 1;
+
+        // Stalactite hint at top of entrance
+        ctx.fillStyle = P.cave[2];
+        ctx.fillRect(13, 12, 1, 3);
+        ctx.fillRect(18, 11, 1, 4);
+
+        return c;
+    },
+
     // ── Player Sprite Generation ────────────
 
     genPlayerSprites() {
@@ -1326,15 +1738,17 @@ const Sprites = {
             ctx.fillStyle = hairHi;
             ctx.fillRect(9, 2 + by, 14, 4);
         } else if (dir === 'left') {
-            ctx.fillRect(5, 1 + by, 16, 7);
-            ctx.fillRect(5, 4 + by, 6, 10);
-            ctx.fillStyle = hairHi;
-            ctx.fillRect(10, 2 + by, 8, 3);
-        } else {
+            // Hair on back of head (right side when facing left)
             ctx.fillRect(11, 1 + by, 16, 7);
             ctx.fillRect(21, 4 + by, 6, 10);
             ctx.fillStyle = hairHi;
             ctx.fillRect(14, 2 + by, 8, 3);
+        } else {
+            // Hair on back of head (left side when facing right)
+            ctx.fillRect(5, 1 + by, 16, 7);
+            ctx.fillRect(5, 4 + by, 6, 10);
+            ctx.fillStyle = hairHi;
+            ctx.fillRect(10, 2 + by, 8, 3);
         }
 
         // -- Face --

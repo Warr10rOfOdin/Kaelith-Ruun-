@@ -87,37 +87,70 @@ const MapUI = {
     },
 
     drawMap(ctx, w, h) {
-        // Background gradient
+        // Parchment-style background
         const bg = ctx.createLinearGradient(0, 0, w, h);
-        bg.addColorStop(0, '#0e0e18');
-        bg.addColorStop(0.5, '#121218');
-        bg.addColorStop(1, '#0a0a14');
+        bg.addColorStop(0, '#1a1814');
+        bg.addColorStop(0.3, '#1e1c16');
+        bg.addColorStop(0.6, '#1c1a14');
+        bg.addColorStop(1, '#181610');
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, w, h);
 
-        // Subtle grid
-        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        // Parchment texture noise
+        for (let i = 0; i < 200; i++) {
+            ctx.fillStyle = `rgba(${150 + Math.random() * 40},${130 + Math.random() * 40},${90 + Math.random() * 30},${0.02 + Math.random() * 0.03})`;
+            ctx.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 4, 1 + Math.random() * 3);
+        }
+
+        // Subtle compass lines
+        ctx.strokeStyle = 'rgba(200,180,120,0.04)';
         ctx.lineWidth = 0.5;
-        for (let x = 0; x < w; x += 20) {
+        for (let x = 0; x < w; x += 30) {
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
         }
-        for (let y = 0; y < h; y += 20) {
+        for (let y = 0; y < h; y += 30) {
             ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
         }
 
-        // Region background zones
+        // Border frame
+        ctx.strokeStyle = 'rgba(200,180,120,0.15)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(4, 4, w - 8, h - 8);
+        ctx.strokeStyle = 'rgba(200,180,120,0.08)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(8, 8, w - 16, h - 16);
+
+        // Region background zones with terrain texture
         for (const [rk, rn] of Object.entries(this.regionNodes)) {
             const region = WORLD.regions[rk];
             if (!region) continue;
             const x = rn.rx * w, y = rn.ry * h;
-            const grd = ctx.createRadialGradient(x, y, 10, x, y, w * 0.2);
-            grd.addColorStop(0, this._alpha(rn.color, region.unlocked ? 0.15 : 0.05));
+            // Larger, more visible region glow
+            const grd = ctx.createRadialGradient(x, y, 15, x, y, w * 0.25);
+            grd.addColorStop(0, this._alpha(rn.color, region.unlocked ? 0.2 : 0.06));
+            grd.addColorStop(0.5, this._alpha(rn.color, region.unlocked ? 0.08 : 0.02));
             grd.addColorStop(1, 'rgba(0,0,0,0)');
             ctx.fillStyle = grd;
             ctx.fillRect(0, 0, w, h);
         }
 
-        // Draw connections
+        // Region name labels (background text)
+        const regionLabels = {
+            ashen_wastes: { name: 'Ashen Wastes', rx: 0.25, ry: 0.18 },
+            hollowfen: { name: 'Hollowfen', rx: 0.55, ry: 0.42 },
+            void_sanctum: { name: 'Void Sanctum', rx: 0.75, ry: 0.12 }
+        };
+        for (const [rk, rl] of Object.entries(regionLabels)) {
+            const region = WORLD.regions[rk];
+            if (!region) continue;
+            const rn = this.regionNodes[rk];
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = region.unlocked ? this._alpha(rn.color, 0.5) : 'rgba(100,100,100,0.2)';
+            ctx.fillText(rl.name.toUpperCase(), rl.rx * w, rl.ry * h);
+        }
+
+        // Draw connections as curved paths
         for (const [a, b] of this.connections) {
             const na = this.locationNodes[a];
             const nb = this.locationNodes[b];
@@ -129,14 +162,34 @@ const MapUI = {
             const bUnlocked = WORLD.regions[bRegion] && WORLD.regions[bRegion].unlocked;
             const visible = aUnlocked || bUnlocked;
 
-            ctx.strokeStyle = visible ? 'rgba(200,180,120,0.3)' : 'rgba(100,100,100,0.1)';
-            ctx.lineWidth = visible ? 1.5 : 0.5;
-            ctx.setLineDash(visible ? [] : [4, 4]);
+            const ax = na.rx * w, ay = na.ry * h;
+            const bx = nb.rx * w, by = nb.ry * h;
+            // Slight curve for natural path look
+            const mx = (ax + bx) / 2 + (by - ay) * 0.1;
+            const my = (ay + by) / 2 - (bx - ax) * 0.1;
+
+            ctx.strokeStyle = visible ? 'rgba(200,180,120,0.35)' : 'rgba(100,100,100,0.1)';
+            ctx.lineWidth = visible ? 2 : 0.5;
+            ctx.setLineDash(visible ? [4, 2] : [3, 5]);
             ctx.beginPath();
-            ctx.moveTo(na.rx * w, na.ry * h);
-            ctx.lineTo(nb.rx * w, nb.ry * h);
+            ctx.moveTo(ax, ay);
+            ctx.quadraticCurveTo(mx, my, bx, by);
             ctx.stroke();
             ctx.setLineDash([]);
+
+            // Path dots along the route for unlocked paths
+            if (visible) {
+                const dots = 5;
+                ctx.fillStyle = 'rgba(200,180,120,0.15)';
+                for (let i = 1; i < dots; i++) {
+                    const t = i / dots;
+                    const dx = (1-t)*(1-t)*ax + 2*(1-t)*t*mx + t*t*bx;
+                    const dy = (1-t)*(1-t)*ay + 2*(1-t)*t*my + t*t*by;
+                    ctx.beginPath();
+                    ctx.arc(dx, dy, 1, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
         }
 
         // Draw location nodes

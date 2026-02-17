@@ -302,10 +302,11 @@ const GameState = {
             this.discoveredLore = s.discoveredLore || [];
             this.bossesDefeated = s.bossesDefeated || [];
             this.visitedLocations = s.visitedLocations || [];
-            this.base = s.base || { buildings: {}, crops: [], placeables: [] };
+            this.base = s.base || { buildings: {}, crops: [], placeables: [], placedBuildings: [] };
             if (!this.base.buildings) this.base.buildings = {};
             if (!this.base.crops) this.base.crops = [];
             if (!this.base.placeables) this.base.placeables = [];
+            if (!this.base.placedBuildings) this.base.placedBuildings = [];
             this.MAX_INVENTORY_SIZE = s.maxInventorySize || 40;
 
             if (s.unlockedRegions) {

@@ -15,7 +15,7 @@ const Base = {
         const unlockedBuildings = typeof TechTree !== 'undefined' ? TechTree.getUnlockedBuildings() : new Set(Object.keys(BUILDINGS));
 
         let html = '<h3>Build at Camp</h3>';
-        html += '<p style="color:var(--text-secondary);margin-bottom:0.8rem;font-size:0.85rem">Walk to a building spot (🔲) and interact, or choose below:</p>';
+        html += '<p style="color:var(--text-secondary);margin-bottom:0.8rem;font-size:0.85rem">Face an open tile, then click Build to place. You can build anywhere in your camp!</p>';
 
         for (const [id, bld] of Object.entries(BUILDINGS)) {
             const built = GameState.base.buildings[id];
@@ -61,18 +61,100 @@ const Base = {
     },
 
     build(buildingId) {
+        // Redirect to placeBuilding for free placement
+        this.placeBuilding(buildingId);
+    },
+
+    updateCampTiles() {
+        if (typeof WorldMap === 'undefined' || WorldMap.currentMap !== 'player_camp') return;
+        if (!GameState.base || !GameState.base.placedBuildings) return;
+
+        GameState.base.placedBuildings.forEach(pb => {
+            const bld = BUILDINGS[pb.id];
+            if (bld) {
+                const key = `${pb.x},${pb.y}`;
+                WorldMap.entityMap[key] = {
+                    x: pb.x, y: pb.y,
+                    type: 'building',
+                    id: pb.id,
+                    emoji: bld.icon
+                };
+                if (WorldMap.terrain[pb.y]) {
+                    WorldMap.terrain[pb.y][pb.x] = 'D';
+                }
+            }
+        });
+    },
+
+    // Build mode state
+    buildMode: false,
+    selectedBuilding: null,
+
+    showBuildMenu(x, y) {
+        // Check if there's already a building placed here
+        if (GameState.base && GameState.base.placedBuildings) {
+            const existing = GameState.base.placedBuildings.find(b => b.x === x && b.y === y);
+            if (existing) {
+                const bld = BUILDINGS[existing.id];
+                if (bld) {
+                    Narrative.addSystem(`${bld.name} is built here.`);
+                    this.useBuilding(existing.id);
+                    return;
+                }
+            }
+        }
+
+        // Check if this is a valid build location
+        if (!this.canPlaceAt(x, y)) {
+            Narrative.addSystem('Cannot build here.');
+            return;
+        }
+
+        // Show the build panel for free placement
+        this.showBuildPanel();
+    },
+
+    canPlaceAt(x, y) {
+        if (!WorldMap.terrain || !WorldMap.terrain[y] || !WorldMap.terrain[y][x]) return false;
+        const ch = WorldMap.getTerrainChar(x, y);
+        // Can only place on grass, path, tall grass, wildflower, hill tiles
+        const placeable = new Set(['.', 'p', 'g', 'w', 'h', 'B']);
+        if (!placeable.has(ch)) return false;
+        // Can't place on entities
+        if (WorldMap.entityMap[`${x},${y}`]) return false;
+        return true;
+    },
+
+    // Place a building at the player's facing tile
+    placeBuilding(buildingId) {
         const bld = BUILDINGS[buildingId];
         if (!bld) return;
+        if (!GameState.base) GameState.base = { buildings: {}, crops: [], placeables: [], placedBuildings: [] };
+        if (!GameState.base.placedBuildings) GameState.base.placedBuildings = [];
 
-        if (!GameState.base) GameState.base = { buildings: {}, crops: [], placeables: [] };
-
+        // Already built?
         if (GameState.base.buildings[buildingId]) {
             Notifications.show('Already built!', 'red');
             return;
         }
-
         if (!this.canAfford(bld.cost)) {
             Notifications.show('Not enough resources!', 'red');
+            return;
+        }
+
+        // Get the tile the player is facing
+        const faceTX = Math.floor(WorldMap.px / WorldMap.TS);
+        const faceTY = Math.floor(WorldMap.py / WorldMap.TS);
+        let fx = faceTX, fy = faceTY;
+        switch (WorldMap.facing) {
+            case 'up': fy--; break;
+            case 'down': fy++; break;
+            case 'left': fx--; break;
+            case 'right': fx++; break;
+        }
+
+        if (!this.canPlaceAt(fx, fy)) {
+            Notifications.show('Cannot place here! Face an open tile.', 'red');
             return;
         }
 
@@ -82,91 +164,35 @@ const Base = {
         }
 
         GameState.base.buildings[buildingId] = true;
+        GameState.base.placedBuildings.push({ id: buildingId, x: fx, y: fy });
 
         // Apply building effects
         if (buildingId === 'storage') {
             GameState.MAX_INVENTORY_SIZE += 20;
         }
 
+        // Place the building on the map
+        if (WorldMap.terrain[fy]) {
+            WorldMap.terrain[fy][fx] = 'D'; // Door tile as building marker
+        }
+        WorldMap.entityMap[`${fx},${fy}`] = {
+            x: fx, y: fy,
+            type: 'building',
+            id: buildingId,
+            emoji: bld.icon
+        };
+
         Narrative.addSeparator();
         Narrative.addStory(`You build a ${bld.name}! ${bld.description}`);
         Notifications.show(`${bld.name} built!`, 'gold');
 
-        // Update camp map visuals
-        this.updateCampTiles();
-
         HUD.update();
         GameState.save();
-
-        // Refresh the panel
-        this.showBuildPanel();
-
-        // Update actions
         if (typeof WorldMap !== 'undefined') WorldMap.updateActions();
-    },
 
-    updateCampTiles() {
-        if (typeof WorldMap === 'undefined' || WorldMap.currentMap !== 'player_camp') return;
-        const campMap = MAPS.player_camp;
-        if (!campMap || !campMap.buildingSpots) return;
-
-        campMap.buildingSpots.forEach(spot => {
-            if (GameState.base && GameState.base.buildings[spot.id]) {
-                const bld = BUILDINGS[spot.id];
-                if (bld) {
-                    const key = `${spot.x},${spot.y}`;
-                    WorldMap.entityMap[key] = {
-                        x: spot.x, y: spot.y,
-                        type: 'building',
-                        id: spot.id,
-                        emoji: bld.icon
-                    };
-                    if (WorldMap.terrain[spot.y]) {
-                        WorldMap.terrain[spot.y][spot.x] = '.';
-                    }
-                }
-            }
-        });
-        WorldMap.render();
-    },
-
-    showBuildMenu(x, y) {
-        const campMap = MAPS.player_camp;
-        if (!campMap || !campMap.buildingSpots) return;
-
-        const spot = campMap.buildingSpots.find(s => s.x === x && s.y === y);
-        if (!spot) {
-            Narrative.addSystem('Nothing to build here.');
-            return;
-        }
-
-        if (GameState.base && GameState.base.buildings[spot.id]) {
-            const bld = BUILDINGS[spot.id];
-            Narrative.addSystem(`${bld.name} is already built here.`);
-            this.useBuilding(spot.id);
-            return;
-        }
-
-        const bld = BUILDINGS[spot.id];
-        if (!bld) return;
-
-        Narrative.addSystem(`Building spot: ${spot.label}`);
-
-        if (this.canAfford(bld.cost)) {
-            let costText = Object.entries(bld.cost)
-                .map(([res, qty]) => `${ITEMS[res] ? ITEMS[res].icon : ''} ${qty} ${ITEMS[res] ? ITEMS[res].name : res}`)
-                .join(', ');
-            Narrative.addSystem(`Cost: ${costText}`);
-            Narrative.addSystem(`Use the Build panel to construct the ${bld.name}.`);
-        } else {
-            let costText = Object.entries(bld.cost)
-                .map(([res, qty]) => {
-                    const have = GameState.getInventoryCount(res);
-                    return `${ITEMS[res] ? ITEMS[res].icon : ''} ${have}/${qty} ${ITEMS[res] ? ITEMS[res].name : res}`;
-                })
-                .join(', ');
-            Narrative.addSystem(`Need: ${costText}`);
-        }
+        // Close panel
+        const sp = document.getElementById('side-panel');
+        if (sp) sp.classList.add('hidden');
     },
 
     useBuilding(buildingId) {

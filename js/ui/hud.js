@@ -38,11 +38,32 @@ const HUD = {
         const hudGold = document.getElementById('hud-gold');
         if (hudGold) hudGold.textContent = `Gold: ${p.gold}`;
 
+        // Stamina bar (updates frequently via game loop)
+        if (typeof WorldMap !== 'undefined') {
+            const stPercent = WorldMap.maxStamina > 0
+                ? Math.min(100, Math.max(0, (WorldMap.stamina / WorldMap.maxStamina) * 100)) : 100;
+            const stBar = document.getElementById('stamina-bar');
+            const stText = document.getElementById('stamina-text');
+            if (stBar) stBar.style.width = `${stPercent}%`;
+            if (stText) stText.textContent = `STA ${Math.floor(WorldMap.stamina)}/${WorldMap.maxStamina}`;
+        }
+
         // Location
         const location = WORLD.locations[GameState.currentLocation];
         const hudLocation = document.getElementById('hud-location');
         if (hudLocation && location) {
             hudLocation.textContent = location.name;
         }
+    },
+
+    // Fast update for stamina only (called from game loop)
+    updateStamina() {
+        if (typeof WorldMap === 'undefined') return;
+        const stPercent = WorldMap.maxStamina > 0
+            ? Math.min(100, Math.max(0, (WorldMap.stamina / WorldMap.maxStamina) * 100)) : 100;
+        const stBar = document.getElementById('stamina-bar');
+        const stText = document.getElementById('stamina-text');
+        if (stBar) stBar.style.width = `${stPercent}%`;
+        if (stText) stText.textContent = `STA ${Math.floor(WorldMap.stamina)}/${WorldMap.maxStamina}`;
     }
 };

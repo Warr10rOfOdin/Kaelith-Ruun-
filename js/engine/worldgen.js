@@ -122,82 +122,91 @@ const WorldGen = {
         }
     },
 
-    // Ashen Wastes — dry, scattered trees, rocks, ember roots
+    // Ashen Wastes — dense with trees, rocks, ember roots, clearings
     ashenTile(elev, moist, detail) {
-        if (elev > 0.72) return 'T';           // tree clusters at high elevation
-        if (elev > 0.68 && detail > 0.6) return 'T';
-        if (elev < 0.2 && moist > 0.6) return 'R'; // rocky lowlands
-        if (elev < 0.25 && moist > 0.7) return 'I'; // iron in deep rock
-        if (detail > 0.82 && elev > 0.4) return 'E'; // ember root scattered
-        if (detail > 0.85 && elev < 0.4) return 'R'; // occasional rock
+        if (elev > 0.62) return 'T';             // tree clusters — much more common
+        if (elev > 0.55 && detail > 0.45) return 'T';
+        if (elev < 0.22 && moist > 0.5) return 'R'; // rocky lowlands
+        if (elev < 0.28 && moist > 0.6) return 'I'; // iron in deep rock
+        if (detail > 0.72 && elev > 0.35) return 'E'; // ember root scattered
+        if (detail > 0.75 && elev < 0.35) return 'R'; // occasional rock
+        if (detail > 0.8 && elev > 0.3 && elev < 0.5) return 'H'; // herbs
+        if (detail > 0.88 && moist > 0.6) return 'L'; // lantern post
         return '.';
     },
 
     ashenWildTile(elev, moist, detail) {
-        if (elev > 0.7) return 'T';
-        if (elev > 0.65 && detail > 0.55) return 'T';
-        if (elev < 0.18) return 'R';
-        if (elev < 0.22 && moist > 0.65) return 'I';
-        if (detail > 0.8 && elev > 0.35) return 'E';
-        if (detail > 0.78 && elev < 0.35) return 'R';
-        if (detail > 0.88) return 'H';
+        if (elev > 0.58) return 'T';
+        if (elev > 0.52 && detail > 0.4) return 'T';
+        if (elev < 0.2) return 'R';
+        if (elev < 0.25 && moist > 0.55) return 'I';
+        if (detail > 0.68 && elev > 0.3) return 'E';
+        if (detail > 0.7 && elev < 0.3) return 'R';
+        if (detail > 0.78) return 'H';
+        if (detail > 0.85 && moist > 0.65) return 'X'; // bones in wilderness
         return '.';
     },
 
-    // Hollowfen — swampy, water pools, mushrooms, herbs
+    // Hollowfen — dense swamp with water pools, mushrooms, herbs, trees
     fenTile(elev, moist, detail) {
-        if (elev < 0.22) return '~';            // water pools
-        if (elev < 0.28 && moist > 0.5) return '~';
-        if (elev > 0.7 && moist > 0.5) return 'T';
-        if (elev > 0.65 && detail > 0.6) return 'T';
-        if (detail > 0.82 && moist > 0.5) return 'M'; // mushrooms in wet areas
-        if (detail > 0.8 && moist < 0.5) return 'H';  // herbs in drier spots
-        if (detail > 0.88) return 'S';                  // shadow silk rare
+        if (elev < 0.25) return '~';             // water pools — more
+        if (elev < 0.32 && moist > 0.45) return '~';
+        if (elev > 0.6 && moist > 0.4) return 'T';
+        if (elev > 0.55 && detail > 0.45) return 'T';
+        if (detail > 0.7 && moist > 0.45) return 'M';  // mushrooms common
+        if (detail > 0.68 && moist < 0.45) return 'H';  // herbs in drier spots
+        if (detail > 0.8) return 'S';                     // shadow silk
+        if (detail > 0.85 && elev > 0.4) return 'L';     // lantern
         return '.';
     },
 
     fenWildTile(elev, moist, detail) {
-        if (elev < 0.25) return '~';
-        if (elev < 0.3 && moist > 0.45) return '~';
-        if (elev > 0.68) return 'T';
-        if (elev > 0.62 && detail > 0.5) return 'T';
-        if (detail > 0.78 && moist > 0.5) return 'M';
-        if (detail > 0.75 && moist < 0.5) return 'H';
-        if (detail > 0.85) return 'S';
+        if (elev < 0.28) return '~';
+        if (elev < 0.35 && moist > 0.4) return '~';
+        if (elev > 0.56) return 'T';
+        if (elev > 0.5 && detail > 0.4) return 'T';
+        if (detail > 0.65 && moist > 0.45) return 'M';
+        if (detail > 0.62 && moist < 0.45) return 'H';
+        if (detail > 0.78) return 'S';
+        if (detail > 0.82 && elev < 0.4) return 'X'; // bones
         return '.';
     },
 
-    // Void Sanctum — dark, crystals, bones
+    // Void Sanctum — dense dark crystals, walls, bones
     voidTile(elev, moist, detail) {
-        if (elev > 0.75) return '#';             // stone formations
-        if (elev > 0.7 && detail > 0.5) return '#';
-        if (elev < 0.2) return 'R';
-        if (detail > 0.82 && moist > 0.5) return 'V'; // veil crystals
-        if (detail > 0.85 && moist < 0.5) return 'X'; // bones
-        if (detail > 0.88) return 'S';                  // shadow silk
+        if (elev > 0.65) return '#';              // stone formations — more
+        if (elev > 0.58 && detail > 0.4) return '#';
+        if (elev < 0.22) return 'R';
+        if (detail > 0.7 && moist > 0.45) return 'V';  // veil crystals — more
+        if (detail > 0.72 && moist < 0.45) return 'X'; // bones common
+        if (detail > 0.8) return 'S';                    // shadow silk
+        if (detail > 0.85 && elev > 0.4) return 'L';    // lantern
         return '.';
     },
 
     voidWildTile(elev, moist, detail) {
-        if (elev > 0.72) return '#';
-        if (elev > 0.67 && detail > 0.45) return '#';
-        if (elev < 0.18) return 'R';
-        if (detail > 0.78 && moist > 0.5) return 'V';
-        if (detail > 0.8 && moist < 0.5) return 'X';
-        if (detail > 0.85) return 'S';
+        if (elev > 0.6) return '#';
+        if (elev > 0.54 && detail > 0.35) return '#';
+        if (elev < 0.2) return 'R';
+        if (detail > 0.65 && moist > 0.45) return 'V';
+        if (detail > 0.68 && moist < 0.45) return 'X';
+        if (detail > 0.78) return 'S';
         return '.';
     },
 
-    // Village — mostly open with some trees
+    // Village — trees around edges, some flowers, a few rocks
     villageTile(elev, moist, detail) {
-        if (elev > 0.8) return 'T';
-        if (detail > 0.9) return 'T';
+        if (elev > 0.72) return 'T';
+        if (elev > 0.68 && detail > 0.5) return 'T';
+        if (detail > 0.88) return 'H'; // herb garden patch
+        if (detail > 0.85 && elev < 0.3) return 'R'; // decorative rock
         return '.';
     },
 
-    // Camp — mostly open
+    // Camp — some trees around perimeter
     campTile(elev, moist, detail) {
-        if (elev > 0.85) return 'T';
+        if (elev > 0.78) return 'T';
+        if (detail > 0.92) return 'R'; // occasional rock
         return '.';
     },
 

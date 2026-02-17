@@ -415,7 +415,7 @@ const WorldMap = {
             for (let tx = startTX; tx <= endTX; tx++) {
                 if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
                 const ch = this.getTerrainChar(tx, ty);
-                if (ch === 'T' || ch === '#' || ch === 'R') {
+                if (ch === 'T' || ch === '#' || ch === 'R' || ch === 'P' || ch === 'K') {
                     // Shadow offset: 4px right, 4px down
                     const sx = Math.floor(tx * T - this.camX) + 4;
                     const sy = Math.floor(ty * T - this.camY) + 4;
@@ -543,8 +543,11 @@ const WorldMap = {
             }
         } else if (tile.resource) {
             promptText = 'Gather';
-        } else if (this.mapData && this.mapData.isCamp && this.getTerrainChar(fx, fy) === 'B') {
-            promptText = 'Build';
+        } else if (this.mapData && this.mapData.isCamp) {
+            const campCh = this.getTerrainChar(fx, fy);
+            if (campCh === 'B' || campCh === '.' || campCh === 'p' || campCh === 'g' || campCh === 'w' || campCh === 'h') {
+                promptText = 'Build';
+            }
         }
 
         if (promptText) {
@@ -592,17 +595,13 @@ const WorldMap = {
             return;
         }
 
-        // Building spot
-        if (this.mapData && this.mapData.isCamp && this.getTerrainChar(fx, fy) === 'B') {
-            this.interactBuildingSpot(fx, fy);
-            return;
-        }
-
-        // Check standing tile
-        const standTile = this.getTileType(faceTX, faceTY);
-        if (standTile.name === 'Building Spot' && this.mapData && this.mapData.isCamp) {
-            this.interactBuildingSpot(faceTX, faceTY);
-            return;
+        // Building spot (legacy) or free building in camp
+        if (this.mapData && this.mapData.isCamp) {
+            const ch = this.getTerrainChar(fx, fy);
+            if (ch === 'B' || ch === '.' || ch === 'p' || ch === 'g' || ch === 'w' || ch === 'h') {
+                this.interactBuildingSpot(fx, fy);
+                return;
+            }
         }
 
         Narrative.addSystem('Nothing to interact with here.');

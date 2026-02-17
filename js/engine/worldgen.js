@@ -122,91 +122,124 @@ const WorldGen = {
         }
     },
 
-    // Ashen Wastes — dense with trees, rocks, ember roots, clearings
+    // Ashen Wastes — mixed forests, rocky outcrops, dead trees, hills, wildflowers
     ashenTile(elev, moist, detail) {
-        if (elev > 0.62) return 'T';             // tree clusters — much more common
-        if (elev > 0.55 && detail > 0.45) return 'T';
-        if (elev < 0.22 && moist > 0.5) return 'R'; // rocky lowlands
-        if (elev < 0.28 && moist > 0.6) return 'I'; // iron in deep rock
-        if (detail > 0.72 && elev > 0.35) return 'E'; // ember root scattered
+        if (elev > 0.68) return 'P';              // pine trees on high ground
+        if (elev > 0.62) return 'T';              // regular trees
+        if (elev > 0.55 && detail > 0.45) return detail > 0.65 ? 'P' : 'T';
+        if (elev > 0.5 && detail > 0.7 && moist < 0.35) return 'K'; // dead trees in dry areas
+        if (elev > 0.48 && elev < 0.55 && detail > 0.55) return 'h'; // rolling hills
+        if (elev < 0.18 && moist > 0.55) return 'O'; // small ponds in low areas
+        if (elev < 0.22 && moist > 0.5) return 'R';  // rocky lowlands
+        if (elev < 0.28 && moist > 0.6) return 'I';  // iron in deep rock
+        if (detail > 0.72 && elev > 0.35) return 'E'; // ember root
         if (detail > 0.75 && elev < 0.35) return 'R'; // occasional rock
         if (detail > 0.8 && elev > 0.3 && elev < 0.5) return 'H'; // herbs
+        if (detail > 0.82 && moist > 0.5 && elev > 0.35) return 'w'; // wildflowers
         if (detail > 0.88 && moist > 0.6) return 'L'; // lantern post
+        if (detail > 0.4 && detail < 0.45 && elev > 0.35) return 'g'; // tall grass patches
+        if (detail > 0.9 && elev < 0.3 && moist < 0.4) return 'c'; // rare cave
         return '.';
     },
 
     ashenWildTile(elev, moist, detail) {
-        if (elev > 0.58) return 'T';
-        if (elev > 0.52 && detail > 0.4) return 'T';
+        if (elev > 0.62) return 'P';              // more pines in wilderness
+        if (elev > 0.55) return 'T';
+        if (elev > 0.50 && detail > 0.4) return detail > 0.6 ? 'K' : 'T';
+        if (elev > 0.45 && detail > 0.55) return 'h'; // hills
+        if (elev < 0.15 && moist > 0.5) return 'O';  // ponds
         if (elev < 0.2) return 'R';
         if (elev < 0.25 && moist > 0.55) return 'I';
         if (detail > 0.68 && elev > 0.3) return 'E';
         if (detail > 0.7 && elev < 0.3) return 'R';
-        if (detail > 0.78) return 'H';
-        if (detail > 0.85 && moist > 0.65) return 'X'; // bones in wilderness
+        if (detail > 0.75) return 'H';
+        if (detail > 0.78 && moist > 0.5) return 'w'; // wildflowers
+        if (detail > 0.85 && moist > 0.65) return 'X'; // bones
+        if (detail > 0.35 && detail < 0.42) return 'g'; // tall grass
         return '.';
     },
 
-    // Hollowfen — dense swamp with water pools, mushrooms, herbs, trees
+    // Hollowfen — dense swamp with water, mushrooms, herbs, dead trees, ponds
     fenTile(elev, moist, detail) {
-        if (elev < 0.25) return '~';             // water pools — more
-        if (elev < 0.32 && moist > 0.45) return '~';
-        if (elev > 0.6 && moist > 0.4) return 'T';
-        if (elev > 0.55 && detail > 0.45) return 'T';
-        if (detail > 0.7 && moist > 0.45) return 'M';  // mushrooms common
-        if (detail > 0.68 && moist < 0.45) return 'H';  // herbs in drier spots
-        if (detail > 0.8) return 'S';                     // shadow silk
-        if (detail > 0.85 && elev > 0.4) return 'L';     // lantern
+        if (elev < 0.22) return '~';              // deep water
+        if (elev < 0.28 && moist > 0.42) return '~'; // shallow water
+        if (elev < 0.32 && moist > 0.55) return 'O'; // ponds at water edges
+        if (elev > 0.62 && moist > 0.4) return 'T';  // swamp trees
+        if (elev > 0.55 && detail > 0.45) return detail > 0.6 ? 'K' : 'T'; // dead trees mixed
+        if (elev > 0.48 && detail > 0.6) return 'h';  // marshy mounds
+        if (detail > 0.68 && moist > 0.45) return 'M'; // mushrooms
+        if (detail > 0.65 && moist < 0.45) return 'H'; // herbs
+        if (detail > 0.78) return 'S';                  // shadow silk
+        if (detail > 0.82 && elev > 0.4) return 'L';   // lantern
+        if (detail > 0.38 && detail < 0.44 && elev > 0.32) return 'g'; // tall swamp grass
+        if (detail > 0.84 && moist > 0.5 && elev > 0.35) return 'w'; // swamp flowers
         return '.';
     },
 
     fenWildTile(elev, moist, detail) {
-        if (elev < 0.28) return '~';
-        if (elev < 0.35 && moist > 0.4) return '~';
-        if (elev > 0.56) return 'T';
-        if (elev > 0.5 && detail > 0.4) return 'T';
-        if (detail > 0.65 && moist > 0.45) return 'M';
-        if (detail > 0.62 && moist < 0.45) return 'H';
-        if (detail > 0.78) return 'S';
-        if (detail > 0.82 && elev < 0.4) return 'X'; // bones
+        if (elev < 0.25) return '~';
+        if (elev < 0.32 && moist > 0.4) return '~';
+        if (elev < 0.35 && moist > 0.55) return 'O'; // ponds
+        if (elev > 0.58) return 'K';                   // lots of dead trees
+        if (elev > 0.52 && detail > 0.4) return 'T';
+        if (elev > 0.46 && detail > 0.55) return 'h'; // hills
+        if (detail > 0.62 && moist > 0.45) return 'M';
+        if (detail > 0.58 && moist < 0.45) return 'H';
+        if (detail > 0.75) return 'S';
+        if (detail > 0.8 && elev < 0.4) return 'X';   // bones
+        if (detail > 0.35 && detail < 0.42) return 'g';
+        if (detail > 0.9 && elev < 0.35) return 'c';  // rare cave
         return '.';
     },
 
-    // Void Sanctum — dense dark crystals, walls, bones
+    // Void Sanctum — dark crystals, walls, bones, dead trees, caves
     voidTile(elev, moist, detail) {
-        if (elev > 0.65) return '#';              // stone formations — more
-        if (elev > 0.58 && detail > 0.4) return '#';
+        if (elev > 0.68) return '#';               // dense stone walls
+        if (elev > 0.6 && detail > 0.4) return '#';
+        if (elev > 0.55 && detail > 0.6) return 'K'; // dead trees in void
+        if (elev < 0.18 && moist > 0.5) return 'R';  // deep rock
         if (elev < 0.22) return 'R';
-        if (detail > 0.7 && moist > 0.45) return 'V';  // veil crystals — more
-        if (detail > 0.72 && moist < 0.45) return 'X'; // bones common
-        if (detail > 0.8) return 'S';                    // shadow silk
-        if (detail > 0.85 && elev > 0.4) return 'L';    // lantern
+        if (detail > 0.68 && moist > 0.45) return 'V'; // veil crystals
+        if (detail > 0.7 && moist < 0.45) return 'X';  // bones
+        if (detail > 0.78) return 'S';                  // shadow silk
+        if (detail > 0.82 && elev > 0.4) return 'L';   // lantern
+        if (detail > 0.88 && elev < 0.35) return 'c';  // cave entrances
+        if (elev > 0.45 && elev < 0.55 && detail > 0.5) return 'h'; // dark hills
         return '.';
     },
 
     voidWildTile(elev, moist, detail) {
-        if (elev > 0.6) return '#';
-        if (elev > 0.54 && detail > 0.35) return '#';
+        if (elev > 0.62) return '#';
+        if (elev > 0.56 && detail > 0.35) return '#';
+        if (elev > 0.5 && detail > 0.55) return 'K'; // dead trees
         if (elev < 0.2) return 'R';
-        if (detail > 0.65 && moist > 0.45) return 'V';
-        if (detail > 0.68 && moist < 0.45) return 'X';
-        if (detail > 0.78) return 'S';
+        if (detail > 0.62 && moist > 0.45) return 'V';
+        if (detail > 0.65 && moist < 0.45) return 'X';
+        if (detail > 0.75) return 'S';
+        if (detail > 0.85 && elev < 0.3) return 'c'; // caves
+        if (elev > 0.42 && elev < 0.52 && detail > 0.48) return 'h';
         return '.';
     },
 
-    // Village — trees around edges, some flowers, a few rocks
+    // Village — lush with flowers, some trees, decorative rocks, gardens
     villageTile(elev, moist, detail) {
         if (elev > 0.72) return 'T';
-        if (elev > 0.68 && detail > 0.5) return 'T';
-        if (detail > 0.88) return 'H'; // herb garden patch
-        if (detail > 0.85 && elev < 0.3) return 'R'; // decorative rock
+        if (elev > 0.68 && detail > 0.5) return detail > 0.7 ? 'P' : 'T';
+        if (elev > 0.6 && detail > 0.65) return 'h'; // gentle hills
+        if (detail > 0.82 && moist > 0.5) return 'w'; // wildflowers
+        if (detail > 0.85) return 'H';                 // herb garden
+        if (detail > 0.88 && elev < 0.3) return 'R';   // decorative rock
+        if (detail > 0.38 && detail < 0.44 && elev > 0.4) return 'g'; // grass patches
         return '.';
     },
 
-    // Camp — some trees around perimeter
+    // Camp — open with some trees, flowers, grass patches
     campTile(elev, moist, detail) {
         if (elev > 0.78) return 'T';
-        if (detail > 0.92) return 'R'; // occasional rock
+        if (elev > 0.74 && detail > 0.6) return 'P'; // occasional pine
+        if (detail > 0.88) return 'R';                 // occasional rock
+        if (detail > 0.82 && moist > 0.5) return 'w'; // flowers
+        if (detail > 0.35 && detail < 0.4 && elev > 0.5) return 'g'; // tall grass
         return '.';
     },
 
@@ -310,15 +343,17 @@ const WorldGen = {
     drawPath(grid, from, to, mapW, mapH) {
         let x = from.x, y = from.y;
         const tx = to.x, ty = to.y;
+        // Tiles that paths can overwrite (anything except water, campfire, chest, building spot, doors)
+        const canReplace = new Set(['.', 'T', 'R', '#', 'f', 'E', 'H', 'S', 'X', 'M', 'V', 'I']);
 
         // L-shaped path: horizontal first, then vertical
         while (x !== tx) {
             if (x >= 0 && x < mapW && y >= 0 && y < mapH) {
-                if (grid[y][x] === '.' || grid[y][x] === 'T' || grid[y][x] === 'R') {
+                if (canReplace.has(grid[y][x])) {
                     grid[y][x] = 'p';
                 }
                 // Widen the path
-                if (y + 1 < mapH && (grid[y + 1][x] === '.' || grid[y + 1][x] === 'T' || grid[y + 1][x] === 'R')) {
+                if (y + 1 < mapH && canReplace.has(grid[y + 1][x])) {
                     grid[y + 1][x] = 'p';
                 }
             }
@@ -326,10 +361,10 @@ const WorldGen = {
         }
         while (y !== ty) {
             if (x >= 0 && x < mapW && y >= 0 && y < mapH) {
-                if (grid[y][x] === '.' || grid[y][x] === 'T' || grid[y][x] === 'R') {
+                if (canReplace.has(grid[y][x])) {
                     grid[y][x] = 'p';
                 }
-                if (x + 1 < mapW && (grid[y][x + 1] === '.' || grid[y][x + 1] === 'T' || grid[y][x + 1] === 'R')) {
+                if (x + 1 < mapW && canReplace.has(grid[y][x + 1])) {
                     grid[y][x + 1] = 'p';
                 }
             }
@@ -345,15 +380,17 @@ const WorldGen = {
         const ey = exit.entryY !== undefined ? exit.entryY : Math.floor(h / 2);
 
         const rows = terrain.map(r => r.split(''));
-        const clearW = 4; // width of opening
+        const clearW = 4; // half-width of opening
+        const depth = 5;  // how many rows/cols deep to clear
 
         switch (direction) {
             case 'north':
                 for (let dx = -clearW; dx <= clearW; dx++) {
                     const xx = ex + dx;
                     if (xx >= 0 && xx < w) {
-                        rows[0][xx] = 'p';
-                        rows[1][xx] = 'p';
+                        for (let d = 0; d < depth && d < h; d++) {
+                            rows[d][xx] = 'p';
+                        }
                     }
                 }
                 break;
@@ -361,8 +398,9 @@ const WorldGen = {
                 for (let dx = -clearW; dx <= clearW; dx++) {
                     const xx = ex + dx;
                     if (xx >= 0 && xx < w) {
-                        rows[h - 1][xx] = 'p';
-                        rows[h - 2][xx] = 'p';
+                        for (let d = 0; d < depth && d < h; d++) {
+                            rows[h - 1 - d][xx] = 'p';
+                        }
                     }
                 }
                 break;
@@ -370,8 +408,9 @@ const WorldGen = {
                 for (let dy = -clearW; dy <= clearW; dy++) {
                     const yy = ey + dy;
                     if (yy >= 0 && yy < h) {
-                        rows[yy][0] = 'p';
-                        rows[yy][1] = 'p';
+                        for (let d = 0; d < depth && d < w; d++) {
+                            rows[yy][d] = 'p';
+                        }
                     }
                 }
                 break;
@@ -379,8 +418,9 @@ const WorldGen = {
                 for (let dy = -clearW; dy <= clearW; dy++) {
                     const yy = ey + dy;
                     if (yy >= 0 && yy < h) {
-                        rows[yy][w - 1] = 'p';
-                        rows[yy][w - 2] = 'p';
+                        for (let d = 0; d < depth && d < w; d++) {
+                            rows[yy][w - 1 - d] = 'p';
+                        }
                     }
                 }
                 break;

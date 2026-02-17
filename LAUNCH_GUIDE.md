@@ -25,7 +25,7 @@ npm install
 
 ```bash
 npx cap add android        # First time only — creates android/ folder
-npx cap sync               # Copies web assets + installs native plugins
+npm run cap:sync           # Builds web assets to www/ + syncs to native
 npx cap open android       # Opens in Android Studio
 ```
 
@@ -39,7 +39,7 @@ In Android Studio:
 
 ```bash
 npx cap add ios             # First time only — creates ios/ folder
-npx cap sync                # Copies web assets + installs native plugins
+npm run cap:sync            # Builds web assets to www/ + syncs to native
 npx cap open ios            # Opens in Xcode
 ```
 
@@ -53,7 +53,7 @@ In Xcode:
 ### After Making Code Changes
 
 ```bash
-npx cap sync                # Re-syncs web code to native projects
+npm run cap:sync            # Re-builds www/ and syncs to native projects
 ```
 
 ---
@@ -244,7 +244,7 @@ Recommended 5-8 screenshots per device showing:
 ## Pre-Launch Checklist
 
 - [ ] `npm install` runs without errors
-- [ ] `npx cap sync` completes successfully
+- [ ] `npm run cap:sync` completes successfully
 - [ ] Android: builds and runs on emulator
 - [ ] Android: builds and runs on physical device
 - [ ] iOS: builds and runs on simulator

@@ -1,7 +1,7 @@
 {
   "appId": "com.kaelithruun.app",
   "appName": "Kaelith Ruun",
-  "webDir": ".",
+  "webDir": "www",
   "backgroundColor": "#0a0a0f",
   "ios": {
     "contentInset": "always",

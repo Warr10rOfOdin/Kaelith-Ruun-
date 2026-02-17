@@ -91,17 +91,17 @@ const Sprites = {
         const T = this.TS;
         const P = this.PAL;
 
-        // Generate multiple variations for common tiles
-        for (let v = 0; v < 4; v++) {
+        // Generate multiple variations for common tiles (more = richer world)
+        for (let v = 0; v < 8; v++) {
             this.cache[`grass_${v}`] = this.drawGrass(v);
         }
-        for (let v = 0; v < 3; v++) {
+        for (let v = 0; v < 4; v++) {
             this.cache[`path_${v}`] = this.drawPath(v);
         }
-        for (let v = 0; v < 3; v++) {
+        for (let v = 0; v < 5; v++) {
             this.cache[`tree_${v}`] = this.drawTree(v);
         }
-        for (let v = 0; v < 2; v++) {
+        for (let v = 0; v < 3; v++) {
             this.cache[`rock_${v}`] = this.drawRock(v);
         }
 
@@ -134,11 +134,11 @@ const Sprites = {
     getTile(ch, tx, ty) {
         const h = this.hash(tx, ty);
         switch (ch) {
-            case '.': return this.cache[`grass_${h % 4}`];
-            case 'p': return this.cache[`path_${h % 3}`];
+            case '.': return this.cache[`grass_${h % 8}`];
+            case 'p': return this.cache[`path_${h % 4}`];
             case '#': return this.cache.wall;
-            case 'T': return this.cache[`tree_${h % 3}`];
-            case 'R': return this.cache[`rock_${h % 2}`];
+            case 'T': return this.cache[`tree_${h % 5}`];
+            case 'R': return this.cache[`rock_${h % 3}`];
             case 'I': return this.cache.iron;
             case '~': return this.cache[`water_${this.animFrame % 3}`];
             case 'E': return this.cache.ember;
@@ -167,37 +167,80 @@ const Sprites = {
         const P = this.PAL.grass;
         const rng = this.seeded(variant * 1000 + 42);
 
-        // Base
+        // Rich multi-tone base: gradient feel with two-pass fill
         ctx.fillStyle = P[1];
         ctx.fillRect(0, 0, T, T);
 
-        // Color variation patches
-        for (let i = 0; i < 12; i++) {
+        // Layer 1: Large soft patches for natural color variation (like the mockup)
+        for (let i = 0; i < 8; i++) {
+            const shade = P[Math.floor(rng() * P.length)];
+            ctx.fillStyle = shade;
+            const x = Math.floor(rng() * T);
+            const y = Math.floor(rng() * T);
+            const w = 6 + Math.floor(rng() * 10);
+            const h = 5 + Math.floor(rng() * 8);
+            ctx.globalAlpha = 0.4 + rng() * 0.3;
+            ctx.beginPath();
+            ctx.ellipse(x, y, w / 2, h / 2, rng() * 3.14, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // Layer 2: Fine grain noise — 25+ small patches for texture
+        for (let i = 0; i < 28; i++) {
             ctx.fillStyle = P[Math.floor(rng() * P.length)];
             const x = Math.floor(rng() * T);
             const y = Math.floor(rng() * T);
-            ctx.fillRect(x, y, 2 + Math.floor(rng() * 4), 2 + Math.floor(rng() * 3));
+            ctx.fillRect(x, y, 1 + Math.floor(rng() * 3), 1 + Math.floor(rng() * 3));
         }
 
-        // Small grass blades
-        ctx.fillStyle = P[3];
-        for (let i = 0; i < 4; i++) {
+        // Layer 3: Darker undertone speckles for depth
+        for (let i = 0; i < 6; i++) {
+            ctx.fillStyle = '#2a5a1a';
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 2, 2);
+        }
+        ctx.globalAlpha = 1;
+
+        // Grass blades — varied heights and angles
+        const bladeColors = ['#5a9a3e', '#6aaa4e', '#4a8a2e', '#7aba5e'];
+        for (let i = 0; i < 8; i++) {
+            ctx.fillStyle = bladeColors[Math.floor(rng() * bladeColors.length)];
             const x = Math.floor(rng() * (T - 2));
-            const y = Math.floor(rng() * (T - 4));
-            ctx.fillRect(x, y, 1, 3);
-            ctx.fillRect(x + 1, y + 1, 1, 2);
+            const y = Math.floor(rng() * (T - 5));
+            const h = 2 + Math.floor(rng() * 4);
+            ctx.fillRect(x, y, 1, h);
+            if (rng() > 0.5) ctx.fillRect(x + 1, y + 1, 1, h - 1);
         }
 
-        // Occasional tiny flowers
+        // Occasional details per variant
         if (variant === 2) {
+            // Small yellow wildflowers
             ctx.fillStyle = '#dddd44';
             ctx.fillRect(10, 14, 2, 2);
+            ctx.fillStyle = '#cccc33';
+            ctx.fillRect(11, 13, 1, 1);
             ctx.fillStyle = '#ee6666';
             ctx.fillRect(22, 8, 2, 2);
+            ctx.fillStyle = '#dd5555';
+            ctx.fillRect(23, 7, 1, 1);
         }
         if (variant === 3) {
+            // Blue flowers + clover
             ctx.fillStyle = '#aaddff';
             ctx.fillRect(6, 20, 2, 2);
+            ctx.fillStyle = '#88ccee';
+            ctx.fillRect(7, 19, 1, 1);
+            // Tiny clover
+            ctx.fillStyle = '#3a7a2a';
+            ctx.fillRect(20, 24, 3, 1);
+            ctx.fillRect(21, 23, 1, 1);
+            ctx.fillRect(21, 25, 1, 1);
+        }
+        if (variant === 0) {
+            // Tiny pebble
+            ctx.fillStyle = '#8a8a7a';
+            ctx.fillRect(14 + Math.floor(rng() * 6), 22 + Math.floor(rng() * 4), 2, 1);
         }
 
         return c;
@@ -208,24 +251,59 @@ const Sprites = {
         const P = this.PAL.path;
         const rng = this.seeded(variant * 2000 + 77);
 
+        // Rich base with subtle variation
         ctx.fillStyle = P[0];
         ctx.fillRect(0, 0, T, T);
 
-        // Texture
-        for (let i = 0; i < 15; i++) {
+        // Large soft patches for worn-path look
+        for (let i = 0; i < 5; i++) {
+            ctx.fillStyle = P[Math.floor(rng() * P.length)];
+            ctx.globalAlpha = 0.35 + rng() * 0.3;
+            const x = Math.floor(rng() * T);
+            const y = Math.floor(rng() * T);
+            ctx.beginPath();
+            ctx.ellipse(x, y, 4 + rng() * 6, 3 + rng() * 5, rng() * 3.14, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // Fine grain texture
+        for (let i = 0; i < 20; i++) {
             ctx.fillStyle = P[Math.floor(rng() * P.length)];
             ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T),
-                2 + Math.floor(rng() * 3), 2 + Math.floor(rng() * 2));
+                1 + Math.floor(rng() * 3), 1 + Math.floor(rng() * 2));
         }
 
-        // Small pebbles
-        ctx.fillStyle = '#9a8a7a';
-        for (let i = 0; i < 3; i++) {
-            const x = 4 + Math.floor(rng() * (T - 8));
-            const y = 4 + Math.floor(rng() * (T - 8));
+        // Darker edge dirt
+        ctx.fillStyle = '#5a4a35';
+        ctx.globalAlpha = 0.3;
+        for (let i = 0; i < 4; i++) {
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 3, 2);
+        }
+        ctx.globalAlpha = 1;
+
+        // Pebbles — varied sizes
+        const pebbleColors = ['#9a8a7a', '#8a7a6a', '#aaa09a', '#7a6a5a'];
+        for (let i = 0; i < 5; i++) {
+            ctx.fillStyle = pebbleColors[Math.floor(rng() * pebbleColors.length)];
+            const x = 2 + Math.floor(rng() * (T - 4));
+            const y = 2 + Math.floor(rng() * (T - 4));
+            const r = 0.8 + rng() * 1.5;
             ctx.beginPath();
-            ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+            ctx.arc(x, y, r, 0, Math.PI * 2);
             ctx.fill();
+        }
+
+        // Cart rut marks on variant 1
+        if (variant === 1) {
+            ctx.strokeStyle = '#6a5a45';
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.3;
+            ctx.beginPath();
+            ctx.moveTo(0, 10); ctx.lineTo(T, 12);
+            ctx.moveTo(0, 22); ctx.lineTo(T, 20);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
         }
 
         return c;
@@ -234,28 +312,43 @@ const Sprites = {
     drawWall() {
         const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
         const P = this.PAL.wall;
+        const rng = this.seeded(7777);
 
-        // Base dark
-        ctx.fillStyle = P[1];
+        // Base dark mortar
+        ctx.fillStyle = '#2a2a2a';
         ctx.fillRect(0, 0, T, T);
 
-        // Stone block pattern
+        // Stone block pattern with varied colors
         for (let row = 0; row < 4; row++) {
             const offset = (row % 2) * 8;
             for (let col = 0; col < 3; col++) {
                 const x = offset + col * 12;
                 const y = row * 8;
-                // Block face
-                ctx.fillStyle = P[0];
+                // Block face — varied shade per block
+                const shade = P[Math.floor(rng() * P.length)];
+                ctx.fillStyle = shade;
                 ctx.fillRect(x + 1, y + 1, 10, 6);
-                // Highlight top edge
+                // Texture speckle on face
                 ctx.fillStyle = P[2];
+                ctx.globalAlpha = 0.3;
+                ctx.fillRect(x + 2 + Math.floor(rng() * 6), y + 2 + Math.floor(rng() * 3), 2, 2);
+                ctx.globalAlpha = 1;
+                // Highlight top edge
+                ctx.fillStyle = '#6a6a6a';
                 ctx.fillRect(x + 1, y + 1, 10, 1);
-                // Shadow bottom edge
-                ctx.fillStyle = P[1];
+                // Shadow bottom + right edge
+                ctx.fillStyle = '#2a2a2a';
                 ctx.fillRect(x + 1, y + 7, 10, 1);
+                ctx.fillRect(x + 11, y + 1, 1, 7);
             }
         }
+
+        // Occasional moss stain
+        ctx.fillStyle = '#3a5a3a';
+        ctx.globalAlpha = 0.2;
+        ctx.fillRect(2, 24, 4, 3);
+        ctx.fillRect(20, 4, 3, 2);
+        ctx.globalAlpha = 1;
 
         return c;
     },
@@ -265,59 +358,106 @@ const Sprites = {
         const P = this.PAL;
         const rng = this.seeded(variant * 3000 + 13);
 
-        // Grass base
+        // Rich grass base (match the overhaul)
         ctx.fillStyle = P.grass[1];
         ctx.fillRect(0, 0, T, T);
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 10; i++) {
             ctx.fillStyle = P.grass[Math.floor(rng() * P.grass.length)];
-            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 3, 2);
+            ctx.globalAlpha = 0.5 + rng() * 0.3;
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 2 + Math.floor(rng() * 4), 2 + Math.floor(rng() * 3));
         }
+        ctx.globalAlpha = 1;
 
-        // Shadow on ground
-        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        // Larger shadow on ground — darker, more spread
+        ctx.fillStyle = 'rgba(0,0,0,0.22)';
         ctx.beginPath();
-        ctx.ellipse(16, 28, 10, 4, 0, 0, Math.PI * 2);
+        ctx.ellipse(16, 28, 13, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(0,0,0,0.08)';
+        ctx.beginPath();
+        ctx.ellipse(18, 27, 10, 4, 0.2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Trunk
-        const tw = 4 + Math.floor(rng() * 2);
+        // Trunk with bark texture
+        const tw = 5 + Math.floor(rng() * 2);
         const tx = 16 - tw / 2;
         ctx.fillStyle = P.trunk[0];
-        ctx.fillRect(tx, 16, tw, 14);
+        ctx.fillRect(tx, 14, tw, 16);
+        // Bark highlights
         ctx.fillStyle = P.trunk[1];
-        ctx.fillRect(tx + 1, 16, tw - 2, 12);
+        ctx.fillRect(tx + 1, 14, tw - 2, 14);
+        // Bark grain lines
+        ctx.fillStyle = P.trunk[2];
+        for (let i = 0; i < 4; i++) {
+            const by = 15 + Math.floor(rng() * 12);
+            ctx.fillRect(tx + 1, by, tw - 2, 1);
+        }
+        // Knot
+        if (variant === 1) {
+            ctx.fillStyle = '#4a2a10';
+            ctx.beginPath();
+            ctx.arc(16, 20, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        // Root flare at base
+        ctx.fillStyle = P.trunk[0];
+        ctx.fillRect(tx - 1, 28, tw + 2, 2);
 
-        // Canopy layers (bottom to top, dark to light)
+        // Canopy — 5+ overlapping layers for lush, full look
         const cx = 16 + (variant - 1) * 1;
-        const cy = 10 + (variant === 1 ? -1 : 0);
+        const cy = 9 + (variant === 1 ? -1 : 0);
 
-        ctx.fillStyle = P.leaves[0];
+        // Layer 1: darkest, largest (base shadow of canopy)
+        ctx.fillStyle = '#0a4a00';
         ctx.beginPath();
-        ctx.ellipse(cx, cy + 3, 12, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx, cy + 5, 14, 9, 0, 0, Math.PI * 2);
         ctx.fill();
 
+        // Layer 2: dark green base
+        ctx.fillStyle = P.leaves[0];
+        ctx.beginPath();
+        ctx.ellipse(cx - 1, cy + 3, 13, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Layer 3: mid-left cluster
         ctx.fillStyle = P.leaves[2];
         ctx.beginPath();
-        ctx.ellipse(cx - 2, cy, 9, 7, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx - 3, cy + 1, 9, 7, -0.2, 0, Math.PI * 2);
         ctx.fill();
 
+        // Layer 4: mid-right cluster
         ctx.fillStyle = P.leaves[1];
         ctx.beginPath();
-        ctx.ellipse(cx + 2, cy - 2, 8, 6, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx + 3, cy - 1, 9, 6, 0.2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Highlight
+        // Layer 5: bright highlight top
+        ctx.fillStyle = P.leaves[3];
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - 2, 7, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Layer 6: brightest highlight (sun catch)
         ctx.fillStyle = P.leaves[4];
         ctx.beginPath();
-        ctx.ellipse(cx - 1, cy - 4, 4, 3, 0, 0, Math.PI * 2);
+        ctx.ellipse(cx - 2, cy - 4, 5, 3, -0.3, 0, Math.PI * 2);
         ctx.fill();
 
-        // Texture dots on canopy
-        ctx.fillStyle = P.leaves[0];
-        for (let i = 0; i < 5; i++) {
+        // Leaf texture — lots of small dots for depth
+        for (let i = 0; i < 14; i++) {
+            const shade = [P.leaves[0], P.leaves[2], '#1a5a0a', '#2d6d1d'][Math.floor(rng() * 4)];
+            ctx.fillStyle = shade;
+            const dx = cx - 10 + Math.floor(rng() * 20);
+            const dy = cy - 6 + Math.floor(rng() * 14);
+            ctx.fillRect(dx, dy, 1 + Math.floor(rng() * 2), 1 + Math.floor(rng() * 2));
+        }
+
+        // Bright leaf specks (sunlight through canopy)
+        ctx.fillStyle = '#7aca5a';
+        for (let i = 0; i < 4; i++) {
             const dx = cx - 8 + Math.floor(rng() * 16);
-            const dy = cy - 6 + Math.floor(rng() * 12);
-            ctx.fillRect(dx, dy, 2, 2);
+            const dy = cy - 5 + Math.floor(rng() * 10);
+            ctx.fillRect(dx, dy, 1, 1);
         }
 
         return c;
@@ -328,44 +468,77 @@ const Sprites = {
         const P = this.PAL;
         const rng = this.seeded(variant * 4000 + 31);
 
-        // Grass base
+        // Rich grass base
         ctx.fillStyle = P.grass[1];
         ctx.fillRect(0, 0, T, T);
+        for (let i = 0; i < 8; i++) {
+            ctx.fillStyle = P.grass[Math.floor(rng() * P.grass.length)];
+            ctx.globalAlpha = 0.4;
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 3, 2);
+        }
+        ctx.globalAlpha = 1;
 
-        // Shadow
-        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        // Larger shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
         ctx.beginPath();
-        ctx.ellipse(16, 26, 11, 5, 0, 0, Math.PI * 2);
+        ctx.ellipse(17, 27, 12, 5, 0.1, 0, Math.PI * 2);
         ctx.fill();
 
-        // Rock body
         const rx = variant === 0 ? 16 : 14;
         const ry = variant === 0 ? 16 : 14;
 
+        // Rock body — darker bottom layer for depth
         ctx.fillStyle = P.rock[2];
         ctx.beginPath();
-        ctx.ellipse(rx, ry + 2, 11, 9, 0, 0, Math.PI * 2);
+        ctx.ellipse(rx, ry + 3, 12, 9, 0, 0, Math.PI * 2);
         ctx.fill();
 
+        // Main rock face
         ctx.fillStyle = P.rock[0];
         ctx.beginPath();
-        ctx.ellipse(rx, ry, 10, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(rx, ry, 11, 8, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Highlight
+        // Texture noise on rock surface
+        for (let i = 0; i < 6; i++) {
+            ctx.fillStyle = P.rock[Math.floor(rng() * P.rock.length)];
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(rx - 8 + Math.floor(rng() * 16), ry - 6 + Math.floor(rng() * 12), 2, 2);
+        }
+        ctx.globalAlpha = 1;
+
+        // Highlight — upper left
         ctx.fillStyle = P.rock[3];
         ctx.beginPath();
-        ctx.ellipse(rx - 2, ry - 3, 5, 3, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(rx - 3, ry - 3, 5, 3, -0.3, 0, Math.PI * 2);
         ctx.fill();
 
-        // Cracks
-        ctx.strokeStyle = P.rock[2];
+        // Small bright speck
+        ctx.fillStyle = '#aaaaaa';
+        ctx.fillRect(rx - 4, ry - 5, 2, 1);
+
+        // Cracks — more detail
+        ctx.strokeStyle = '#3a3a3a';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(rx - 3, ry - 1);
-        ctx.lineTo(rx + 2, ry + 2);
+        ctx.moveTo(rx - 4, ry - 1);
+        ctx.lineTo(rx + 1, ry + 2);
         ctx.lineTo(rx + 5, ry);
         ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(rx + 2, ry + 3);
+        ctx.lineTo(rx + 6, ry + 5);
+        ctx.stroke();
+
+        // Moss on bottom
+        if (variant === 0) {
+            ctx.fillStyle = '#3a6a2a';
+            ctx.globalAlpha = 0.4;
+            ctx.beginPath();
+            ctx.ellipse(rx + 4, ry + 6, 4, 2, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
 
         return c;
     },
@@ -374,29 +547,45 @@ const Sprites = {
         const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
         const P = this.PAL.water;
 
-        // Deep water base
+        // Deep water base gradient
         ctx.fillStyle = P[0];
         ctx.fillRect(0, 0, T, T);
 
-        // Wave pattern (shifts with frame)
+        // Depth variation patches
+        ctx.fillStyle = '#1a4a7a';
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath();
+        ctx.ellipse(10, 12, 8, 6, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#2a5a8a';
+        ctx.beginPath();
+        ctx.ellipse(22, 22, 7, 5, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // Wave pattern (shifts with frame) — more waves
         const offset = frame * 4;
-        for (let row = 0; row < 4; row++) {
-            ctx.fillStyle = P[1 + (row + frame) % 2];
-            for (let col = 0; col < 5; col++) {
-                const x = ((col * 8 + offset + row * 3) % (T + 4)) - 2;
-                const y = row * 8 + 2;
+        for (let row = 0; row < 5; row++) {
+            ctx.fillStyle = P[1 + (row + frame) % 3];
+            ctx.globalAlpha = 0.5 + (row % 2) * 0.2;
+            for (let col = 0; col < 6; col++) {
+                const x = ((col * 7 + offset + row * 3) % (T + 4)) - 2;
+                const y = row * 7 + 1;
                 ctx.beginPath();
-                ctx.ellipse(x, y, 5, 1.5, 0, 0, Math.PI * 2);
+                ctx.ellipse(x, y, 4, 1.2, 0.1 * row, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
+        ctx.globalAlpha = 1;
 
-        // Sparkle highlights
-        ctx.fillStyle = 'rgba(180,220,255,0.3)';
+        // Sparkle highlights — more varied
+        ctx.fillStyle = 'rgba(200,230,255,0.4)';
         const sparkX = (8 + frame * 11) % T;
         const sparkY = (4 + frame * 7) % T;
-        ctx.fillRect(sparkX, sparkY, 2, 2);
+        ctx.fillRect(sparkX, sparkY, 2, 1);
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
         ctx.fillRect((sparkX + 15) % T, (sparkY + 12) % T, 1, 1);
+        ctx.fillRect((sparkX + 7) % T, (sparkY + 20) % T, 1, 1);
 
         return c;
     },
@@ -477,16 +666,19 @@ const Sprites = {
         const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
         const P = this.PAL;
 
+        // Dark ground base for void areas
         ctx.fillStyle = P.grass[4];
         ctx.fillRect(0, 0, T, T);
 
-        // Purple glow
-        ctx.fillStyle = 'rgba(120,60,180,0.2)';
-        ctx.beginPath();
-        ctx.ellipse(16, 18, 12, 8, 0, 0, Math.PI * 2);
-        ctx.fill();
+        // Strong purple glow radiating outward
+        const grd = ctx.createRadialGradient(16, 16, 2, 16, 16, 16);
+        grd.addColorStop(0, 'rgba(150,60,220,0.35)');
+        grd.addColorStop(0.5, 'rgba(120,40,180,0.15)');
+        grd.addColorStop(1, 'rgba(80,20,120,0)');
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, T, T);
 
-        // Crystal shards
+        // Crystal shards — more of them, varied
         const drawShard = (x, y, w, h, color) => {
             ctx.fillStyle = color;
             ctx.beginPath();
@@ -497,18 +689,33 @@ const Sprites = {
             ctx.fill();
         };
 
-        drawShard(10, 8, 6, 18, P.crystal[0]);
-        drawShard(16, 5, 5, 20, P.crystal[1]);
-        drawShard(20, 10, 4, 14, P.crystal[2]);
+        // Back shards (darker)
+        drawShard(7, 10, 5, 16, P.crystal[0]);
+        drawShard(22, 12, 4, 12, '#5a2a7a');
 
-        // Highlights
+        // Main shards
+        drawShard(10, 6, 6, 20, P.crystal[0]);
+        drawShard(15, 3, 6, 22, P.crystal[1]);
+        drawShard(20, 8, 5, 16, P.crystal[2]);
+
+        // Highlight edges
         ctx.fillStyle = P.crystal[3];
-        ctx.fillRect(12, 12, 2, 4);
-        ctx.fillRect(18, 9, 1, 3);
+        ctx.fillRect(12, 10, 1, 6);
+        ctx.fillRect(18, 7, 1, 4);
+        ctx.fillRect(17, 5, 1, 3);
 
-        // Sparkle
+        // Inner glow line
+        ctx.fillStyle = '#ddaaff';
+        ctx.globalAlpha = 0.5;
+        ctx.fillRect(16, 6, 1, 8);
+        ctx.fillRect(11, 10, 1, 5);
+        ctx.globalAlpha = 1;
+
+        // Sparkles
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(17, 7, 1, 1);
+        ctx.fillRect(17, 5, 1, 1);
+        ctx.fillRect(12, 8, 1, 1);
+        ctx.fillRect(21, 10, 1, 1);
 
         return c;
     },
@@ -616,56 +823,83 @@ const Sprites = {
         ctx.fillStyle = P.grass[1];
         ctx.fillRect(0, 0, T, T);
 
-        // Warm ground glow
-        ctx.fillStyle = 'rgba(200,120,40,0.15)';
-        ctx.beginPath();
-        ctx.ellipse(16, 24, 12, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
+        // Strong warm ground glow — radiates out from center
+        const warmGrd = ctx.createRadialGradient(16, 20, 2, 16, 20, 16);
+        warmGrd.addColorStop(0, 'rgba(255,160,60,0.3)');
+        warmGrd.addColorStop(0.5, 'rgba(200,100,30,0.15)');
+        warmGrd.addColorStop(1, 'rgba(200,80,20,0)');
+        ctx.fillStyle = warmGrd;
+        ctx.fillRect(0, 0, T, T);
 
-        // Stone ring
-        ctx.fillStyle = P.rock[2];
-        for (let a = 0; a < 6; a++) {
-            const angle = (a / 6) * Math.PI * 2;
+        // Stone ring — varied sizes
+        for (let a = 0; a < 7; a++) {
+            const angle = (a / 7) * Math.PI * 2;
             const x = 16 + Math.cos(angle) * 8;
-            const y = 22 + Math.sin(angle) * 5;
+            const y = 21 + Math.sin(angle) * 5;
+            ctx.fillStyle = P.rock[a % 2 === 0 ? 2 : 0];
             ctx.beginPath();
-            ctx.arc(x, y, 3, 0, Math.PI * 2);
+            ctx.arc(x, y, 2.5 + (a % 2), 0, Math.PI * 2);
+            ctx.fill();
+            // Stone highlight
+            ctx.fillStyle = P.rock[3];
+            ctx.beginPath();
+            ctx.arc(x - 0.5, y - 0.5, 1, 0, Math.PI * 2);
             ctx.fill();
         }
 
-        // Fire (animated)
+        // Fire (animated) — larger, more dramatic
         const fOff = frame * 2;
+
+        // Outer glow haze
+        ctx.fillStyle = 'rgba(255,100,20,0.12)';
+        ctx.beginPath();
+        ctx.ellipse(16, 16, 10, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+
         // Outer flame
         ctx.fillStyle = P.fire[2];
         ctx.beginPath();
-        ctx.moveTo(10, 22);
-        ctx.quadraticCurveTo(12 + fOff, 6 - fOff, 16, 10 + fOff);
-        ctx.quadraticCurveTo(20 - fOff, 6 + fOff, 22, 22);
+        ctx.moveTo(9, 22);
+        ctx.quadraticCurveTo(11 + fOff, 4 - fOff, 16, 8 + fOff);
+        ctx.quadraticCurveTo(21 - fOff, 4 + fOff, 23, 22);
         ctx.closePath();
         ctx.fill();
 
         // Middle flame
         ctx.fillStyle = P.fire[0];
         ctx.beginPath();
-        ctx.moveTo(12, 22);
-        ctx.quadraticCurveTo(14 - fOff, 10 + fOff, 16, 12 - fOff);
-        ctx.quadraticCurveTo(18 + fOff, 10 - fOff, 20, 22);
+        ctx.moveTo(11, 22);
+        ctx.quadraticCurveTo(13 - fOff, 8 + fOff, 16, 10 - fOff);
+        ctx.quadraticCurveTo(19 + fOff, 8 - fOff, 21, 22);
         ctx.closePath();
         ctx.fill();
 
-        // Inner flame (bright)
+        // Inner flame (bright yellow-white)
         ctx.fillStyle = P.fire[3];
         ctx.beginPath();
-        ctx.moveTo(14, 22);
-        ctx.quadraticCurveTo(15, 14 + fOff, 16, 15 - fOff);
-        ctx.quadraticCurveTo(17, 14 - fOff, 18, 22);
+        ctx.moveTo(13, 22);
+        ctx.quadraticCurveTo(14, 12 + fOff, 16, 13 - fOff);
+        ctx.quadraticCurveTo(18, 12 - fOff, 19, 22);
         ctx.closePath();
         ctx.fill();
 
-        // Sparks
+        // Hot white core
+        ctx.fillStyle = '#ffe8cc';
+        ctx.beginPath();
+        ctx.moveTo(14, 22);
+        ctx.quadraticCurveTo(15, 16 + fOff, 16, 17 - fOff);
+        ctx.quadraticCurveTo(17, 16, 18, 22);
+        ctx.closePath();
+        ctx.fill();
+
+        // Sparks — more of them
         ctx.fillStyle = P.fire[1];
-        ctx.fillRect(13 + frame * 3, 8 - frame, 1, 1);
-        ctx.fillRect(18 - frame * 2, 6 + frame, 1, 1);
+        ctx.fillRect(12 + frame * 3, 6 - frame, 1, 1);
+        ctx.fillRect(19 - frame * 2, 4 + frame, 1, 1);
+        ctx.fillRect(10 + frame, 3 + frame * 2, 1, 1);
+        ctx.fillStyle = '#ffcc66';
+        ctx.fillRect(16 + frame - 1, 2 + frame, 1, 1);
+        ctx.fillRect(14 - frame, 5 - frame, 1, 1);
 
         return c;
     },
@@ -1296,52 +1530,52 @@ const Sprites = {
                 if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
                 const ch = terrain[ty][tx];
 
-                // Campfires emit warm light
+                // Campfires emit strong warm light (large radius for dramatic glow)
                 if (ch === 'F') {
                     const flicker = 0.9 + Math.sin(this.animFrame * 2.1 + tx * 3.7) * 0.1;
                     this.lightSources.push({
                         x: tx * TS + TS / 2 - camX,
                         y: ty * TS + TS / 2 - camY,
-                        radius: 100 * flicker,
+                        radius: 220 * flicker,
                         color: [255, 160, 60],
-                        intensity: 0.7 * flicker
+                        intensity: 0.85 * flicker
                     });
                 }
-                // Lanterns emit steady warm glow
+                // Lanterns emit warm glow
                 if (ch === 'L') {
                     this.lightSources.push({
                         x: tx * TS + TS / 2 - camX,
                         y: ty * TS + TS / 2 - camY,
-                        radius: 80,
+                        radius: 160,
                         color: [255, 200, 80],
-                        intensity: 0.5
+                        intensity: 0.6
                     });
                 }
-                // Ember roots glow faintly
+                // Ember roots glow warmly
                 if (ch === 'E') {
                     this.lightSources.push({
                         x: tx * TS + TS / 2 - camX,
                         y: ty * TS + TS / 2 - camY,
-                        radius: 45,
+                        radius: 90,
                         color: [220, 100, 30],
-                        intensity: 0.3
+                        intensity: 0.4
                     });
                 }
-                // Veil crystals emit purple light
+                // Veil crystals emit eerie purple light
                 if (ch === 'V') {
                     const pulse = 0.8 + Math.sin(this.animFrame * 1.5 + tx * 2.3) * 0.2;
                     this.lightSources.push({
                         x: tx * TS + TS / 2 - camX,
                         y: ty * TS + TS / 2 - camY,
-                        radius: 55 * pulse,
+                        radius: 120 * pulse,
                         color: [150, 80, 220],
-                        intensity: 0.35 * pulse
+                        intensity: 0.5 * pulse
                     });
                 }
             }
         }
 
-        // Entity-based lights (campfire entities)
+        // Entity-based lights (campfire entities — dramatic large glow)
         for (const key in entityMap) {
             const entity = entityMap[key];
             if (entity.type === 'campfire') {
@@ -1350,9 +1584,9 @@ const Sprites = {
                 this.lightSources.push({
                     x: ex * TS + TS / 2 - camX,
                     y: ey * TS + TS / 2 - camY,
-                    radius: 120 * flicker,
+                    radius: 260 * flicker,
                     color: [255, 140, 50],
-                    intensity: 0.8 * flicker
+                    intensity: 0.9 * flicker
                 });
             }
         }
@@ -1394,27 +1628,29 @@ const Sprites = {
                 light.radius * 2, light.radius * 2);
         }
 
-        // Player emits a small personal light
+        // Player emits a personal light (wider radius for visibility)
         const px = w / 2, py = h / 2;
-        const playerGrd = lctx.createRadialGradient(px, py, 0, px, py, 70);
-        playerGrd.addColorStop(0, 'rgba(0,0,0,0.35)');
+        const playerGrd = lctx.createRadialGradient(px, py, 0, px, py, 130);
+        playerGrd.addColorStop(0, 'rgba(0,0,0,0.45)');
+        playerGrd.addColorStop(0.6, 'rgba(0,0,0,0.15)');
         playerGrd.addColorStop(1, 'rgba(0,0,0,0)');
         lctx.fillStyle = playerGrd;
-        lctx.fillRect(px - 70, py - 70, 140, 140);
+        lctx.fillRect(px - 130, py - 130, 260, 260);
 
         // Apply darkness overlay to main canvas
         ctx.drawImage(this._lightCanvas, 0, 0);
 
-        // Now add colored light glows on top (screen blend feel)
+        // Colored light glows — warm tint cast on surrounding tiles
         lctx.globalCompositeOperation = 'source-over';
         lctx.clearRect(0, 0, w, h);
         for (const light of this.lightSources) {
             const grd = lctx.createRadialGradient(
                 light.x, light.y, 0,
-                light.x, light.y, light.radius * 0.7
+                light.x, light.y, light.radius * 0.8
             );
             const [r, g, b] = light.color;
-            grd.addColorStop(0, `rgba(${r},${g},${b},${light.intensity * 0.15})`);
+            grd.addColorStop(0, `rgba(${r},${g},${b},${(light.intensity * 0.25).toFixed(3)})`);
+            grd.addColorStop(0.4, `rgba(${r},${g},${b},${(light.intensity * 0.12).toFixed(3)})`);
             grd.addColorStop(1, 'rgba(0,0,0,0)');
             lctx.fillStyle = grd;
             lctx.fillRect(light.x - light.radius, light.y - light.radius,

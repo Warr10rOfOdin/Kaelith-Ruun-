@@ -153,6 +153,13 @@ const Sprites = {
         this.cache.bridge = this.drawBridge();
         this.cache.bones = this.drawBones();
         this.cache.lantern = this.drawLantern();
+        this.cache.altar = this.drawAltar();
+        this.cache.broken_cart = this.drawBrokenCart();
+        this.cache.signpost = this.drawSignpost();
+        this.cache.ritual_circle = this.drawRitualCircle();
+        this.cache.banner = this.drawBanner();
+        this.cache.skeleton = this.drawSkeleton();
+        this.cache.barricade = this.drawBarricade();
 
         // Animated tiles (multiple frames)
         for (let f = 0; f < 3; f++) {
@@ -194,6 +201,13 @@ const Sprites = {
             case 'w': return this.cache[`flower_${h % 3}`];
             case 'O': return this.cache.pond;
             case 'c': return this.cache.cave;
+            case 'A': return this.cache.altar;
+            case 'Y': return this.cache.broken_cart;
+            case 'Z': return this.cache.signpost;
+            case 'Q': return this.cache.ritual_circle;
+            case 'N': return this.cache.banner;
+            case 'J': return this.cache.skeleton;
+            case 'U': return this.cache.barricade;
             default: return this.cache.grass_0;
         }
     },
@@ -1214,6 +1228,182 @@ const Sprites = {
         return c;
     },
 
+    // ── Narrative Props ─────────────────────
+
+    drawAltar() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        // Grass base
+        ctx.fillStyle = this.PAL.grass[2]; ctx.fillRect(0, 0, T, T);
+        // Dark stone floor
+        ctx.fillStyle = '#3a3a4a'; ctx.fillRect(4, 10, 24, 18);
+        // Altar body
+        ctx.fillStyle = '#5a5a6a'; ctx.fillRect(8, 8, 16, 14);
+        ctx.fillStyle = '#6a6a7a'; ctx.fillRect(9, 9, 14, 4);
+        // Top slab
+        ctx.fillStyle = '#7a7a8a'; ctx.fillRect(6, 6, 20, 4);
+        ctx.fillStyle = '#8a8aaa'; ctx.fillRect(8, 6, 16, 2);
+        // Carved runes (glowing)
+        ctx.fillStyle = '#aa66ff';
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(10, 14, 2, 2); ctx.fillRect(14, 14, 2, 2);
+        ctx.fillRect(18, 14, 2, 2); ctx.fillRect(12, 18, 2, 1);
+        ctx.fillRect(16, 18, 2, 1);
+        ctx.globalAlpha = 1;
+        // Candles
+        ctx.fillStyle = '#eee'; ctx.fillRect(7, 3, 2, 3); ctx.fillRect(23, 3, 2, 3);
+        ctx.fillStyle = '#ffaa00'; ctx.fillRect(7, 2, 2, 2); ctx.fillRect(23, 2, 2, 2);
+        return c;
+    },
+
+    drawBrokenCart() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        ctx.fillStyle = this.PAL.grass[1]; ctx.fillRect(0, 0, T, T);
+        // Cart body (broken, tilted)
+        ctx.fillStyle = '#5a4a3a'; ctx.fillRect(4, 12, 20, 10);
+        ctx.fillStyle = '#6a5a4a'; ctx.fillRect(5, 13, 18, 4);
+        // Broken side
+        ctx.fillStyle = '#4a3a2a';
+        ctx.fillRect(22, 14, 3, 8); ctx.fillRect(24, 12, 2, 6);
+        // Wheel (broken)
+        ctx.fillStyle = '#3a2a1a';
+        ctx.beginPath(); ctx.arc(8, 24, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#4a3a2a';
+        ctx.beginPath(); ctx.arc(8, 24, 3, 0, Math.PI * 2); ctx.fill();
+        // Second wheel (fallen off)
+        ctx.fillStyle = '#3a2a1a';
+        ctx.beginPath(); ctx.arc(24, 26, 4, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#5a4a3a';
+        ctx.beginPath(); ctx.arc(24, 26, 2, 0, Math.PI * 2); ctx.fill();
+        // Spilled cargo
+        ctx.fillStyle = '#8a7a5a'; ctx.fillRect(14, 22, 4, 3);
+        ctx.fillStyle = '#7a6a4a'; ctx.fillRect(10, 24, 3, 3);
+        ctx.fillStyle = '#6a8a4a'; ctx.fillRect(18, 23, 3, 2);
+        return c;
+    },
+
+    drawSignpost() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        ctx.fillStyle = this.PAL.grass[1]; ctx.fillRect(0, 0, T, T);
+        // Post
+        ctx.fillStyle = '#5a4a3a'; ctx.fillRect(14, 10, 4, 22);
+        ctx.fillStyle = '#6a5a4a'; ctx.fillRect(15, 10, 2, 20);
+        // Sign boards (pointing different directions)
+        ctx.fillStyle = '#6a5a3a'; ctx.fillRect(8, 6, 18, 6);
+        ctx.fillStyle = '#7a6a4a'; ctx.fillRect(9, 7, 16, 4);
+        // Arrow direction
+        ctx.fillStyle = '#4a3a2a';
+        ctx.beginPath();
+        ctx.moveTo(26, 9); ctx.lineTo(28, 9); ctx.lineTo(26, 12); ctx.fill();
+        // Second sign
+        ctx.fillStyle = '#5a4a2a'; ctx.fillRect(4, 13, 14, 5);
+        ctx.fillStyle = '#6a5a3a'; ctx.fillRect(5, 14, 12, 3);
+        // Text scratches
+        ctx.fillStyle = '#3a2a1a'; ctx.globalAlpha = 0.4;
+        ctx.fillRect(10, 8, 8, 1); ctx.fillRect(11, 10, 6, 1);
+        ctx.fillRect(6, 15, 6, 1);
+        ctx.globalAlpha = 1;
+        return c;
+    },
+
+    drawRitualCircle() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        ctx.fillStyle = this.PAL.grass[0]; ctx.fillRect(0, 0, T, T);
+        // Darkened ground
+        ctx.fillStyle = '#2a2a2a'; ctx.globalAlpha = 0.3;
+        ctx.beginPath(); ctx.arc(T/2, T/2, 14, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+        // Outer circle (carved stones)
+        ctx.strokeStyle = '#6a5a7a'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(T/2, T/2, 12, 0, Math.PI * 2); ctx.stroke();
+        // Inner runes (glowing purple)
+        ctx.strokeStyle = '#8a4aaa'; ctx.lineWidth = 1; ctx.globalAlpha = 0.7;
+        ctx.beginPath(); ctx.arc(T/2, T/2, 7, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
+        // Rune marks
+        ctx.fillStyle = '#aa66cc'; ctx.globalAlpha = 0.5;
+        ctx.fillRect(T/2-1, 6, 2, 3); ctx.fillRect(T/2-1, T-9, 2, 3);
+        ctx.fillRect(6, T/2-1, 3, 2); ctx.fillRect(T-9, T/2-1, 3, 2);
+        ctx.globalAlpha = 1;
+        return c;
+    },
+
+    drawBanner() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        ctx.fillStyle = this.PAL.grass[1]; ctx.fillRect(0, 0, T, T);
+        // Pole
+        ctx.fillStyle = '#4a4a4a'; ctx.fillRect(14, 2, 4, 30);
+        ctx.fillStyle = '#5a5a5a'; ctx.fillRect(15, 2, 2, 28);
+        // Banner cloth (tattered)
+        ctx.fillStyle = '#8a2222'; ctx.fillRect(18, 4, 10, 14);
+        ctx.fillStyle = '#aa3333'; ctx.fillRect(19, 5, 8, 6);
+        // Torn edge
+        ctx.fillStyle = '#8a2222';
+        ctx.fillRect(18, 17, 8, 2); ctx.fillRect(20, 19, 5, 2);
+        ctx.fillRect(22, 21, 3, 1);
+        // Symbol on banner
+        ctx.fillStyle = '#cc9944'; ctx.globalAlpha = 0.7;
+        ctx.fillRect(21, 7, 4, 4);
+        ctx.fillRect(22, 6, 2, 1); ctx.fillRect(22, 11, 2, 1);
+        ctx.globalAlpha = 1;
+        // Pole top
+        ctx.fillStyle = '#6a6a6a'; ctx.fillRect(13, 0, 6, 3);
+        return c;
+    },
+
+    drawSkeleton() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        ctx.fillStyle = this.PAL.grass[0]; ctx.fillRect(0, 0, T, T);
+        const b = this.PAL.bone;
+        // Ribcage (collapsed)
+        ctx.fillStyle = b[0]; ctx.fillRect(8, 14, 16, 8);
+        ctx.fillStyle = b[1]; ctx.fillRect(10, 15, 12, 6);
+        // Ribs
+        ctx.fillStyle = b[2];
+        ctx.fillRect(10, 15, 12, 1); ctx.fillRect(10, 17, 12, 1);
+        ctx.fillRect(10, 19, 12, 1);
+        // Skull
+        ctx.fillStyle = b[0];
+        ctx.beginPath(); ctx.ellipse(12, 10, 5, 4, -0.2, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = b[2];
+        ctx.beginPath(); ctx.ellipse(12, 10, 4, 3, -0.2, 0, Math.PI * 2); ctx.fill();
+        // Eye sockets
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(10, 9, 2, 2); ctx.fillRect(13, 9, 2, 2);
+        // Arm bones
+        ctx.fillStyle = b[0];
+        ctx.fillRect(4, 16, 6, 2); ctx.fillRect(22, 18, 7, 2);
+        // Leg bones
+        ctx.fillRect(10, 22, 2, 8); ctx.fillRect(20, 22, 2, 7);
+        // Scattered gear
+        ctx.fillStyle = '#6a6a7a'; ctx.fillRect(26, 12, 3, 8); // rusted sword
+        ctx.fillStyle = '#8a8a9a'; ctx.fillRect(26, 12, 3, 1);
+        return c;
+    },
+
+    drawBarricade() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        ctx.fillStyle = this.PAL.grass[1]; ctx.fillRect(0, 0, T, T);
+        const w = this.PAL.wood;
+        // Horizontal logs
+        ctx.fillStyle = w[0]; ctx.fillRect(2, 10, 28, 5);
+        ctx.fillStyle = w[1]; ctx.fillRect(3, 11, 26, 3);
+        ctx.fillStyle = w[0]; ctx.fillRect(2, 18, 28, 5);
+        ctx.fillStyle = w[1]; ctx.fillRect(3, 19, 26, 3);
+        // Vertical supports
+        ctx.fillStyle = w[2]; ctx.fillRect(6, 6, 4, 22);
+        ctx.fillStyle = w[0]; ctx.fillRect(7, 7, 2, 20);
+        ctx.fillStyle = w[2]; ctx.fillRect(22, 6, 4, 22);
+        ctx.fillStyle = w[0]; ctx.fillRect(23, 7, 2, 20);
+        // Damage/cracks
+        ctx.fillStyle = '#3a2a1a'; ctx.globalAlpha = 0.4;
+        ctx.fillRect(14, 11, 6, 1); ctx.fillRect(16, 19, 4, 1);
+        ctx.globalAlpha = 1;
+        // Rope binding
+        ctx.fillStyle = '#8a7a5a';
+        ctx.fillRect(6, 10, 4, 2); ctx.fillRect(22, 18, 4, 2);
+        return c;
+    },
+
     drawPineTree(variant) {
         const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
         const P = this.PAL;
@@ -1608,26 +1798,22 @@ const Sprites = {
         const W = 32, H = 42;
         const c = this.mkCanvas(W, H);
         const ctx = c.getContext('2d');
-        const sk = this.PAL.skin[0];
-        const skShade = '#c9956a';
-        const hair = '#5a3020';
-        const hairHi = '#7a4a30';
-        const shirt = '#3a6aaa';
-        const shirtHi = '#5a8acc';
-        const shirtDk = '#2a5a8a';
-        const pants = '#4a3a30';
-        const pantsDk = '#3a2a20';
-        const boots_ = '#3a2a1a';
-        const bootsHi = '#5a4a3a';
-        const belt = '#6a5a3a';
-        const cape = '#2a4a6a';
+        const sk = '#f0d0b0';
+        const skShade = '#d4a878';
+        const hair = '#4a2818';
+        const hairHi = '#6a3828';
+        const shirt = '#2266bb';     // Vivid blue — strong against green
+        const shirtHi = '#4488dd';
+        const shirtDk = '#1a4488';
+        const pants = '#3a3030';
+        const pantsDk = '#2a2020';
+        const boots_ = '#2a1a10';
+        const bootsHi = '#4a3a2a';
+        const belt = '#8a7a4a';
+        const cape = '#cc3333';       // Red cape — signature accent color
+        const capeDk = '#992222';
+        const outline = '#1a1018';    // Near-black outline for silhouette readability
         const cx = 16; // center x
-
-        // Shadow — larger oval
-        ctx.fillStyle = 'rgba(0,0,0,0.25)';
-        ctx.beginPath();
-        ctx.ellipse(cx, 40, 10, 3, 0, 0, Math.PI * 2);
-        ctx.fill();
 
         // Animation offsets
         const walkBob = frame === 0 ? 0 : -1;
@@ -1639,8 +1825,11 @@ const Sprites = {
         if (dir === 'up') {
             ctx.fillStyle = cape;
             ctx.fillRect(6, 17 + by, 20, 14);
-            ctx.fillStyle = '#1a3a5a';
+            ctx.fillStyle = capeDk;
             ctx.fillRect(8, 18 + by, 16, 12);
+            // Cape highlight
+            ctx.fillStyle = '#dd4444';
+            ctx.fillRect(10, 19 + by, 4, 8);
         }
 
         // -- Legs / Boots --
@@ -1811,15 +2000,60 @@ const Sprites = {
 
         // -- Weapon hint (small sword at belt) --
         if (dir === 'down' || dir === 'left') {
-            ctx.fillStyle = '#888';
-            ctx.fillRect(4, 26 + by, 2, 6);
             ctx.fillStyle = '#aaa';
+            ctx.fillRect(4, 26 + by, 2, 6);
+            ctx.fillStyle = '#ccc';
             ctx.fillRect(4, 26 + by, 2, 1);
             ctx.fillStyle = belt;
             ctx.fillRect(3, 28 + by, 4, 2);
         }
 
-        return c;
+        // -- Cape glimpse on sides/down --
+        if (dir === 'down') {
+            ctx.fillStyle = cape;
+            ctx.fillRect(5, 20 + by, 3, 10);
+            ctx.fillRect(24, 20 + by, 3, 10);
+            ctx.fillStyle = capeDk;
+            ctx.fillRect(5, 28 + by, 3, 3);
+            ctx.fillRect(24, 28 + by, 3, 3);
+        } else if (dir === 'left') {
+            ctx.fillStyle = cape;
+            ctx.fillRect(23, 18 + by, 4, 12);
+            ctx.fillStyle = capeDk;
+            ctx.fillRect(24, 28 + by, 3, 3);
+        } else if (dir === 'right') {
+            ctx.fillStyle = cape;
+            ctx.fillRect(5, 18 + by, 4, 12);
+            ctx.fillStyle = capeDk;
+            ctx.fillRect(5, 28 + by, 3, 3);
+        }
+
+        // -- 1px dark outline for silhouette readability --
+        const imgData = ctx.getImageData(0, 0, W, H);
+        const d = imgData.data;
+        const outC = this.mkCanvas(W, H);
+        const outCtx = outC.getContext('2d');
+        // Draw outline: for each transparent pixel adjacent to an opaque pixel, draw outline color
+        for (let py = 0; py < H; py++) {
+            for (let px = 0; px < W; px++) {
+                const idx = (py * W + px) * 4;
+                if (d[idx + 3] > 0) continue; // already filled
+                // Check 4-neighbors for opaque
+                let hasNeighbor = false;
+                for (const [dx, dy] of [[0,-1],[0,1],[-1,0],[1,0]]) {
+                    const nx = px + dx, ny = py + dy;
+                    if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+                    if (d[(ny * W + nx) * 4 + 3] > 128) { hasNeighbor = true; break; }
+                }
+                if (hasNeighbor) {
+                    outCtx.fillStyle = outline;
+                    outCtx.fillRect(px, py, 1, 1);
+                }
+            }
+        }
+        // Composite: outline behind sprite
+        outCtx.drawImage(c, 0, 0);
+        return outC;
     },
 
     // ── Entity Sprite Generation ────────────
@@ -3726,6 +3960,9 @@ const Sprites = {
         this.lightSources = [];
         if (!terrain) return;
 
+        // Zoom factor for screen-space scaling
+        const Z = typeof WorldMap !== 'undefined' ? WorldMap.zoom : 1;
+
         const startTX = Math.floor(camX / TS) - 2;
         const startTY = Math.floor(camY / TS) - 2;
         const endTX = Math.ceil((camX + vpW) / TS) + 2;
@@ -3738,61 +3975,82 @@ const Sprites = {
                 if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
                 const ch = terrain[ty][tx];
 
-                // Campfires emit strong warm light (large radius for dramatic glow)
+                // Campfires emit strong warm light
                 if (ch === 'F') {
                     const flicker = 0.9 + Math.sin(this.animFrame * 2.1 + tx * 3.7) * 0.1;
                     this.lightSources.push({
-                        x: tx * TS + TS / 2 - camX,
-                        y: ty * TS + TS / 2 - camY,
-                        radius: 220 * flicker,
+                        x: (tx * TS + TS / 2 - camX) * Z,
+                        y: (ty * TS + TS / 2 - camY) * Z,
+                        radius: 220 * flicker * Z,
                         color: [255, 160, 60],
                         intensity: 0.85 * flicker
                     });
                 }
-                // Lanterns emit warm glow
+                // Lanterns
                 if (ch === 'L') {
                     this.lightSources.push({
-                        x: tx * TS + TS / 2 - camX,
-                        y: ty * TS + TS / 2 - camY,
-                        radius: 160,
+                        x: (tx * TS + TS / 2 - camX) * Z,
+                        y: (ty * TS + TS / 2 - camY) * Z,
+                        radius: 160 * Z,
                         color: [255, 200, 80],
                         intensity: 0.6
                     });
                 }
-                // Ember roots glow warmly
+                // Ember roots
                 if (ch === 'E') {
                     this.lightSources.push({
-                        x: tx * TS + TS / 2 - camX,
-                        y: ty * TS + TS / 2 - camY,
-                        radius: 90,
+                        x: (tx * TS + TS / 2 - camX) * Z,
+                        y: (ty * TS + TS / 2 - camY) * Z,
+                        radius: 90 * Z,
                         color: [220, 100, 30],
                         intensity: 0.4
                     });
                 }
-                // Veil crystals emit eerie purple light
+                // Veil crystals
                 if (ch === 'V') {
                     const pulse = 0.8 + Math.sin(this.animFrame * 1.5 + tx * 2.3) * 0.2;
                     this.lightSources.push({
-                        x: tx * TS + TS / 2 - camX,
-                        y: ty * TS + TS / 2 - camY,
-                        radius: 120 * pulse,
+                        x: (tx * TS + TS / 2 - camX) * Z,
+                        y: (ty * TS + TS / 2 - camY) * Z,
+                        radius: 120 * pulse * Z,
                         color: [150, 80, 220],
                         intensity: 0.5 * pulse
+                    });
+                }
+                // Altars glow with eerie light
+                if (ch === 'A') {
+                    const pulse = 0.7 + Math.sin(this.animFrame * 1.2 + tx * 1.5) * 0.3;
+                    this.lightSources.push({
+                        x: (tx * TS + TS / 2 - camX) * Z,
+                        y: (ty * TS + TS / 2 - camY) * Z,
+                        radius: 100 * pulse * Z,
+                        color: [170, 100, 255],
+                        intensity: 0.4 * pulse
+                    });
+                }
+                // Ritual circles glow faintly
+                if (ch === 'Q') {
+                    this.lightSources.push({
+                        x: (tx * TS + TS / 2 - camX) * Z,
+                        y: (ty * TS + TS / 2 - camY) * Z,
+                        radius: 70 * Z,
+                        color: [140, 80, 200],
+                        intensity: 0.25
                     });
                 }
             }
         }
 
-        // Entity-based lights (campfire entities — dramatic large glow)
+        // Entity-based lights
         for (const key in entityMap) {
             const entity = entityMap[key];
             if (entity.type === 'campfire') {
                 const [ex, ey] = key.split(',').map(Number);
                 const flicker = 0.85 + Math.sin(this.animFrame * 2.5 + ex * 4.1) * 0.15;
                 this.lightSources.push({
-                    x: ex * TS + TS / 2 - camX,
-                    y: ey * TS + TS / 2 - camY,
-                    radius: 260 * flicker,
+                    x: (ex * TS + TS / 2 - camX) * Z,
+                    y: (ey * TS + TS / 2 - camY) * Z,
+                    radius: 260 * flicker * Z,
                     color: [255, 140, 50],
                     intensity: 0.9 * flicker
                 });
@@ -3863,15 +4121,16 @@ const Sprites = {
                 light.radius * 2, light.radius * 2);
         }
 
-        // Player emits a personal light (wider radius at night)
+        // Player emits a personal light (wider radius at night, scaled by zoom)
+        const Z = typeof WorldMap !== 'undefined' ? WorldMap.zoom : 1;
+        const plr = playerLightRadius * Z;
         const px = w / 2, py = h / 2;
-        const playerGrd = lctx.createRadialGradient(px, py, 0, px, py, playerLightRadius);
+        const playerGrd = lctx.createRadialGradient(px, py, 0, px, py, plr);
         playerGrd.addColorStop(0, 'rgba(0,0,0,0.45)');
         playerGrd.addColorStop(0.6, 'rgba(0,0,0,0.15)');
         playerGrd.addColorStop(1, 'rgba(0,0,0,0)');
         lctx.fillStyle = playerGrd;
-        lctx.fillRect(px - playerLightRadius, py - playerLightRadius,
-            playerLightRadius * 2, playerLightRadius * 2);
+        lctx.fillRect(px - plr, py - plr, plr * 2, plr * 2);
 
         // Apply darkness overlay to main canvas
         ctx.drawImage(this._lightCanvas, 0, 0);

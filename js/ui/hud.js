@@ -167,7 +167,9 @@ const HUD = {
             'b': '#5a4a2a', 'g': '#3a5a2a', 'h': '#4a6a3a',
             'O': '#2a4a6a', 'w': '#5a4a5a', 'M': '#3a2a3a',
             'W': '#5a5a1a', 'c': '#2a2a2a', 'L': '#5a5a2a',
-            'X': '#4a4a3a',
+            'X': '#4a4a3a', 'A': '#5a4a6a', 'Y': '#5a4a3a',
+            'Z': '#6a5a3a', 'Q': '#4a3a5a', 'N': '#6a2a2a',
+            'J': '#6a6a5a', 'U': '#4a3a2a',
         };
 
         // Draw tiles

@@ -49,7 +49,14 @@ const TILE_TYPES = {
     'g': { name: 'Tall Grass', passable: true, color: '#3a7a2a', emoji: '' },
     'O': { name: 'Pond', passable: false, color: '#2a5a8a', emoji: '💧' },
     'c': { name: 'Cave Entrance', passable: false, color: '#2a2a2a', emoji: '🕳️' },
-    'w': { name: 'Wildflower', passable: true, color: '#aa66aa', emoji: '🌸' }
+    'w': { name: 'Wildflower', passable: true, color: '#aa66aa', emoji: '🌸' },
+    'A': { name: 'Altar', passable: false, color: '#6a5a8a', emoji: '🗿' },
+    'Y': { name: 'Broken Cart', passable: false, color: '#6a5a4a', emoji: '🛒' },
+    'Z': { name: 'Signpost', passable: false, color: '#7a6a4a', emoji: '🪧' },
+    'Q': { name: 'Ritual Circle', passable: true, color: '#5a3a6a', emoji: '⭕' },
+    'N': { name: 'Banner', passable: false, color: '#8a3a3a', emoji: '🚩' },
+    'J': { name: 'Skeleton', passable: true, color: '#b0a890', emoji: '💀' },
+    'U': { name: 'Barricade', passable: false, color: '#5a4a3a', emoji: '🪵' }
 };
 
 // Map definitions — procedurally generated at load time via WorldGen
@@ -60,36 +67,85 @@ const MAP_DEFS = {
     // ASHEN WASTES
     // =============================
     ruined_outpost: {
-        width: 100, height: 70, seed: 1001, biome: 'ashen_wastes',
-        playerStart: { x: 50, y: 35 },
+        width: 90, height: 65, seed: 1001, biome: 'ashen_wastes',
+        playerStart: { x: 45, y: 38 },
         structures: [
-            { x: 40, y: 28, w: 8, h: 6, type: 'ruin' },
-            { x: 60, y: 42, w: 6, h: 5, type: 'ruin' },
-            { x: 20, y: 15, w: 7, h: 5, type: 'ruin' },
-            { x: 75, y: 20, w: 8, h: 6, type: 'ruin' },
+            // Central courtyard ruin — the main "hub room"
+            { x: 38, y: 30, w: 14, h: 10, type: 'ruin' },
+            // Northwest watchtower ruin — elevated lookout
+            { x: 16, y: 12, w: 8, h: 7, type: 'ruin' },
+            // East barracks ruin — enemy-occupied
+            { x: 68, y: 16, w: 10, h: 7, type: 'ruin' },
+            // South gate guardhouse — near map exit
+            { x: 42, y: 52, w: 7, h: 6, type: 'ruin' },
         ],
+        // Paths create a road network with intersections and purpose
         paths: [
-            { from: { x: 50, y: 69 }, to: { x: 50, y: 35 } },
-            { from: { x: 50, y: 35 }, to: { x: 44, y: 30 } },
-            { from: { x: 22, y: 17 }, to: { x: 50, y: 35 } },
-            { from: { x: 50, y: 35 }, to: { x: 78, y: 22 } },
+            // Main road: south gate → central courtyard (trade road)
+            { from: { x: 45, y: 64 }, to: { x: 45, y: 54 } },
+            { from: { x: 45, y: 54 }, to: { x: 45, y: 38 } },
+            // Central → NW watchtower (patrol route, overgrown)
+            { from: { x: 42, y: 33 }, to: { x: 30, y: 25 } },
+            { from: { x: 30, y: 25 }, to: { x: 20, y: 15 } },
+            // Central → east barracks (supply road)
+            { from: { x: 52, y: 34 }, to: { x: 65, y: 28 } },
+            { from: { x: 65, y: 28 }, to: { x: 73, y: 19 } },
+            // Crossroads → south ambush area
+            { from: { x: 45, y: 38 }, to: { x: 30, y: 50 } },
         ],
         exits: {
-            south: { to: 'scorched_village', entryX: 50, entryY: 5 }
+            south: { to: 'scorched_village', entryX: 45, entryY: 5 }
         },
+        // Hand-placed narrative tiles (stamped after generation)
+        stamps: [
+            // Central courtyard: altar with candles (focal point of the ruin)
+            { x: 44, y: 33, ch: 'A' },
+            // Broken supply cart near main road (tells story of ambush)
+            { x: 48, y: 48, ch: 'Y' },
+            // Spilled cargo near cart
+            { x: 49, y: 49, ch: 'X' },
+            // Signpost at crossroads
+            { x: 45, y: 42, ch: 'Z' },
+            // Skeleton of fallen guard near NW watchtower
+            { x: 24, y: 18, ch: 'J' },
+            // Ritual circle in hidden forest clearing (NE)
+            { x: 78, y: 40, ch: 'Q' },
+            // Barricade blocking east approach (bandit territory)
+            { x: 62, y: 22, ch: 'U' },
+            // Banner at barracks (faction identity)
+            { x: 70, y: 17, ch: 'N' },
+            // Another skeleton near south gate
+            { x: 40, y: 55, ch: 'J' },
+            // Campfire scorch marks
+            { x: 43, y: 34, ch: 'F' },
+        ],
         entities: [
-            { x: 42, y: 30, type: 'npc', id: 'spirit_of_aldric' },
-            { x: 70, y: 18, type: 'enemy_spawn', enemies: ['void_rat', 'ashen_wraith'] },
-            { x: 20, y: 50, type: 'enemy_spawn', enemies: ['void_rat'] },
-            { x: 80, y: 55, type: 'enemy_spawn', enemies: ['void_rat', 'scorched_bandit'] },
-            { x: 30, y: 20, type: 'enemy_spawn', enemies: ['void_rat'] },
-            { x: 85, y: 35, type: 'enemy_spawn', enemies: ['scorched_bandit'] },
-            { x: 15, y: 12, type: 'enemy_spawn', enemies: ['void_rat', 'void_rat'] },
-            { x: 65, y: 58, type: 'enemy_spawn', enemies: ['ashen_wraith'] },
-            { x: 63, y: 30, type: 'chest', loot: ['health_vial', 'health_vial'] },
-            { x: 82, y: 12, type: 'chest', loot: ['iron_ore', 'iron_ore', 'stone'] },
-            { x: 44, y: 30, type: 'campfire' },
-            { x: 78, y: 45, type: 'campfire' }
+            // NPC: Spirit guide at the altar (central focal point)
+            { x: 43, y: 33, type: 'npc', id: 'spirit_of_aldric' },
+            // Campfire: safe haven in courtyard
+            { x: 43, y: 34, type: 'campfire' },
+            // Campfire: east camp (enemy territory, story tension)
+            { x: 75, y: 25, type: 'campfire' },
+            // Enemies: guard the watchtower (NW room)
+            { x: 22, y: 14, type: 'enemy_spawn', enemies: ['void_rat', 'void_rat'] },
+            // Enemies: forest ambush near crossroads (midway)
+            { x: 32, y: 46, type: 'enemy_spawn', enemies: ['void_rat'] },
+            // Enemies: barracks guards (east room — tougher)
+            { x: 72, y: 18, type: 'enemy_spawn', enemies: ['scorched_bandit', 'void_rat'] },
+            // Enemies: road bandits (south approach)
+            { x: 50, y: 56, type: 'enemy_spawn', enemies: ['scorched_bandit'] },
+            // Enemies: ritual site guardian (hidden area)
+            { x: 80, y: 38, type: 'enemy_spawn', enemies: ['ashen_wraith'] },
+            // Enemies: patrol near barricade
+            { x: 60, y: 24, type: 'enemy_spawn', enemies: ['void_rat', 'scorched_bandit'] },
+            // Enemies: forest lurker
+            { x: 15, y: 48, type: 'enemy_spawn', enemies: ['void_rat'] },
+            // Chest: reward for clearing watchtower
+            { x: 18, y: 14, type: 'chest', loot: ['health_vial', 'health_vial'] },
+            // Chest: hidden in barracks rubble
+            { x: 76, y: 18, type: 'chest', loot: ['iron_ore', 'iron_ore', 'stone'] },
+            // Chest: near ritual circle (rare loot for exploration)
+            { x: 79, y: 42, type: 'chest', loot: ['ember_root', 'health_vial'] },
         ]
     },
 

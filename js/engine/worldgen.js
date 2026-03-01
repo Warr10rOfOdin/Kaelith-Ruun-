@@ -76,7 +76,18 @@ const WorldGen = {
             });
         }
 
-        // 6) Place building spots for camps
+        // 6) Stamp narrative props (hand-placed tiles)
+        if (mapDef.stamps) {
+            mapDef.stamps.forEach(s => {
+                if (s.x >= 0 && s.x < w && s.y >= 0 && s.y < h) {
+                    grid[s.y][s.x] = s.ch;
+                    // Clear a small area around props for readability
+                    this.clearArea(grid, s.x, s.y, 0);
+                }
+            });
+        }
+
+        // 7) Place building spots for camps
         if (mapDef.buildingSpots) {
             mapDef.buildingSpots.forEach(bs => {
                 if (bs.x < w && bs.y < h) {

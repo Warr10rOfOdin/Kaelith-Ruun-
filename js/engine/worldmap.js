@@ -65,6 +65,9 @@ const WorldMap = {
     // Interaction cooldown
     interactCooldown: 0,
 
+    // Screen transition
+    _transition: null,  // { phase: 'out'|'in', alpha: 0-1, callback: null }
+
     // ---- INIT ----
     init() {
         this.canvas = document.getElementById('game-canvas');
@@ -182,6 +185,9 @@ const WorldMap = {
         if (GameState.currentScreen !== 'game') return;
         if (GameState.combatState) return;
 
+        // Screen transition (block input during transition)
+        this.updateTransition(dt);
+
         // Interaction cooldown
         if (this.interactCooldown > 0) this.interactCooldown -= dt;
 
@@ -224,6 +230,9 @@ const WorldMap = {
     },
 
     handleMovement(dt) {
+        // Block input during transitions
+        if (this._transition) return;
+
         let dx = 0, dy = 0;
         if (this.keys.up) dy = -1;
         if (this.keys.down) dy = 1;
@@ -369,7 +378,44 @@ const WorldMap = {
         }
 
         Narrative.addAction(`You travel ${direction}...`);
-        this.loadMap(exit.to, exit.entryX, exit.entryY);
+        this.transitionToMap(exit.to, exit.entryX, exit.entryY);
+    },
+
+    // Fade-out → load map → fade-in transition
+    transitionToMap(mapKey, entryX, entryY) {
+        // Start fade-out
+        this._transition = { phase: 'out', alpha: 0, speed: 3.5 };
+        this._pendingMap = { mapKey, entryX, entryY };
+    },
+
+    updateTransition(dt) {
+        if (!this._transition) return false;
+        const t = this._transition;
+        const step = t.speed * dt;
+
+        if (t.phase === 'out') {
+            t.alpha = Math.min(1, t.alpha + step);
+            if (t.alpha >= 1) {
+                // Fully black — load the new map
+                if (this._pendingMap) {
+                    this.loadMap(this._pendingMap.mapKey, this._pendingMap.entryX, this._pendingMap.entryY);
+                    this._pendingMap = null;
+                }
+                t.phase = 'in';
+            }
+        } else {
+            t.alpha = Math.max(0, t.alpha - step);
+            if (t.alpha <= 0) {
+                this._transition = null;
+            }
+        }
+        return true;
+    },
+
+    drawTransition(ctx, w, h) {
+        if (!this._transition) return;
+        ctx.fillStyle = `rgba(0,0,0,${this._transition.alpha.toFixed(3)})`;
+        ctx.fillRect(0, 0, w, h);
     },
 
     // ---- TERRAIN ----
@@ -604,15 +650,27 @@ const WorldMap = {
         // ── Pass 2: Ground detail overlay — contextual details based on neighbors ──
         this.drawGroundDetails(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
 
-        // ── Pass 2b: Animated grass sway on grass/tall grass tiles ──
+        // ── Pass 2b: Water edge blending — foam and shore transitions ──
+        this.drawWaterEdges(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
+
+        // ── Pass 2c: Animated grass sway on grass/tall grass tiles ──
         this.drawGrassSway(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
+
+        // ── Pass 2d: Animated water surface shimmer ──
+        this.drawWaterShimmer(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
+
+        // ── Pass 2e: Banner wave animation ──
+        this.drawBannerWave(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
+
+        // ── Pass 2f: Fire spark particles ──
+        this.drawFireSparks(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
 
         // ── Pass 3: Terrain shadows — tall objects cast directional shadows ──
         for (let ty = startTY; ty <= endTY; ty++) {
             for (let tx = startTX; tx <= endTX; tx++) {
                 if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
                 const ch = this.getTerrainChar(tx, ty);
-                if (ch === 'T' || ch === '#' || ch === 'R' || ch === 'P' || ch === 'K') {
+                if (ch === 'T' || ch === '#' || ch === 'R' || ch === 'P' || ch === 'K' || ch === 'N' || ch === 'U' || ch === 'A') {
                     const sx = Math.floor(tx * T - this.camX) + 5;
                     const sy = Math.floor(ty * T - this.camY) + 5;
                     ctx.fillStyle = 'rgba(0,0,0,0.15)';
@@ -623,45 +681,70 @@ const WorldMap = {
             }
         }
 
-        // ── Pass 4: Entity shadows ──
+        // ── Pass 4+5+6: Y-sorted depth rendering (entities + player) ──
+        // Collect all drawable entities and the player, sort by Y position, draw back-to-front
+        const drawables = [];
+
+        // Add entities
         for (const key in this.entityMap) {
             const entity = this.entityMap[key];
             const [ex, ey] = key.split(',').map(Number);
             const screenX = Math.floor(ex * T - this.camX);
             const screenY = Math.floor(ey * T - this.camY);
             if (screenX < -T || screenX > vw || screenY < -T || screenY > vh) continue;
-            if (entity.type === 'npc' || entity.type === 'enemy_spawn' || entity.type === 'boss') {
-                ctx.fillStyle = 'rgba(0,0,0,0.2)';
-                ctx.beginPath();
-                ctx.ellipse(screenX + T / 2, screenY + T - 3, T * 0.35, 3, 0, 0, Math.PI * 2);
-                ctx.fill();
+            drawables.push({
+                type: 'entity',
+                entity,
+                screenX,
+                screenY,
+                sortY: ey * T + T  // Bottom of tile for depth
+            });
+        }
+
+        // Add player
+        const playerSprite = Sprites.getPlayer(this.facing, this.walkFrame);
+        if (playerSprite) {
+            drawables.push({
+                type: 'player',
+                sortY: this.py + playerSprite.height / 2  // Bottom of player
+            });
+        }
+
+        // Sort back-to-front by Y position
+        drawables.sort((a, b) => a.sortY - b.sortY);
+
+        // Draw all in sorted order (shadow first, then sprite)
+        for (const d of drawables) {
+            if (d.type === 'entity') {
+                // Entity shadow
+                if (d.entity.type === 'npc' || d.entity.type === 'enemy_spawn' || d.entity.type === 'boss') {
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                    ctx.beginPath();
+                    ctx.ellipse(d.screenX + T / 2, d.screenY + T - 3, T * 0.35, 3, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // Entity sprite
+                this.drawEntity(ctx, d.entity, d.screenX, d.screenY);
+            } else {
+                // Player shadow + sprite
+                this.drawPlayer(ctx);
             }
         }
 
-        // ── Pass 5: Entities ──
-        for (const key in this.entityMap) {
-            const entity = this.entityMap[key];
-            const [ex, ey] = key.split(',').map(Number);
-            const screenX = Math.floor(ex * T - this.camX);
-            const screenY = Math.floor(ey * T - this.camY);
-            if (screenX < -T || screenX > vw || screenY < -T || screenY > vh) continue;
-            this.drawEntity(ctx, entity, screenX, screenY);
-        }
+        // ── Pass 7: Forest edge canopy overhang (drawn over entities for depth) ──
+        this.drawForestEdges(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
 
-        // ── Pass 6: Player shadow + player ──
-        this.drawPlayer(ctx);
-
-        // ── Pass 7: Interaction prompt ──
+        // ── Pass 8: Interaction prompt ──
         this.drawInteractPrompt(ctx);
 
-        // ── Pass 8: Particles ──
+        // ── Pass 9: Particles ──
         Sprites.drawParticles(ctx, this.camX, this.camY);
         Sprites.drawAmbientParticles(ctx, this.camX, this.camY);
 
         // Restore zoom transform before post-processing (these work in screen space)
         ctx.restore();
 
-        // ── Pass 9: Post-processing (in screen space) ──
+        // ── Pass 10: Post-processing (in screen space) ──
         Sprites.applyRegionTint(ctx, w, h, GameState.currentRegion);
 
         Sprites.collectLightSources(this.terrain, this.entityMap,
@@ -670,6 +753,9 @@ const WorldMap = {
 
         this.drawWeather(ctx);
         Sprites.drawVignette(ctx, w, h);
+
+        // ── Pass 11: Screen transition overlay ──
+        this.drawTransition(ctx, w, h);
     },
 
     // ── Ground detail overlay — contextual details clustered near features ──
@@ -703,14 +789,60 @@ const WorldMap = {
                 const nearDead = n === 'K' || s === 'K' || e === 'K' || w === 'K' ||
                                  n === 'X' || s === 'X' || e === 'X' || w === 'X';
 
-                // Path-edge dirt scatter
-                if (nearPath && (hash % 5) < 3) {
+                // Path-edge worn blend — gradient dirt transition at path borders
+                if (nearPath) {
+                    const pN = n === 'p', pS = s === 'p', pW = w === 'p', pE = e === 'p';
+
+                    // Soft dirt gradient fading away from path edge
+                    if (pN) {
+                        const grd = ctx.createLinearGradient(screenX, screenY, screenX, screenY + T);
+                        grd.addColorStop(0, 'rgba(90,80,60,0.35)');
+                        grd.addColorStop(0.4, 'rgba(90,80,60,0.12)');
+                        grd.addColorStop(1, 'rgba(90,80,60,0)');
+                        ctx.fillStyle = grd;
+                        ctx.fillRect(screenX, screenY, T, T);
+                    }
+                    if (pS) {
+                        const grd = ctx.createLinearGradient(screenX, screenY + T, screenX, screenY);
+                        grd.addColorStop(0, 'rgba(90,80,60,0.35)');
+                        grd.addColorStop(0.4, 'rgba(90,80,60,0.12)');
+                        grd.addColorStop(1, 'rgba(90,80,60,0)');
+                        ctx.fillStyle = grd;
+                        ctx.fillRect(screenX, screenY, T, T);
+                    }
+                    if (pW) {
+                        const grd = ctx.createLinearGradient(screenX, screenY, screenX + T, screenY);
+                        grd.addColorStop(0, 'rgba(90,80,60,0.35)');
+                        grd.addColorStop(0.4, 'rgba(90,80,60,0.12)');
+                        grd.addColorStop(1, 'rgba(90,80,60,0)');
+                        ctx.fillStyle = grd;
+                        ctx.fillRect(screenX, screenY, T, T);
+                    }
+                    if (pE) {
+                        const grd = ctx.createLinearGradient(screenX + T, screenY, screenX, screenY);
+                        grd.addColorStop(0, 'rgba(90,80,60,0.35)');
+                        grd.addColorStop(0.4, 'rgba(90,80,60,0.12)');
+                        grd.addColorStop(1, 'rgba(90,80,60,0)');
+                        ctx.fillStyle = grd;
+                        ctx.fillRect(screenX, screenY, T, T);
+                    }
+
+                    // Scattered dirt specks along the path edge
                     ctx.fillStyle = '#7a6a55';
-                    ctx.globalAlpha = 0.25;
+                    ctx.globalAlpha = 0.3;
+                    for (let i = 0; i < 5; i++) {
+                        const sx = (hash + i * 7) % (T - 2);
+                        const sy = (hash + i * 11) % (T - 2);
+                        ctx.fillRect(screenX + sx, screenY + sy, 2, 1);
+                    }
+
+                    // Trampled grass (shorter, yellowed blades near path)
+                    ctx.fillStyle = '#8a8a5a';
+                    ctx.globalAlpha = 0.2;
                     const dx = (hash % 7) * 4;
                     const dy = ((hash >> 3) % 6) * 4;
-                    ctx.fillRect(screenX + dx, screenY + dy, 3, 2);
-                    if ((hash % 3) === 0) ctx.fillRect(screenX + dx + 8, screenY + dy + 6, 2, 2);
+                    ctx.fillRect(screenX + dx, screenY + dy, 2, 1);
+                    if ((hash % 3) === 0) ctx.fillRect(screenX + dx + 10, screenY + dy + 8, 2, 1);
                     ctx.globalAlpha = 1;
                 }
 
@@ -773,6 +905,148 @@ const WorldMap = {
         }
     },
 
+    // ── Forest edge canopy overhang — trees cast leaf-shadow onto adjacent ground ──
+    drawForestEdges(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T) {
+        const treeSet = new Set(['T', 'P', 'K']);
+        const groundSet = new Set(['.', 'p', 'g', 'w', 'h', 'B', 'J', 'Q', 'X']);
+
+        for (let ty = startTY; ty <= endTY; ty++) {
+            for (let tx = startTX; tx <= endTX; tx++) {
+                if (tx < 1 || ty < 1 || ty >= mapH - 1 || tx >= mapW - 1) continue;
+                const ch = this.getTerrainChar(tx, ty);
+                if (!groundSet.has(ch)) continue;
+
+                const hash = Sprites.hash(tx, ty);
+                const screenX = Math.floor(tx * T - this.camX);
+                const screenY = Math.floor(ty * T - this.camY);
+
+                // Check which sides have trees
+                const tN = treeSet.has(this.getTerrainChar(tx, ty - 1));
+                const tS = treeSet.has(this.getTerrainChar(tx, ty + 1));
+                const tW = treeSet.has(this.getTerrainChar(tx - 1, ty));
+                const tE = treeSet.has(this.getTerrainChar(tx + 1, ty));
+
+                if (!tN && !tS && !tW && !tE) continue;
+
+                // Dappled leaf shadow overhang from adjacent trees
+                const leafColors = ['#1a5a0a', '#0a4a00', '#2a6a1a'];
+                ctx.globalAlpha = 0.18;
+
+                if (tN) {
+                    // Canopy hangs down from north
+                    ctx.fillStyle = leafColors[hash % 3];
+                    const depth = 6 + (hash % 5);
+                    ctx.beginPath();
+                    ctx.ellipse(screenX + T / 2 + ((hash % 7) - 3), screenY + depth / 2,
+                        T * 0.55, depth, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                if (tS && (hash % 3) < 2) {
+                    ctx.fillStyle = leafColors[(hash + 1) % 3];
+                    const depth = 4 + (hash % 4);
+                    ctx.beginPath();
+                    ctx.ellipse(screenX + T / 2, screenY + T - depth / 2,
+                        T * 0.45, depth, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                if (tW) {
+                    ctx.fillStyle = leafColors[(hash + 2) % 3];
+                    const depth = 5 + (hash % 4);
+                    ctx.beginPath();
+                    ctx.ellipse(screenX + depth / 2, screenY + T / 2 + ((hash % 5) - 2),
+                        depth, T * 0.4, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                if (tE && (hash % 3) < 2) {
+                    ctx.fillStyle = leafColors[hash % 3];
+                    const depth = 4 + (hash % 5);
+                    ctx.beginPath();
+                    ctx.ellipse(screenX + T - depth / 2, screenY + T / 2,
+                        depth, T * 0.35, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.globalAlpha = 1;
+
+                // Dappled light spots under canopy overhang
+                if ((tN || tW) && (hash % 4) === 0) {
+                    ctx.fillStyle = 'rgba(180,220,100,0.08)';
+                    const sx = (hash % 5) * 5 + 4;
+                    const sy = ((hash >> 3) % 4) * 5 + 3;
+                    ctx.fillRect(screenX + sx, screenY + sy, 3, 2);
+                }
+            }
+        }
+    },
+
+    // ── Water edge blending — shoreline transitions with foam/mud ──
+    drawWaterEdges(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T) {
+        const waterSet = new Set(['~', 'O']);
+        const time = Date.now() * 0.001;
+
+        for (let ty = startTY; ty <= endTY; ty++) {
+            for (let tx = startTX; tx <= endTX; tx++) {
+                if (tx < 1 || ty < 1 || ty >= mapH - 1 || tx >= mapW - 1) continue;
+                const ch = this.getTerrainChar(tx, ty);
+                if (!waterSet.has(ch)) continue;
+
+                const screenX = Math.floor(tx * T - this.camX);
+                const screenY = Math.floor(ty * T - this.camY);
+                const hash = Sprites.hash(tx, ty);
+
+                // Check which sides adjoin land
+                const landN = !waterSet.has(this.getTerrainChar(tx, ty - 1));
+                const landS = !waterSet.has(this.getTerrainChar(tx, ty + 1));
+                const landW = !waterSet.has(this.getTerrainChar(tx - 1, ty));
+                const landE = !waterSet.has(this.getTerrainChar(tx + 1, ty));
+
+                if (!landN && !landS && !landW && !landE) continue;
+
+                // Animated foam line at shore edge
+                const waveOff = Math.sin(time * 1.5 + tx * 0.8 + ty * 0.5) * 2;
+
+                if (landN) {
+                    // Foam along top edge
+                    ctx.fillStyle = 'rgba(180,200,220,0.25)';
+                    for (let i = 0; i < 6; i++) {
+                        const fx = (hash + i * 5) % T;
+                        ctx.fillRect(screenX + fx, screenY + waveOff, 3, 1);
+                    }
+                    // Muddy shore blend
+                    ctx.fillStyle = 'rgba(90,70,40,0.15)';
+                    ctx.fillRect(screenX, screenY, T, 3 + waveOff);
+                }
+                if (landS) {
+                    ctx.fillStyle = 'rgba(180,200,220,0.2)';
+                    for (let i = 0; i < 5; i++) {
+                        const fx = (hash + i * 7) % T;
+                        ctx.fillRect(screenX + fx, screenY + T - 2 + waveOff * 0.5, 3, 1);
+                    }
+                    ctx.fillStyle = 'rgba(90,70,40,0.12)';
+                    ctx.fillRect(screenX, screenY + T - 3, T, 3);
+                }
+                if (landW) {
+                    ctx.fillStyle = 'rgba(180,200,220,0.2)';
+                    for (let i = 0; i < 4; i++) {
+                        const fy = (hash + i * 6) % T;
+                        ctx.fillRect(screenX + waveOff, screenY + fy, 1, 3);
+                    }
+                    ctx.fillStyle = 'rgba(90,70,40,0.12)';
+                    ctx.fillRect(screenX, screenY, 3, T);
+                }
+                if (landE) {
+                    ctx.fillStyle = 'rgba(180,200,220,0.18)';
+                    for (let i = 0; i < 4; i++) {
+                        const fy = (hash + i * 8) % T;
+                        ctx.fillRect(screenX + T - 2 + waveOff * 0.5, screenY + fy, 1, 3);
+                    }
+                    ctx.fillStyle = 'rgba(90,70,40,0.1)';
+                    ctx.fillRect(screenX + T - 3, screenY, 3, T);
+                }
+            }
+        }
+    },
+
     // ── Animated grass sway — subtle wind-driven blade movement ──
     drawGrassSway(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T) {
         const time = Date.now() * 0.001;
@@ -784,7 +1058,7 @@ const WorldMap = {
                 if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
                 const ch = this.getTerrainChar(tx, ty);
                 // Only sway on grass/tallgrass/wildflower tiles
-                if (ch !== '.' && ch !== 'g' && ch !== 'w' && ch !== 'Q' && ch !== 'J') continue;
+                if (ch !== '.' && ch !== 'g' && ch !== 'w') continue;
 
                 const hash = Sprites.hash(tx, ty);
                 // Only some tiles get sway (not every one — performance + visual rhythm)
@@ -809,6 +1083,110 @@ const WorldMap = {
             }
         }
         ctx.globalAlpha = 1;
+    },
+
+    // ── Animated water surface shimmer — moving light reflections on water tiles ──
+    drawWaterShimmer(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T) {
+        const time = Date.now() * 0.001;
+        const waterSet = new Set(['~', 'O']);
+
+        for (let ty = startTY; ty <= endTY; ty++) {
+            for (let tx = startTX; tx <= endTX; tx++) {
+                if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
+                const ch = this.getTerrainChar(tx, ty);
+                if (!waterSet.has(ch)) continue;
+
+                const hash = Sprites.hash(tx, ty);
+                if ((hash % 3) !== 0) continue;  // Only 1/3 of water tiles
+
+                const screenX = Math.floor(tx * T - this.camX);
+                const screenY = Math.floor(ty * T - this.camY);
+
+                // Traveling light reflection
+                const phase = tx * 0.5 + ty * 0.3 + time * 1.2;
+                const shimmerX = Math.sin(phase) * 8 + T / 2;
+                const shimmerY = Math.cos(phase * 0.7 + 1.3) * 6 + T / 2;
+                const alpha = 0.15 + Math.sin(phase * 2.3) * 0.1;
+
+                ctx.fillStyle = `rgba(200,230,255,${alpha.toFixed(2)})`;
+                ctx.fillRect(Math.floor(screenX + shimmerX), Math.floor(screenY + shimmerY), 2, 1);
+
+                // Secondary smaller sparkle
+                const phase2 = tx * 1.1 - ty * 0.6 + time * 1.8;
+                const sx2 = Math.sin(phase2) * 10 + T / 2;
+                const sy2 = Math.cos(phase2 * 0.5) * 8 + T / 2;
+                const a2 = 0.1 + Math.sin(phase2 * 3.1) * 0.08;
+                ctx.fillStyle = `rgba(255,255,255,${a2.toFixed(2)})`;
+                ctx.fillRect(Math.floor(screenX + sx2), Math.floor(screenY + sy2), 1, 1);
+            }
+        }
+    },
+
+    // ── Animated banner/flag wave — cloth physics on banner tiles ──
+    drawBannerWave(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T) {
+        const time = Date.now() * 0.001;
+
+        for (let ty = startTY; ty <= endTY; ty++) {
+            for (let tx = startTX; tx <= endTX; tx++) {
+                if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
+                const ch = this.getTerrainChar(tx, ty);
+                if (ch !== 'N') continue;  // Banner tiles only
+
+                const screenX = Math.floor(tx * T - this.camX);
+                const screenY = Math.floor(ty * T - this.camY);
+
+                // Cloth wave — animates the right edge of the banner
+                const wave = Math.sin(time * 3 + tx * 2.1 + ty * 0.7) * 2;
+                const wave2 = Math.sin(time * 4.5 + tx * 1.3) * 1.5;
+
+                // Animated cloth edge strip (overwrites static banner edge)
+                ctx.fillStyle = '#8a2222';
+                ctx.globalAlpha = 0.7;
+                // Wave the bottom-right portion of the banner
+                for (let i = 0; i < 5; i++) {
+                    const fx = 18 + 8 + wave + i * 0.5;
+                    const fy = 4 + i * 3 + wave2 * (i / 5);
+                    ctx.fillRect(Math.floor(screenX + fx), Math.floor(screenY + fy), 2, 3);
+                }
+                ctx.globalAlpha = 1;
+            }
+        }
+    },
+
+    // ── Animated torch/fire spark particles — small sparks rise from campfires ──
+    drawFireSparks(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T) {
+        const time = Date.now() * 0.001;
+
+        for (let ty = startTY; ty <= endTY; ty++) {
+            for (let tx = startTX; tx <= endTX; tx++) {
+                if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
+                const ch = this.getTerrainChar(tx, ty);
+                if (ch !== 'F' && ch !== 'L') continue;
+
+                const screenX = Math.floor(tx * T - this.camX);
+                const screenY = Math.floor(ty * T - this.camY);
+                const hash = Sprites.hash(tx, ty);
+
+                // 2-3 rising sparks per fire tile
+                const numSparks = ch === 'F' ? 3 : 2;
+                for (let i = 0; i < numSparks; i++) {
+                    const phase = time * 1.5 + i * 2.1 + hash * 0.1;
+                    const cycle = phase % 3;  // 3-second cycle
+                    const progress = cycle / 3;
+
+                    // Spark rises and fades
+                    const sparkX = screenX + T / 2 + Math.sin(phase * 2 + i) * 6;
+                    const sparkY = screenY + T * 0.4 - progress * T * 0.8;
+                    const alpha = Math.max(0, (1 - progress) * 0.6);
+
+                    if (alpha > 0.05) {
+                        ctx.fillStyle = i === 0 ? `rgba(255,200,50,${alpha.toFixed(2)})` :
+                                                  `rgba(255,120,30,${alpha.toFixed(2)})`;
+                        ctx.fillRect(Math.floor(sparkX), Math.floor(sparkY), 1, 1);
+                    }
+                }
+            }
+        }
     },
 
     drawPlayer(ctx) {

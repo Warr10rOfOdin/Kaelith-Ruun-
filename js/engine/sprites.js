@@ -3929,14 +3929,38 @@ const Sprites = {
 
     applyRegionTint(ctx, w, h, region) {
         if (region === 'hollowfen') {
-            ctx.fillStyle = 'rgba(15,35,50,0.14)';
+            // Cool teal-green swamp atmosphere
+            ctx.fillStyle = 'rgba(10,40,45,0.16)';
             ctx.fillRect(0, 0, w, h);
+            // Low mist band across bottom third
+            const mistGrd = ctx.createLinearGradient(0, h * 0.6, 0, h);
+            mistGrd.addColorStop(0, 'rgba(60,90,80,0)');
+            mistGrd.addColorStop(1, 'rgba(60,90,80,0.08)');
+            ctx.fillStyle = mistGrd;
+            ctx.fillRect(0, h * 0.6, w, h * 0.4);
         } else if (region === 'void_sanctum') {
-            ctx.fillStyle = 'rgba(35,10,45,0.2)';
+            // Deep purple void corruption
+            ctx.fillStyle = 'rgba(35,10,50,0.22)';
+            ctx.fillRect(0, 0, w, h);
+            // Subtle chromatic aberration — thin colored bars at screen edges
+            ctx.fillStyle = 'rgba(100,40,160,0.04)';
+            ctx.fillRect(0, 0, 3, h);
+            ctx.fillRect(w - 3, 0, 3, h);
+            // Pulsing void distortion at edges
+            const t = Date.now() * 0.001;
+            const pulse = Math.sin(t * 0.8) * 0.03;
+            ctx.fillStyle = `rgba(80,20,120,${(0.05 + pulse).toFixed(3)})`;
             ctx.fillRect(0, 0, w, h);
         } else if (region === 'ashen_wastes') {
-            ctx.fillStyle = 'rgba(40,25,10,0.1)';
+            // Warm amber haze — ash and dust in the air
+            ctx.fillStyle = 'rgba(45,30,12,0.1)';
             ctx.fillRect(0, 0, w, h);
+            // Heat shimmer at horizon (top of screen)
+            const heatGrd = ctx.createLinearGradient(0, 0, 0, h * 0.25);
+            heatGrd.addColorStop(0, 'rgba(80,50,20,0.06)');
+            heatGrd.addColorStop(1, 'rgba(80,50,20,0)');
+            ctx.fillStyle = heatGrd;
+            ctx.fillRect(0, 0, w, h * 0.25);
         }
     },
 
@@ -4227,53 +4251,131 @@ const Sprites = {
     spawnAmbientParticle(region, camX, camY, vpW, vpH) {
         const worldX = camX + Math.random() * vpW;
         const worldY = camY + Math.random() * vpH;
+        const roll = Math.random();
 
         if (region === 'ashen_wastes') {
-            // Drifting ash particles — rise slowly
-            this.ambientParticles.push({
-                x: worldX, y: worldY,
-                vx: (Math.random() - 0.5) * 15,
-                vy: -8 - Math.random() * 12,
-                life: 3 + Math.random() * 3,
-                maxLife: 3 + Math.random() * 3,
-                color: Math.random() < 0.5 ? '#8a7a6a' : '#6a5a4a',
-                size: 1 + Math.random() * 2,
-                wave: true,
-                waveFreq: 2 + Math.random() * 2,
-                waveAmp: 8 + Math.random() * 5,
-                waveOffset: Math.random() * 6.28
-            });
+            if (roll < 0.6) {
+                // Drifting ash particles — rise slowly
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: (Math.random() - 0.5) * 15,
+                    vy: -8 - Math.random() * 12,
+                    life: 3 + Math.random() * 3,
+                    maxLife: 3 + Math.random() * 3,
+                    color: Math.random() < 0.5 ? '#8a7a6a' : '#6a5a4a',
+                    size: 1 + Math.random() * 2,
+                    wave: true,
+                    waveFreq: 2 + Math.random() * 2,
+                    waveAmp: 8 + Math.random() * 5,
+                    waveOffset: Math.random() * 6.28
+                });
+            } else {
+                // Ember sparks — small bright orange motes that rise fast and die
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: -20 - Math.random() * 15,
+                    life: 1.5 + Math.random() * 2,
+                    maxLife: 1.5 + Math.random() * 2,
+                    color: Math.random() < 0.5 ? '#ff8830' : '#ffaa44',
+                    size: 1,
+                    wave: true,
+                    waveFreq: 4 + Math.random() * 3,
+                    waveAmp: 4,
+                    waveOffset: Math.random() * 6.28,
+                    isSpark: true
+                });
+            }
         } else if (region === 'hollowfen') {
-            // Fog wisps — slow horizontal drift
-            this.ambientParticles.push({
-                x: worldX, y: worldY,
-                vx: 5 + Math.random() * 10,
-                vy: (Math.random() - 0.5) * 3,
-                life: 4 + Math.random() * 4,
-                maxLife: 4 + Math.random() * 4,
-                color: 'rgba(120,150,170,0.15)',
-                size: 6 + Math.random() * 10,
-                wave: true,
-                waveFreq: 0.5 + Math.random(),
-                waveAmp: 3,
-                waveOffset: Math.random() * 6.28,
-                isBlob: true
-            });
+            if (roll < 0.5) {
+                // Fog wisps — slow horizontal drift
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: 5 + Math.random() * 10,
+                    vy: (Math.random() - 0.5) * 3,
+                    life: 4 + Math.random() * 4,
+                    maxLife: 4 + Math.random() * 4,
+                    color: 'rgba(120,150,170,0.15)',
+                    size: 6 + Math.random() * 10,
+                    wave: true,
+                    waveFreq: 0.5 + Math.random(),
+                    waveAmp: 3,
+                    waveOffset: Math.random() * 6.28,
+                    isBlob: true
+                });
+            } else if (roll < 0.8) {
+                // Fireflies — pulsing green-yellow dots that float and wander
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 4 + Math.random() * 5,
+                    maxLife: 4 + Math.random() * 5,
+                    color: Math.random() < 0.6 ? '#88dd44' : '#aaee66',
+                    size: 1.5,
+                    wave: true,
+                    waveFreq: 1.5 + Math.random() * 2,
+                    waveAmp: 10 + Math.random() * 8,
+                    waveOffset: Math.random() * 6.28,
+                    isFirefly: true,
+                    pulsePhase: Math.random() * 6.28
+                });
+            } else {
+                // Spore puffs — tiny, drift upward slowly
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: (Math.random() - 0.5) * 5,
+                    vy: -3 - Math.random() * 5,
+                    life: 3 + Math.random() * 3,
+                    maxLife: 3 + Math.random() * 3,
+                    color: '#aa9966',
+                    size: 1,
+                    wave: true,
+                    waveFreq: 2 + Math.random() * 2,
+                    waveAmp: 5,
+                    waveOffset: Math.random() * 6.28
+                });
+            }
         } else if (region === 'void_sanctum') {
-            // Corruption motes — erratic, purple
-            this.ambientParticles.push({
-                x: worldX, y: worldY,
-                vx: (Math.random() - 0.5) * 20,
-                vy: -5 + (Math.random() - 0.5) * 15,
-                life: 2 + Math.random() * 3,
-                maxLife: 2 + Math.random() * 3,
-                color: Math.random() < 0.5 ? '#8a3aaa' : '#6a2a8a',
-                size: 1 + Math.random() * 2.5,
-                wave: true,
-                waveFreq: 3 + Math.random() * 3,
-                waveAmp: 12 + Math.random() * 8,
-                waveOffset: Math.random() * 6.28
-            });
+            if (roll < 0.5) {
+                // Corruption motes — erratic, purple
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: (Math.random() - 0.5) * 20,
+                    vy: -5 + (Math.random() - 0.5) * 15,
+                    life: 2 + Math.random() * 3,
+                    maxLife: 2 + Math.random() * 3,
+                    color: Math.random() < 0.5 ? '#8a3aaa' : '#6a2a8a',
+                    size: 1 + Math.random() * 2.5,
+                    wave: true,
+                    waveFreq: 3 + Math.random() * 3,
+                    waveAmp: 12 + Math.random() * 8,
+                    waveOffset: Math.random() * 6.28
+                });
+            } else if (roll < 0.8) {
+                // Reality glitch — a brief horizontal line that flickers
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: 0, vy: 0,
+                    life: 0.2 + Math.random() * 0.4,
+                    maxLife: 0.2 + Math.random() * 0.4,
+                    color: Math.random() < 0.5 ? '#cc44ff' : '#4488ff',
+                    size: 8 + Math.random() * 20,
+                    isGlitch: true
+                });
+            } else {
+                // Void eye — a brief flash that looks like a watching eye
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: 0, vy: 0,
+                    life: 0.8 + Math.random() * 1.2,
+                    maxLife: 0.8 + Math.random() * 1.2,
+                    color: '#cc66ff',
+                    size: 2,
+                    isVoidEye: true,
+                    pulsePhase: Math.random() * 6.28
+                });
+            }
         }
     },
 
@@ -4286,16 +4388,61 @@ const Sprites = {
             const sy = p.y - camY;
 
             if (p.isBlob) {
-                // Fog blob
+                // Fog blob — large translucent ellipse
                 ctx.globalAlpha = alpha * 0.3;
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
                 ctx.ellipse(sx, sy, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
                 ctx.fill();
+            } else if (p.isFirefly) {
+                // Firefly — pulsing glow dot
+                const pulse = 0.3 + Math.sin(Date.now() * 0.005 + p.pulsePhase) * 0.7;
+                ctx.globalAlpha = alpha * pulse;
+                // Glow halo
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+                ctx.fill();
+                // Bright center
+                ctx.globalAlpha = alpha * pulse * 1.2;
+                ctx.fillStyle = '#eeffaa';
+                ctx.fillRect(Math.floor(sx) - 0.5, Math.floor(sy) - 0.5, 1, 1);
+            } else if (p.isSpark) {
+                // Ember spark — tiny bright pixel
+                ctx.globalAlpha = alpha * 0.9;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(Math.floor(sx), Math.floor(sy), 1, 1);
+            } else if (p.isGlitch) {
+                // Reality glitch — horizontal scanline
+                ctx.globalAlpha = alpha * 0.4;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(Math.floor(sx), Math.floor(sy), p.size, 1);
+                // Secondary offset line
+                ctx.globalAlpha = alpha * 0.2;
+                ctx.fillRect(Math.floor(sx) + 2, Math.floor(sy) + 2, p.size * 0.6, 1);
+            } else if (p.isVoidEye) {
+                // Void eye — brief watching eye shape
+                const pulse = Math.sin(Date.now() * 0.008 + p.pulsePhase);
+                const openness = Math.max(0, pulse) * alpha;
+                if (openness > 0.1) {
+                    ctx.globalAlpha = openness * 0.5;
+                    ctx.fillStyle = p.color;
+                    // Outer eye shape
+                    ctx.beginPath();
+                    ctx.ellipse(sx, sy, 4, 2 * openness, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Pupil
+                    ctx.globalAlpha = openness * 0.8;
+                    ctx.fillStyle = '#220044';
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 1, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             } else {
+                // Default — simple pixel particle
                 ctx.globalAlpha = alpha * 0.7;
                 ctx.fillStyle = p.color;
-                ctx.fillRect(sx, sy, p.size, p.size);
+                ctx.fillRect(Math.floor(sx), Math.floor(sy), p.size, p.size);
             }
         }
         ctx.globalAlpha = 1;

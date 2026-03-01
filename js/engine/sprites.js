@@ -3481,78 +3481,162 @@ const Sprites = {
     },
 
     drawCombatRuun() {
-        const W = 80, H = 100;
+        const W = 96, H = 120;
         const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
-        // Void distortion aura
-        ctx.fillStyle = 'rgba(60,20,80,0.15)';
-        ctx.beginPath(); ctx.ellipse(40, 50, 38, 48, 0, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = 'rgba(80,30,100,0.1)';
-        ctx.beginPath(); ctx.ellipse(40, 50, 28, 36, 0, 0, Math.PI*2); ctx.fill();
-        // Floating reality fragments (orbit around)
-        const drawFragment = (x, y, size, color) => {
+        // Void distortion aura (layered)
+        ctx.fillStyle = 'rgba(60,20,80,0.12)';
+        ctx.beginPath(); ctx.ellipse(48, 60, 46, 58, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(80,30,100,0.08)';
+        ctx.beginPath(); ctx.ellipse(48, 60, 36, 44, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(100,40,120,0.05)';
+        ctx.beginPath(); ctx.ellipse(48, 60, 28, 34, 0, 0, Math.PI*2); ctx.fill();
+        // Distortion rings
+        ctx.strokeStyle = 'rgba(120,60,180,0.12)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 6; i++) {
+            const r = 20 + i * 6;
+            ctx.beginPath();
+            ctx.arc(48, 56, r, Math.PI * i * 0.25, Math.PI * i * 0.25 + 0.7);
+            ctx.stroke();
+        }
+        // Floating reality fragments (orbit around, more varied)
+        const drawFragment = (x, y, size, color, rot) => {
             ctx.fillStyle = color;
             ctx.save();
             ctx.translate(x, y);
-            ctx.rotate(Math.random() * Math.PI);
+            ctx.rotate(rot || 0);
             ctx.fillRect(-size/2, -size/2, size, size);
+            // Fragment highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            ctx.fillRect(-size/2, -size/2, size/2, size/2);
             ctx.restore();
         };
         ctx.globalAlpha = 0.5;
-        drawFragment(10, 20, 8, '#5a7a3a');
-        drawFragment(68, 24, 6, '#3a5a8a');
-        drawFragment(8, 60, 7, '#8a6a4a');
-        drawFragment(72, 56, 5, '#4a4a6a');
-        drawFragment(14, 82, 6, '#6a5a3a');
-        drawFragment(66, 78, 7, '#3a6a5a');
+        drawFragment(12, 24, 10, '#5a7a3a', 0.3);
+        drawFragment(82, 28, 8, '#3a5a8a', 0.7);
+        drawFragment(8, 74, 9, '#8a6a4a', 1.2);
+        drawFragment(88, 68, 7, '#4a4a6a', 0.5);
+        drawFragment(16, 102, 8, '#6a5a3a', 0.9);
+        drawFragment(80, 96, 9, '#3a6a5a', 1.4);
+        drawFragment(6, 48, 6, '#7a5a3a', 0.2);
+        drawFragment(90, 44, 5, '#3a4a7a', 1.1);
+        // Smaller debris particles
+        drawFragment(24, 10, 4, '#5a5a7a', 0.6);
+        drawFragment(72, 14, 3, '#6a4a5a', 1.0);
+        drawFragment(4, 90, 4, '#4a6a4a', 0.4);
+        drawFragment(92, 84, 3, '#5a4a6a', 0.8);
         ctx.globalAlpha = 1;
-        // Central dark void core
-        const grd = ctx.createRadialGradient(40, 46, 4, 40, 46, 24);
+        // Central dark void core (radial gradient)
+        const grd = ctx.createRadialGradient(48, 56, 6, 48, 56, 32);
         grd.addColorStop(0, '#0a0010');
-        grd.addColorStop(0.5, '#1a0a2a');
+        grd.addColorStop(0.4, '#1a0a2a');
+        grd.addColorStop(0.7, 'rgba(40,15,60,0.5)');
         grd.addColorStop(1, 'rgba(40,15,60,0)');
         ctx.fillStyle = grd;
-        ctx.beginPath(); ctx.ellipse(40, 46, 24, 28, 0, 0, Math.PI*2); ctx.fill();
-        // Inner void
+        ctx.beginPath(); ctx.ellipse(48, 56, 32, 36, 0, 0, Math.PI*2); ctx.fill();
+        // Inner void (deeper darkness)
         ctx.fillStyle = '#050008';
-        ctx.beginPath(); ctx.ellipse(40, 46, 14, 16, 0, 0, Math.PI*2); ctx.fill();
-        // Eye/face in the void
-        ctx.fillStyle = '#3a1a4a';
-        ctx.beginPath(); ctx.ellipse(40, 40, 10, 12, 0, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#1a0a2a';
-        ctx.beginPath(); ctx.ellipse(40, 40, 8, 10, 0, 0, Math.PI*2); ctx.fill();
-        // Eyes (bright purple-white)
-        ctx.fillStyle = '#cc88ff';
-        ctx.fillRect(34, 38, 4, 3);
-        ctx.fillRect(42, 38, 4, 3);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(35, 38, 2, 2);
-        ctx.fillRect(43, 38, 2, 2);
-        // Mouth (void gash)
-        ctx.fillStyle = '#6a2a8a';
-        ctx.fillRect(34, 46, 12, 2);
-        // Energy tendrils radiating outward
-        ctx.strokeStyle = '#8a3aaa';
-        ctx.lineWidth = 2;
-        ctx.globalAlpha = 0.6;
-        ctx.beginPath(); ctx.moveTo(40, 20); ctx.quadraticCurveTo(35, 10, 28, 4); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(40, 20); ctx.quadraticCurveTo(45, 8, 54, 2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(18, 46); ctx.quadraticCurveTo(8, 42, 2, 36); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(62, 46); ctx.quadraticCurveTo(72, 40, 78, 34); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(30, 68); ctx.quadraticCurveTo(20, 80, 14, 92); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(50, 68); ctx.quadraticCurveTo(60, 78, 68, 90); ctx.stroke();
-        ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = '#bb66dd';
+        ctx.beginPath(); ctx.ellipse(48, 56, 18, 22, 0, 0, Math.PI*2); ctx.fill();
+        // Void ripple rings inside core
+        ctx.strokeStyle = 'rgba(80,30,100,0.2)';
         ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(40, 20); ctx.quadraticCurveTo(42, 6, 40, 0); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(16, 46); ctx.quadraticCurveTo(6, 50, 0, 55); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(64, 46); ctx.quadraticCurveTo(74, 50, 80, 55); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(48, 56, 14, 17, 0, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(48, 56, 10, 12, 0, 0, Math.PI*2); ctx.stroke();
+        // Rune symbols orbiting the void
+        ctx.fillStyle = '#8a4aaa';
+        ctx.globalAlpha = 0.4;
+        // Rune 1
+        ctx.fillRect(24, 50, 4, 1); ctx.fillRect(25, 48, 1, 5);
+        ctx.fillRect(24, 52, 3, 1);
+        // Rune 2
+        ctx.fillRect(68, 54, 4, 1); ctx.fillRect(70, 52, 1, 5);
+        ctx.fillRect(69, 56, 3, 1);
+        // Rune 3
+        ctx.fillRect(44, 82, 1, 4); ctx.fillRect(42, 84, 5, 1);
+        // Rune 4
+        ctx.fillRect(50, 28, 4, 1); ctx.fillRect(52, 26, 1, 5);
         ctx.globalAlpha = 1;
-        // Central sparkle
+        // Face/visage in the void
+        ctx.fillStyle = '#3a1a4a';
+        ctx.beginPath(); ctx.ellipse(48, 48, 12, 16, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#2a0a3a';
+        ctx.beginPath(); ctx.ellipse(48, 48, 10, 13, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#1a0a2a';
+        ctx.beginPath(); ctx.ellipse(48, 48, 8, 10, 0, 0, Math.PI*2); ctx.fill();
+        // Brow ridge
+        ctx.fillStyle = '#3a1a4a';
+        ctx.fillRect(38, 42, 6, 2); ctx.fillRect(50, 42, 6, 2);
+        // Eyes (bright purple-white, piercing)
+        ctx.fillStyle = '#aa55ee';
+        ctx.fillRect(40, 44, 5, 4);
+        ctx.fillRect(52, 44, 5, 4);
+        ctx.fillStyle = '#cc88ff';
+        ctx.fillRect(41, 45, 3, 2);
+        ctx.fillRect(53, 45, 3, 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(42, 45, 2, 2);
+        ctx.fillRect(54, 45, 2, 2);
+        // Eye glow effect
+        ctx.fillStyle = 'rgba(180,100,255,0.2)';
+        ctx.beginPath(); ctx.arc(42, 46, 5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(54, 46, 5, 0, Math.PI*2); ctx.fill();
+        // Nose
+        ctx.fillStyle = '#2a0a3a';
+        ctx.fillRect(47, 50, 2, 3);
+        // Mouth (void gash, wider)
+        ctx.fillStyle = '#0a0010';
+        ctx.fillRect(40, 56, 16, 3);
+        ctx.fillStyle = '#6a2a8a';
+        ctx.fillRect(42, 56, 12, 2);
+        // Teeth-like void fragments in mouth
+        ctx.fillStyle = '#8a5aaa';
+        ctx.fillRect(43, 56, 1, 2); ctx.fillRect(46, 56, 1, 2);
+        ctx.fillRect(49, 56, 1, 2); ctx.fillRect(52, 56, 1, 2);
+        // Energy tendrils radiating outward (more, thicker)
+        ctx.strokeStyle = '#8a3aaa';
+        ctx.lineWidth = 2.5;
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath(); ctx.moveTo(48, 24); ctx.quadraticCurveTo(42, 12, 32, 4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(48, 24); ctx.quadraticCurveTo(54, 10, 66, 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(20, 56); ctx.quadraticCurveTo(8, 50, 0, 42); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(76, 56); ctx.quadraticCurveTo(88, 48, 96, 40); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(36, 84); ctx.quadraticCurveTo(24, 98, 16, 114); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(60, 84); ctx.quadraticCurveTo(72, 96, 82, 112); ctx.stroke();
+        // Secondary tendrils (thinner)
+        ctx.globalAlpha = 0.35;
+        ctx.strokeStyle = '#bb66dd';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(48, 24); ctx.quadraticCurveTo(48, 8, 48, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(18, 56); ctx.quadraticCurveTo(6, 62, 0, 70); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(78, 56); ctx.quadraticCurveTo(90, 62, 96, 70); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(30, 78); ctx.quadraticCurveTo(14, 86, 4, 100); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(66, 78); ctx.quadraticCurveTo(82, 86, 92, 100); ctx.stroke();
+        // Tertiary wisps
+        ctx.globalAlpha = 0.2;
+        ctx.strokeStyle = '#cc88ee';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(36, 30); ctx.quadraticCurveTo(24, 18, 18, 8); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(60, 30); ctx.quadraticCurveTo(72, 18, 78, 8); ctx.stroke();
+        ctx.globalAlpha = 1;
+        // Tendril tips (bright sparks)
+        ctx.fillStyle = '#cc88ff';
+        ctx.globalAlpha = 0.7;
+        ctx.fillRect(31, 3, 2, 2); ctx.fillRect(65, 1, 2, 2);
+        ctx.fillRect(0, 41, 2, 2); ctx.fillRect(94, 39, 2, 2);
+        ctx.fillRect(15, 113, 2, 2); ctx.fillRect(81, 111, 2, 2);
+        ctx.globalAlpha = 1;
+        // Central sparkles (reality breaking)
         ctx.fillStyle = '#ffffff';
         ctx.globalAlpha = 0.8;
-        ctx.fillRect(39, 34, 2, 2);
-        ctx.fillRect(44, 42, 1, 1);
-        ctx.fillRect(34, 44, 1, 1);
+        ctx.fillRect(47, 40, 2, 2);
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(54, 50, 1, 1);
+        ctx.fillRect(40, 52, 1, 1);
+        ctx.fillRect(50, 38, 1, 1);
+        ctx.fillRect(44, 54, 1, 1);
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(36, 44, 1, 1); ctx.fillRect(58, 48, 1, 1);
+        ctx.fillRect(46, 62, 1, 1); ctx.fillRect(50, 34, 1, 1);
         ctx.globalAlpha = 1;
         return c;
     },

@@ -929,6 +929,26 @@ const ITEMS = {
         description: 'A crimson flower. Restores 15 HP and 10 MP.', value: 14,
         effect: { type: 'heal', stat: 'both', hpAmount: 15, mpAmount: 10 }
     },
+    shadow_pepper: {
+        name: 'Shadow Pepper', icon: '🌶️', type: 'consumable', stackable: true,
+        description: 'A dark, fiery pepper. Temporarily boosts attack.',
+        effect: { buff: { stat: 'attack', amount: 3, duration: 10 } }, value: 12
+    },
+    starfruit: {
+        name: 'Starfruit', icon: '⭐', type: 'consumable', stackable: true,
+        description: 'A luminous fruit. Restores MP.',
+        effect: { mana: 20 }, value: 15
+    },
+    ironroot_tuber: {
+        name: 'Ironroot Tuber', icon: '🥔', type: 'consumable', stackable: true,
+        description: 'A dense, metallic-flavored root. Temporarily boosts defense.',
+        effect: { buff: { stat: 'defense', amount: 3, duration: 10 } }, value: 12
+    },
+    voidberry: {
+        name: 'Voidberry', icon: '🫐', type: 'consumable', stackable: true,
+        description: 'A berry that phases between realities. Restores HP and MP.',
+        effect: { heal: 15, mana: 15 }, value: 20
+    },
     hearth_stew: {
         name: 'Hearth Stew', icon: '🍲', type: 'consumable', stackable: true,
         description: 'A warm bowl of stew. Restores 50 HP. Tastes like hope.', value: 30,
@@ -966,6 +986,55 @@ const ITEMS = {
         description: 'Grilled fish. Simple but nourishing. Restores 40 HP.',
         value: 20,
         effect: { type: 'heal', stat: 'hp', amount: 40 }
+    },
+
+    // --- Fish (catches from fishing) ---
+    small_fish: {
+        name: 'Small Fish', icon: '🐟', type: 'consumable', stackable: true,
+        description: 'A small catch. Restores a bit of HP when eaten.',
+        effect: { heal: 8 }, value: 4
+    },
+    large_fish: {
+        name: 'Large Fish', icon: '🐠', type: 'consumable', stackable: true,
+        description: 'A decent-sized fish. Good eating.',
+        effect: { heal: 15 }, value: 8
+    },
+    golden_fish: {
+        name: 'Golden Fish', icon: '✨', type: 'consumable', stackable: true,
+        description: 'A shimmering golden fish. Very valuable.',
+        effect: { heal: 30, mana: 15 }, value: 50
+    },
+    void_fish: {
+        name: 'Void Fish', icon: '🐙', type: 'consumable', stackable: true,
+        description: 'A strange creature from between realities. Heals and grants a temporary buff.',
+        effect: { heal: 25, mana: 20 }, value: 80
+    },
+    old_boot: {
+        name: 'Old Boot', icon: '👢', type: 'resource', stackable: true,
+        description: 'A waterlogged boot. Useless... or is it?',
+        value: 1
+    },
+    treasure_chest_fish: {
+        name: 'Sunken Treasure', icon: '💰', type: 'resource', stackable: true,
+        description: 'A small chest dredged from the water. Contains gold.',
+        value: 30
+    },
+
+    // --- Cooked Fish Recipes ---
+    fish_stew: {
+        name: 'Fish Stew', icon: '🍲', type: 'consumable', stackable: true,
+        description: 'Hearty fish stew. Restores HP and MP.',
+        effect: { heal: 35, mana: 15 }, value: 25
+    },
+    grilled_golden_fish: {
+        name: 'Grilled Golden Fish', icon: '🍽️', type: 'consumable', stackable: true,
+        description: 'A perfectly grilled golden fish. Full restoration.',
+        effect: { heal: 60, mana: 30 }, value: 65
+    },
+    spicy_fish_skewer: {
+        name: 'Spicy Fish Skewer', icon: '🍢', type: 'consumable', stackable: true,
+        description: 'Fish with shadow peppers. Heals and boosts attack.',
+        effect: { heal: 20, buff: { stat: 'attack', amount: 4, duration: 8 } }, value: 30
     },
 
     // ═══════════════════════════════════════════

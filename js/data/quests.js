@@ -85,6 +85,77 @@ const QUESTS = {
                 wrath: { text: 'Eliminate the bandits by force.', xpReward: 120, karmaChange: -1 }
             },
             onComplete: 'The situation in the Scorched Village has been resolved.'
+        },
+        lost_patrol: {
+            name: 'The Lost Patrol',
+            type: 'side',
+            description: 'A merchant at the Ruined Outpost begs you to find his missing guards in the Ashen Wastes.',
+            objectives: [
+                { id: 'find_merchant', text: 'Speak to Merchant Aldric', completed: false },
+                { id: 'search_plains', text: 'Search the Scorched Plains', completed: false },
+                { id: 'resolve_patrol', text: 'Defeat the ambushers or negotiate', completed: false }
+            ],
+            xpReward: 120,
+            itemReward: 'chainmail_vest',
+            onComplete: 'The patrol has been found and the situation resolved. Merchant Aldric is grateful for your aid.'
+        },
+        haunted_shrine: {
+            name: 'The Haunted Shrine',
+            type: 'side',
+            description: 'Strange lights have been seen near an ancient shrine in the Hollowfen. Investigate the disturbance.',
+            objectives: [
+                { id: 'find_shrine', text: 'Find the Ancient Shrine', completed: false },
+                { id: 'purify_shrine', text: 'Purify the shrine or harness its power', completed: false },
+                { id: 'report_shrine', text: 'Return to the herbalist', completed: false }
+            ],
+            xpReward: 180,
+            itemReward: 'greater_health_potion',
+            choices: {
+                purify: { text: 'Cleanse the dark energy.', xpReward: 150, karmaChange: 1 },
+                harness: { text: 'Absorb the shrine\'s power for yourself.', xpReward: 180, karmaChange: -1 }
+            },
+            onComplete: 'The shrine has been dealt with. The herbalist nods solemnly at your report.'
+        },
+        dragon_egg: {
+            name: 'The Last Ember',
+            type: 'side',
+            description: 'Deep in the wastes lies a dragon egg, the last of its kind. Some would pay a fortune for it. Others say it should be protected.',
+            objectives: [
+                { id: 'find_egg', text: 'Find the dragon egg', completed: false },
+                { id: 'egg_fate', text: 'Decide the egg\'s fate', completed: false }
+            ],
+            xpReward: 200,
+            choices: {
+                protect: { text: 'Hide the egg in a safe place and guard it.', xpReward: 200, karmaChange: 2 },
+                sell: { text: 'Sell it to the highest bidder.', xpReward: 150, karmaChange: -2, goldReward: 200 }
+            },
+            onComplete: 'The fate of the last dragon egg has been decided. History will remember your choice.'
+        },
+        void_researcher: {
+            name: 'Echoes of the Void',
+            type: 'side',
+            description: 'A mad researcher in the Void Sanctum claims to have found a way to reverse the Sundering — but needs void crystals to prove it.',
+            objectives: [
+                { id: 'find_researcher', text: 'Find the Void Researcher', completed: false },
+                { id: 'collect_crystals', text: 'Collect 3 void crystals', completed: false },
+                { id: 'deliver_crystals', text: 'Deliver the crystals', completed: false }
+            ],
+            xpReward: 250,
+            itemReward: 'elixir_of_power',
+            onComplete: 'The researcher cackles with glee as the crystals hum with power. Whether this leads to salvation or ruin remains to be seen.'
+        },
+        bounty_board: {
+            name: 'Bounty: The Crimson Fang',
+            type: 'side',
+            description: 'A bounty has been posted for a notorious bandit leader terrorizing trade routes between the regions.',
+            objectives: [
+                { id: 'read_bounty', text: 'Read the bounty notice', completed: false },
+                { id: 'track_fang', text: 'Track the Crimson Fang', completed: false },
+                { id: 'defeat_fang', text: 'Defeat the Crimson Fang', completed: false }
+            ],
+            xpReward: 220,
+            itemReward: 'voidtouched_blade',
+            onComplete: 'The Crimson Fang has been brought to justice. The trade routes are safe once more.'
         }
     }
 };

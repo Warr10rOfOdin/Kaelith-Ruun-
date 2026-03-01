@@ -123,6 +123,17 @@ const GameState = {
         const baseMaxMp = 30 + (p.stats.int * 2) + p.stats.wis + (race ? race.mpBonus : 0) + ((p.level - 1) * (cls.mpPerLevel + Math.floor(p.stats.int * 0.3)));
         p.maxHp = baseMaxHp + bHp;
         p.maxMp = baseMaxMp + bMp;
+
+        // Apply enchantment bonuses
+        if (p.enchantments) {
+            for (const slot of Object.keys(p.enchantments)) {
+                const ench = p.enchantments[slot];
+                if (ench && ench.stat && typeof p[ench.stat] === 'number') {
+                    p[ench.stat] += ench.amount;
+                }
+            }
+        }
+
         if (p.hp > p.maxHp) p.hp = p.maxHp;
         if (p.mp > p.maxMp) p.mp = p.maxMp;
     },
@@ -198,8 +209,52 @@ const GameState = {
                 this.player.stats[cls.secondaryStat] += 1;
             this.recalculateStats();
             leveled = true;
+
+            // Check for skill tree unlocks
+            this.checkSkillTreeUnlocks();
         }
         return leveled;
+    },
+
+    // Skill tree: track chosen abilities and pending choices
+    pendingSkillChoice: null,
+
+    checkSkillTreeUnlocks() {
+        if (!this.player) return;
+        const cls = CLASSES[this.player.class];
+        if (!cls || !cls.skillTree) return;
+
+        // Initialize skill choices tracking if needed
+        if (!this.player.skillChoices) this.player.skillChoices = {};
+
+        for (const tier of cls.skillTree) {
+            if (this.player.level >= tier.level && !this.player.skillChoices[tier.level]) {
+                // New tier unlocked — queue the choice
+                this.pendingSkillChoice = tier;
+                break;
+            }
+        }
+    },
+
+    selectSkillChoice(tierLevel, choiceIndex) {
+        if (!this.player) return;
+        const cls = CLASSES[this.player.class];
+        if (!cls || !cls.skillTree) return;
+
+        const tier = cls.skillTree.find(t => t.level === tierLevel);
+        if (!tier || !tier.choices || !tier.choices[choiceIndex]) return;
+
+        if (!this.player.skillChoices) this.player.skillChoices = {};
+        if (this.player.skillChoices[tierLevel]) return; // already chosen
+
+        const ability = tier.choices[choiceIndex];
+        this.player.abilities.push(ability);
+        this.player.skillChoices[tierLevel] = choiceIndex;
+        this.pendingSkillChoice = null;
+
+        // Check if there are more pending unlocks
+        this.checkSkillTreeUnlocks();
+        this.save();
     },
 
     healPlayer(hp, mp = 0) {
@@ -307,6 +362,8 @@ const GameState = {
             if (!this.base.crops) this.base.crops = [];
             if (!this.base.placeables) this.base.placeables = [];
             if (!this.base.placedBuildings) this.base.placedBuildings = [];
+            if (!this.base.buildingLevels) this.base.buildingLevels = {};
+            if (!this.player.enchantments) this.player.enchantments = {};
             this.MAX_INVENTORY_SIZE = s.maxInventorySize || 40;
 
             if (s.unlockedRegions) {

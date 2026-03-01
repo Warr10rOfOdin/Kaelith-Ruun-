@@ -48,11 +48,17 @@ const HUD = {
             if (stText) stText.textContent = `STA ${Math.floor(WorldMap.stamina)}/${WorldMap.maxStamina}`;
         }
 
-        // Location
+        // Location and time of day
         const location = WORLD.locations[GameState.currentLocation];
         const hudLocation = document.getElementById('hud-location');
         if (hudLocation && location) {
-            hudLocation.textContent = location.name;
+            const timeLabel = (typeof WorldMap !== 'undefined' && WorldMap.getTimeLabel)
+                ? WorldMap.getTimeLabel() : '';
+            const weatherLabel = (typeof WorldMap !== 'undefined' && WorldMap.weather && WorldMap.weather !== 'clear')
+                ? ' | ' + WorldMap.weather.charAt(0).toUpperCase() + WorldMap.weather.slice(1) : '';
+            hudLocation.textContent = timeLabel
+                ? `${location.name} — ${timeLabel}${weatherLabel}`
+                : location.name;
         }
     },
 

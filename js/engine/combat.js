@@ -59,8 +59,22 @@ const Combat = {
         // Ensure player statusEffects array exists
         if (!GameState.player.statusEffects) GameState.player.statusEffects = [];
 
-        // Show combat screen
+        // Show combat screen with region-specific background
         ScreenManager.showScreen('combat');
+        const combatScreen = document.getElementById('combat-screen');
+        if (combatScreen) {
+            combatScreen.classList.remove('region-ashen', 'region-hollowfen', 'region-void');
+            const region = GameState.currentRegion || 'ashen_wastes';
+            if (region === 'ashen_wastes') combatScreen.classList.add('region-ashen');
+            else if (region === 'hollowfen') combatScreen.classList.add('region-hollowfen');
+            else if (region === 'void_sanctum') combatScreen.classList.add('region-void');
+        }
+
+        // Boss intro effect
+        if (this.enemy.isBoss) {
+            this.showBossIntro();
+        }
+
         this.renderCombatUI();
         this.logCombat(`A ${this.enemy.name} appears!`, 'info');
 
@@ -86,14 +100,29 @@ const Combat = {
     },
 
     renderCombatUI() {
-        // Enemy display
+        // Enemy display with pixel art sprite
         const enemyDisplay = document.getElementById('enemy-display');
         if (enemyDisplay) {
-            enemyDisplay.innerHTML = `
-                <div class="enemy-art">${this.enemy.icon}</div>
-                <div class="enemy-name">${this.enemy.name}</div>
-                <div class="enemy-level">Level ${this.enemy.level}</div>
-            `;
+            const sprite = typeof Sprites !== 'undefined' ? Sprites.getCombatSprite(this.enemy.key) : null;
+            if (sprite) {
+                enemyDisplay.innerHTML = `
+                    <canvas id="enemy-canvas" class="enemy-art-canvas" width="${sprite.width}" height="${sprite.height}"></canvas>
+                    <div class="enemy-name">${this.enemy.name}</div>
+                    <div class="enemy-level">Level ${this.enemy.level}</div>
+                `;
+                const eCanvas = document.getElementById('enemy-canvas');
+                if (eCanvas) {
+                    const ectx = eCanvas.getContext('2d');
+                    ectx.imageSmoothingEnabled = false;
+                    ectx.drawImage(sprite, 0, 0);
+                }
+            } else {
+                enemyDisplay.innerHTML = `
+                    <div class="enemy-art">${this.enemy.icon}</div>
+                    <div class="enemy-name">${this.enemy.name}</div>
+                    <div class="enemy-level">Level ${this.enemy.level}</div>
+                `;
+            }
         }
 
         // Enemy bars
@@ -269,12 +298,15 @@ const Combat = {
         if (isCrit) {
             damage = Math.floor(damage * 1.8);
             this.logCombat(`CRITICAL HIT! You strike the ${this.enemy.name} for ${damage} damage!`, 'critical');
+            this.showDamageNumber(damage, 'crit');
         } else {
             this.logCombat(`You attack the ${this.enemy.name} for ${damage} damage.`, 'player-attack');
+            this.showDamageNumber(damage, 'damage');
         }
 
         this.applyDamageToEnemy(damage);
         this.shakeElement('enemy-display');
+        this.flashEnemy(isCrit ? 'rgba(255,200,50,0.7)' : 'rgba(255,255,255,0.5)');
         NativeBridge.hapticMedium();
     },
 
@@ -325,12 +357,18 @@ const Combat = {
             if (isCrit) {
                 damage = Math.floor(damage * 1.5);
                 this.logCombat(`CRITICAL! ${ability.name} hits for ${damage} damage!`, 'critical');
+                this.showDamageNumber(damage, 'crit');
             } else {
                 this.logCombat(`${ability.name} hits the ${this.enemy.name} for ${damage}!`, 'player-attack');
+                this.showDamageNumber(damage, 'damage');
             }
 
             this.applyDamageToEnemy(damage);
             this.shakeElement('enemy-display');
+            // Spell visual effect
+            const spellType = ability.type === 'magical' ? (ability.element === 'fire' ? 'fire' : 'ice') : 'physical';
+            this.showSpellEffect(spellType);
+            this.flashEnemy(ability.type === 'magical' ? 'rgba(100,150,255,0.6)' : 'rgba(255,255,255,0.5)');
 
             // Lifesteal abilities
             if (ability.name === 'Crimson Drain' || ability.name === 'Reaping Strike') {
@@ -513,6 +551,12 @@ const Combat = {
 
             GameState.player.hp = Math.max(0, GameState.player.hp - damage);
             this.logCombat(`${this.enemy.name} uses ${ability.name} for ${damage} damage!`, 'enemy-attack');
+            if (damage > 0) this.showPlayerDamageNumber(damage);
+            // Enemy spell visual
+            if (ability.type === 'magical') {
+                this.showSpellEffect(ability.element === 'fire' ? 'fire' : 'shadow');
+            }
+            Effects.screenFlash(damage > 15 ? 'rgba(200,30,30,0.15)' : 'rgba(255,100,100,0.08)');
             NativeBridge.hapticHeavy();
 
             // Lifesteal
@@ -661,6 +705,129 @@ const Combat = {
         }
     },
 
+    // Visual combat effects
+    flashEnemy(color = 'rgba(255,255,255,0.6)') {
+        const canvas = document.getElementById('enemy-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-atop';
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        // Restore sprite after flash
+        this._setTimeout(() => {
+            const sprite = typeof Sprites !== 'undefined' ? Sprites.getCombatSprite(this.enemy.key) : null;
+            if (sprite && canvas) {
+                const rctx = canvas.getContext('2d');
+                rctx.clearRect(0, 0, canvas.width, canvas.height);
+                rctx.drawImage(sprite, 0, 0);
+            }
+        }, 150);
+    },
+
+    showDamageNumber(amount, type = 'damage') {
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+        const num = document.createElement('div');
+        num.className = `damage-number ${type}`;
+        num.textContent = type === 'heal' ? `+${amount}` : `-${amount}`;
+        display.appendChild(num);
+        this._setTimeout(() => { if (num.parentNode) num.remove(); }, 1000);
+    },
+
+    showPlayerDamageNumber(amount) {
+        const section = document.getElementById('player-combat-section');
+        if (!section) return;
+        const num = document.createElement('div');
+        num.className = 'damage-number player-damage';
+        num.textContent = `-${amount}`;
+        section.style.position = 'relative';
+        section.appendChild(num);
+        this._setTimeout(() => { if (num.parentNode) num.remove(); }, 1000);
+    },
+
+    showSpellEffect(type) {
+        const arena = document.getElementById('combat-arena');
+        if (!arena) return;
+        const overlay = document.createElement('div');
+        overlay.className = `spell-overlay ${type}`;
+        arena.style.position = 'relative';
+        arena.appendChild(overlay);
+        this._setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 600);
+    },
+
+    showBossIntro() {
+        const arena = document.getElementById('combat-arena');
+        if (!arena) return;
+
+        // Full screen boss overlay
+        const intro = document.createElement('div');
+        intro.className = 'boss-intro-overlay';
+        intro.innerHTML = `
+            <div class="boss-intro-text">
+                <div class="boss-intro-title">${this.enemy.name}</div>
+                <div class="boss-intro-level">Level ${this.enemy.level} Boss</div>
+            </div>
+        `;
+        arena.appendChild(intro);
+
+        // Remove after animation
+        this._setTimeout(() => {
+            if (intro.parentNode) intro.remove();
+        }, 2500);
+    },
+
+    showSkillChoiceUI() {
+        const tier = GameState.pendingSkillChoice;
+        if (!tier || !tier.choices) return;
+
+        const container = document.getElementById('game-container');
+        if (!container) return;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'skill-choice-overlay';
+        overlay.innerHTML = `
+            <div class="skill-choice-panel">
+                <div class="skill-choice-header">New Ability Unlocked!</div>
+                <div class="skill-choice-subheader">Level ${tier.level} — Choose one ability</div>
+                <div class="skill-choice-options">
+                    ${tier.choices.map((ability, idx) => `
+                        <button class="skill-choice-btn" data-tier="${tier.level}" data-idx="${idx}">
+                            <div class="skill-choice-name">${ability.name}</div>
+                            <div class="skill-choice-cost">${ability.mpCost > 0 ? ability.mpCost + ' MP' : (ability.hpCost ? ability.hpCost + ' HP' : 'Free')}${ability.damage && ability.damage[1] > 0 ? ' · ' + ability.damage[0] + '-' + ability.damage[1] + ' dmg' : ''}</div>
+                            <div class="skill-choice-desc">${ability.desc}</div>
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        container.appendChild(overlay);
+
+        overlay.querySelectorAll('.skill-choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tierLevel = parseInt(btn.dataset.tier);
+                const idx = parseInt(btn.dataset.idx);
+                GameState.selectSkillChoice(tierLevel, idx);
+
+                btn.style.borderColor = 'var(--accent-gold)';
+                btn.style.boxShadow = '0 0 20px rgba(201,168,76,0.4)';
+
+                setTimeout(() => {
+                    if (overlay.parentNode) overlay.remove();
+                    const ability = tier.choices[idx];
+                    if (typeof Notifications !== 'undefined') {
+                        Notifications.show(`Learned: ${ability.name}!`, 'gold');
+                    }
+                    if (GameState.pendingSkillChoice) {
+                        setTimeout(() => this.showSkillChoiceUI(), 500);
+                    }
+                }, 400);
+            });
+        });
+    },
+
     handleVictory() {
         if (!this.active) return;
         this.active = false;
@@ -683,6 +850,11 @@ const Combat = {
         if (leveled) {
             this.logCombat(`LEVEL UP! You are now level ${GameState.player.level}!`, 'victory');
             this._setTimeout(() => Effects.levelUp(), 500);
+
+            // Check for pending skill tree choice
+            if (GameState.pendingSkillChoice) {
+                this._setTimeout(() => this.showSkillChoiceUI(), 2000);
+            }
         }
 
         // Gold

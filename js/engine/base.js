@@ -45,6 +45,31 @@ const Base = {
                 if (canAfford) {
                     html += `<button class="action-btn primary" onclick="Base.build('${id}')">Build</button>`;
                 }
+            } else if (typeof BUILDING_UPGRADES !== 'undefined' && BUILDING_UPGRADES[id]) {
+                // Show upgrade option
+                const level = this.getBuildingLevel(id);
+                const upgradeDef = BUILDING_UPGRADES[id];
+                if (level < upgradeDef.maxLevel) {
+                    const nextData = upgradeDef.levels[level + 1];
+                    if (nextData) {
+                        html += `<div style="color:var(--accent-gold-dim);font-size:0.75rem;margin-top:0.3rem">Level ${level}/${upgradeDef.maxLevel}</div>`;
+                        html += `<div style="color:var(--text-secondary);font-size:0.8rem;margin-top:0.2rem">Next: ${nextData.name} — ${nextData.description}</div>`;
+                        html += '<div class="build-cost">';
+                        const canUpgrade = this.canAfford(nextData.cost);
+                        for (const [res, qty] of Object.entries(nextData.cost)) {
+                            const have = GameState.getInventoryCount(res);
+                            const item = ITEMS[res];
+                            const enough = have >= qty;
+                            html += `<span class="cost-item ${enough ? 'have' : 'need'}">${item ? item.icon : ''} ${have}/${qty}</span>`;
+                        }
+                        html += '</div>';
+                        if (canUpgrade) {
+                            html += `<button class="action-btn primary" onclick="Base.upgradeBuilding('${id}')">Upgrade</button>`;
+                        }
+                    }
+                } else {
+                    html += `<div style="color:var(--accent-green-bright);font-size:0.75rem;margin-top:0.3rem">MAX LEVEL</div>`;
+                }
             }
             html += '</div>';
         }
@@ -237,6 +262,22 @@ const Base = {
         Narrative.addSeparator();
         Narrative.addFlavor('You rest in your shelter. The world fades away for a blessed moment of peace.');
         Narrative.addHeal(`Fully restored! HP: ${GameState.player.maxHp}/${GameState.player.maxHp} | MP: ${GameState.player.maxMp}/${GameState.player.maxMp}`);
+
+        // Check shelter upgrades
+        const shelterEffect = this.getUpgradeEffect('shelter');
+        if (shelterEffect === 'rest_cleanse') {
+            GameState.player.debuffs = [];
+            GameState.player.statusEffects = [];
+            Narrative.addHeal('Your reinforced shelter cleanses all ailments.');
+        } else if (shelterEffect === 'rest_shield') {
+            GameState.player.debuffs = [];
+            GameState.player.statusEffects = [];
+            // Grant a temporary HP shield (10% of max HP)
+            const shieldAmt = Math.floor(GameState.player.maxHp * 0.1);
+            GameState.player.hp = Math.min(GameState.player.hp + shieldAmt, GameState.player.maxHp + shieldAmt);
+            Narrative.addHeal(`Your fortified lodge grants a shield of ${shieldAmt} bonus HP!`);
+        }
+
         GameState.turnCount += 5;
 
         for (let i = 0; i < 5; i++) this.tickFarming();
@@ -344,6 +385,20 @@ const Base = {
         let quantity = recipe.result.quantity;
         if (recipe.result.item.includes('ingot') && this.hasPlaceable('smelting_boost')) {
             quantity *= 2;
+        }
+        // Workshop upgrade: extra ingot from smelting
+        if (recipe.result.item.includes('ingot') && this.getUpgradeEffect('workshop') === 'smelt_bonus') {
+            quantity += 1;
+        }
+
+        // Forge upgrade: chance for double output
+        const forgeEffect = this.getUpgradeEffect('forge');
+        if (forgeEffect === 'double_craft_10' && Math.random() < 0.10) {
+            quantity *= 2;
+            Notifications.show('Double craft! Lucky forge!', 'gold');
+        } else if (forgeEffect === 'double_craft_20' && Math.random() < 0.20) {
+            quantity *= 2;
+            Notifications.show('Double craft! Master forge!', 'gold');
         }
 
         // Deduct ingredients
@@ -554,7 +609,14 @@ const Base = {
 
         const hasGarden = GameState.base.buildings.garden;
         const hasFarm = GameState.base.buildings.farm;
-        const maxCrops = (hasGarden ? 3 : 0) + (hasFarm ? 5 : 0);
+        let maxCrops = (hasGarden ? 3 : 0) + (hasFarm ? 5 : 0);
+
+        // Building upgrade bonuses
+        const gardenEffect = this.getUpgradeEffect('garden');
+        if (gardenEffect === 'garden_upgrade') maxCrops += 1;
+        else if (gardenEffect === 'greenhouse') maxCrops += 3;
+        const farmEffect = this.getUpgradeEffect('farm');
+        if (farmEffect === 'farm_expand') maxCrops += 3;
 
         let html = '<h3>Farming</h3>';
 
@@ -633,7 +695,12 @@ const Base = {
 
         const hasGarden = GameState.base.buildings.garden;
         const hasFarm = GameState.base.buildings.farm;
-        const maxCrops = (hasGarden ? 3 : 0) + (hasFarm ? 5 : 0);
+        let maxCrops = (hasGarden ? 3 : 0) + (hasFarm ? 5 : 0);
+        const gardenEffect2 = this.getUpgradeEffect('garden');
+        if (gardenEffect2 === 'garden_upgrade') maxCrops += 1;
+        else if (gardenEffect2 === 'greenhouse') maxCrops += 3;
+        const farmEffect2 = this.getUpgradeEffect('farm');
+        if (farmEffect2 === 'farm_expand') maxCrops += 3;
 
         if (GameState.base.crops.length >= maxCrops) {
             Notifications.show('All farm plots are full!', 'red');
@@ -694,6 +761,11 @@ const Base = {
         if (this.hasPlaceable('irrigation')) {
             growthAmount = Math.ceil(growthAmount * 1.25);
         }
+        // Check garden/greenhouse upgrade speed bonus
+        const gardenEffect = this.getUpgradeEffect('garden');
+        if (gardenEffect === 'garden_upgrade') growthAmount = Math.ceil(growthAmount * 1.25);
+        else if (gardenEffect === 'greenhouse') growthAmount = Math.ceil(growthAmount * 1.5);
+
         GameState.base.crops.forEach(crop => {
             crop.growth += growthAmount;
         });
@@ -713,5 +785,219 @@ const Base = {
         for (let i = 0; i < 2; i++) this.tickFarming();
         HUD.update();
         GameState.save();
+    },
+
+    // ---- BUILDING UPGRADES ----
+    getBuildingLevel(buildingId) {
+        if (!GameState.base || !GameState.base.buildingLevels) return GameState.base && GameState.base.buildings[buildingId] ? 1 : 0;
+        return GameState.base.buildingLevels[buildingId] || (GameState.base.buildings[buildingId] ? 1 : 0);
+    },
+
+    upgradeBuilding(buildingId) {
+        if (typeof BUILDING_UPGRADES === 'undefined') return;
+        const upgradeDef = BUILDING_UPGRADES[buildingId];
+        if (!upgradeDef) { Notifications.show('No upgrades available.', 'red'); return; }
+
+        if (!GameState.base.buildingLevels) GameState.base.buildingLevels = {};
+        const currentLevel = this.getBuildingLevel(buildingId);
+        const nextLevel = currentLevel + 1;
+
+        if (nextLevel > upgradeDef.maxLevel) {
+            Notifications.show('Already at max level!', 'red');
+            return;
+        }
+
+        const levelData = upgradeDef.levels[nextLevel];
+        if (!levelData) return;
+
+        if (!this.canAfford(levelData.cost)) {
+            Notifications.show('Not enough resources!', 'red');
+            return;
+        }
+
+        // Deduct resources
+        for (const [res, qty] of Object.entries(levelData.cost)) {
+            GameState.removeFromInventory(res, qty);
+        }
+
+        GameState.base.buildingLevels[buildingId] = nextLevel;
+
+        // Apply upgrade effects
+        this.applyUpgradeEffect(buildingId, levelData.effect);
+
+        Narrative.addSeparator();
+        Narrative.addStory(`Upgraded to ${levelData.name}! ${levelData.description}`);
+        Notifications.show(`${levelData.name} complete!`, 'gold');
+
+        HUD.update();
+        GameState.save();
+        this.showBuildPanel();
+    },
+
+    applyUpgradeEffect(buildingId, effect) {
+        switch (effect) {
+            case 'extra_storage_15':
+                GameState.MAX_INVENTORY_SIZE += 15;
+                break;
+            case 'extra_storage_20':
+                GameState.MAX_INVENTORY_SIZE += 20;
+                break;
+            case 'garden_upgrade':
+            case 'greenhouse':
+            case 'farm_expand':
+                // Crop slot bonuses are checked dynamically in showFarmPanel
+                break;
+            // Other effects are checked at usage time (rest, crafting, etc.)
+        }
+    },
+
+    getUpgradeEffect(buildingId) {
+        if (typeof BUILDING_UPGRADES === 'undefined') return null;
+        const upgradeDef = BUILDING_UPGRADES[buildingId];
+        if (!upgradeDef) return null;
+        const level = this.getBuildingLevel(buildingId);
+        if (level <= 1) return null;
+        return upgradeDef.levels[level] ? upgradeDef.levels[level].effect : null;
+    },
+
+    // ---- ENCHANTING ----
+    showEnchantPanel() {
+        const panel = document.getElementById('side-panel-content');
+        const sidePanel = document.getElementById('side-panel');
+        if (!panel || !sidePanel) return;
+        sidePanel.classList.remove('hidden');
+
+        if (!this.hasPlaceable('enchanting')) {
+            panel.innerHTML = '<h3>Enchanting</h3><p style="color:var(--text-secondary)">Place an Enchanting Table to unlock enchanting.</p>' +
+                '<button class="action-btn" onclick="document.getElementById(\'side-panel\').classList.add(\'hidden\')" style="margin-top:1rem">Close</button>';
+            return;
+        }
+
+        const p = GameState.player;
+        if (!p) return;
+
+        // Enchantment definitions: gem → stat bonus
+        const enchantments = {
+            gem_ruby: { name: 'Ruby Enchant', stat: 'attack', amount: 3, color: '#cc3333' },
+            gem_sapphire: { name: 'Sapphire Enchant', stat: 'magicAttack', amount: 3, color: '#3366cc' },
+            gem_emerald: { name: 'Emerald Enchant', stat: 'defense', amount: 3, color: '#33aa44' },
+            gem_amethyst: { name: 'Amethyst Enchant', stat: 'magicDefense', amount: 3, color: '#9944cc' }
+        };
+
+        // Enchantable slots
+        const enchantableSlots = ['weapon', 'armor', 'helmet', 'boots', 'offhand', 'accessory'];
+
+        let html = '<h3>Enchanting Table</h3>';
+        html += '<p style="color:var(--text-secondary);margin-bottom:0.8rem;font-size:0.85rem">Socket gems into equipment for permanent stat bonuses.</p>';
+
+        // Show equipped items that can be enchanted
+        html += '<h4 style="color:var(--accent-gold-dim);margin-bottom:0.5rem;font-size:0.8rem">EQUIPMENT</h4>';
+        let hasEquipment = false;
+
+        for (const slot of enchantableSlots) {
+            const itemKey = p.equipment[slot];
+            if (!itemKey || !ITEMS[itemKey]) continue;
+            hasEquipment = true;
+            const item = ITEMS[itemKey];
+
+            // Check current enchantment
+            if (!p.enchantments) p.enchantments = {};
+            const currentEnchant = p.enchantments[slot];
+
+            html += '<div class="craft-item">';
+            html += '<div class="craft-header">';
+            html += `<span class="craft-icon">${item.icon}</span>`;
+            html += '<div class="craft-info">';
+            html += `<div class="craft-name">${item.name} <span style="color:var(--text-dim)">[${slot}]</span></div>`;
+            if (currentEnchant) {
+                const enchDef = enchantments[currentEnchant.gem];
+                html += `<div class="craft-desc" style="color:${enchDef ? enchDef.color : 'var(--accent-gold)'}">✨ ${enchDef ? enchDef.name : 'Enchanted'}: +${currentEnchant.amount} ${currentEnchant.stat}</div>`;
+            } else {
+                html += '<div class="craft-desc">No enchantment</div>';
+            }
+            html += '</div></div>';
+
+            // Show gem options if not enchanted
+            if (!currentEnchant) {
+                html += '<div class="craft-cost" style="flex-wrap:wrap;gap:0.3rem">';
+                for (const [gemKey, enchDef] of Object.entries(enchantments)) {
+                    const have = GameState.getInventoryCount(gemKey);
+                    const gemItem = ITEMS[gemKey];
+                    if (have > 0) {
+                        html += `<button class="action-btn primary" style="font-size:0.75rem;padding:0.3rem 0.5rem;margin:0.15rem" onclick="Base.enchantItem('${slot}','${gemKey}')">${gemItem ? gemItem.icon : ''} ${enchDef.name} (+${enchDef.amount} ${enchDef.stat})</button>`;
+                    } else {
+                        html += `<span class="cost-item need" style="font-size:0.75rem">${gemItem ? gemItem.icon : ''} ${gemKey.replace('gem_','')} (0)</span>`;
+                    }
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+        }
+
+        if (!hasEquipment) {
+            html += '<p style="color:var(--text-secondary)">No equipment to enchant. Equip items first.</p>';
+        }
+
+        // Show available gems
+        html += '<h4 style="color:var(--accent-gold-dim);margin-top:1rem;margin-bottom:0.5rem;font-size:0.8rem">YOUR GEMS</h4>';
+        let hasGems = false;
+        for (const gemKey of Object.keys(enchantments)) {
+            const count = GameState.getInventoryCount(gemKey);
+            if (count > 0) {
+                hasGems = true;
+                const gemItem = ITEMS[gemKey];
+                const enchDef = enchantments[gemKey];
+                html += `<div style="padding:0.3rem 0;color:${enchDef.color};font-size:0.85rem">${gemItem ? gemItem.icon : ''} ${gemItem ? gemItem.name : gemKey} x${count} — +${enchDef.amount} ${enchDef.stat}</div>`;
+            }
+        }
+        if (!hasGems) {
+            html += '<p style="color:var(--text-secondary);font-size:0.85rem">No gems in inventory. Find gems while exploring or mining.</p>';
+        }
+
+        html += '<button class="action-btn" onclick="document.getElementById(\'side-panel\').classList.add(\'hidden\')" style="margin-top:1rem">Close</button>';
+        panel.innerHTML = html;
+    },
+
+    enchantItem(slot, gemKey) {
+        const p = GameState.player;
+        if (!p) return;
+
+        const enchantments = {
+            gem_ruby: { name: 'Ruby Enchant', stat: 'attack', amount: 3 },
+            gem_sapphire: { name: 'Sapphire Enchant', stat: 'magicAttack', amount: 3 },
+            gem_emerald: { name: 'Emerald Enchant', stat: 'defense', amount: 3 },
+            gem_amethyst: { name: 'Amethyst Enchant', stat: 'magicDefense', amount: 3 }
+        };
+
+        const enchDef = enchantments[gemKey];
+        if (!enchDef) return;
+
+        if (GameState.getInventoryCount(gemKey) < 1) {
+            Notifications.show('Not enough gems!', 'red');
+            return;
+        }
+
+        const itemKey = p.equipment[slot];
+        if (!itemKey) return;
+
+        // Consume gem
+        GameState.removeFromInventory(gemKey, 1);
+
+        // Apply enchantment
+        if (!p.enchantments) p.enchantments = {};
+        p.enchantments[slot] = { gem: gemKey, stat: enchDef.stat, amount: enchDef.amount };
+
+        // Apply stat bonus
+        if (p[enchDef.stat] !== undefined) {
+            p[enchDef.stat] += enchDef.amount;
+        }
+
+        const item = ITEMS[itemKey];
+        Narrative.addLoot(`Enchanted ${item ? item.name : 'item'} with ${enchDef.name}! (+${enchDef.amount} ${enchDef.stat})`);
+        Notifications.show(`${enchDef.name} applied!`, 'gold');
+
+        HUD.update();
+        GameState.save();
+        this.showEnchantPanel();
     }
 };

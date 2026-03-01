@@ -3929,14 +3929,38 @@ const Sprites = {
 
     applyRegionTint(ctx, w, h, region) {
         if (region === 'hollowfen') {
-            ctx.fillStyle = 'rgba(15,35,50,0.14)';
+            // Cool teal-green swamp atmosphere
+            ctx.fillStyle = 'rgba(10,40,45,0.16)';
             ctx.fillRect(0, 0, w, h);
+            // Low mist band across bottom third
+            const mistGrd = ctx.createLinearGradient(0, h * 0.6, 0, h);
+            mistGrd.addColorStop(0, 'rgba(60,90,80,0)');
+            mistGrd.addColorStop(1, 'rgba(60,90,80,0.08)');
+            ctx.fillStyle = mistGrd;
+            ctx.fillRect(0, h * 0.6, w, h * 0.4);
         } else if (region === 'void_sanctum') {
-            ctx.fillStyle = 'rgba(35,10,45,0.2)';
+            // Deep purple void corruption
+            ctx.fillStyle = 'rgba(35,10,50,0.22)';
+            ctx.fillRect(0, 0, w, h);
+            // Subtle chromatic aberration — thin colored bars at screen edges
+            ctx.fillStyle = 'rgba(100,40,160,0.04)';
+            ctx.fillRect(0, 0, 3, h);
+            ctx.fillRect(w - 3, 0, 3, h);
+            // Pulsing void distortion at edges
+            const t = Date.now() * 0.001;
+            const pulse = Math.sin(t * 0.8) * 0.03;
+            ctx.fillStyle = `rgba(80,20,120,${(0.05 + pulse).toFixed(3)})`;
             ctx.fillRect(0, 0, w, h);
         } else if (region === 'ashen_wastes') {
-            ctx.fillStyle = 'rgba(40,25,10,0.1)';
+            // Warm amber haze — ash and dust in the air
+            ctx.fillStyle = 'rgba(45,30,12,0.1)';
             ctx.fillRect(0, 0, w, h);
+            // Heat shimmer at horizon (top of screen)
+            const heatGrd = ctx.createLinearGradient(0, 0, 0, h * 0.25);
+            heatGrd.addColorStop(0, 'rgba(80,50,20,0.06)');
+            heatGrd.addColorStop(1, 'rgba(80,50,20,0)');
+            ctx.fillStyle = heatGrd;
+            ctx.fillRect(0, 0, w, h * 0.25);
         }
     },
 

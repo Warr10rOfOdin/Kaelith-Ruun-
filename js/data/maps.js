@@ -172,6 +172,28 @@ const MAP_DEFS = {
             south: { to: 'emberhold', entryX: 35, entryY: 3 },
             east: { to: 'player_camp', entryX: 3, entryY: 33 }
         },
+        // Narrative stamps — scorched village tells story of destruction
+        stamps: [
+            // Village well (now dry, scorched)
+            { x: 35, y: 25, ch: 'Q' },
+            // Broken merchant cart on main road
+            { x: 52, y: 15, ch: 'Y' },
+            // Signpost pointing to Emberhold
+            { x: 50, y: 60, ch: 'Z' },
+            // Fallen guards at village entrance
+            { x: 48, y: 8, ch: 'J' },
+            { x: 52, y: 8, ch: 'J' },
+            // Burned barricade at east crossroads
+            { x: 70, y: 33, ch: 'U' },
+            // Altar in the ruins (survivors' shrine)
+            { x: 24, y: 32, ch: 'A' },
+            // Skeleton in collapsed building
+            { x: 44, y: 17, ch: 'J' },
+            // Banner from the old kingdom
+            { x: 22, y: 15, ch: 'N' },
+            // Bones scattered near ambush point
+            { x: 38, y: 50, ch: 'X' },
+        ],
         entities: [
             { x: 50, y: 25, type: 'npc', id: 'wandering_merchant' },
             { x: 35, y: 35, type: 'enemy_spawn', enemies: ['scorched_bandit', 'ember_hound'] },
@@ -259,6 +281,20 @@ const MAP_DEFS = {
         exits: {
             north: { to: 'emberhold', entryX: 30, entryY: 37 }
         },
+        // Boss arena stamps — the Ashen King's seat of power
+        stamps: [
+            // Throne altar
+            { x: 25, y: 15, ch: 'A' },
+            // Ritual circles flanking the throne
+            { x: 18, y: 19, ch: 'Q' },
+            { x: 32, y: 19, ch: 'Q' },
+            // Banners of the Ashen Kingdom
+            { x: 15, y: 11, ch: 'N' },
+            { x: 35, y: 11, ch: 'N' },
+            // Fallen challengers
+            { x: 20, y: 28, ch: 'J' },
+            { x: 30, y: 28, ch: 'J' },
+        ],
         entities: [
             { x: 25, y: 19, type: 'boss', id: 'the_ashen_king' },
             { x: 16, y: 8, type: 'enemy_spawn', enemies: ['ashen_wraith'] },
@@ -291,6 +327,25 @@ const MAP_DEFS = {
         exits: {
             south: { to: 'stilthaven', entryX: 30, entryY: 3 }
         },
+        // Narrative stamps — sunken chapel atmosphere
+        stamps: [
+            // Chapel altar (still glowing after centuries)
+            { x: 43, y: 33, ch: 'A' },
+            // Drowned knight's remains at chapel entrance
+            { x: 44, y: 37, ch: 'J' },
+            // Ritual circle in hidden grove (NE)
+            { x: 77, y: 17, ch: 'Q' },
+            // Signpost at crossroads (half-submerged)
+            { x: 50, y: 40, ch: 'Z' },
+            // Broken supply boat near southern ruins
+            { x: 73, y: 55, ch: 'Y' },
+            // Skeleton of a pilgrim on the north path
+            { x: 30, y: 22, ch: 'J' },
+            // Banner of the old faith (tattered, moss-covered)
+            { x: 17, y: 12, ch: 'N' },
+            // Barricade at swamp edge (to keep things out)
+            { x: 60, y: 30, ch: 'U' },
+        ],
         entities: [
             { x: 46, y: 36, type: 'campfire' },
             { x: 74, y: 54, type: 'campfire' },
@@ -344,6 +399,21 @@ const MAP_DEFS = {
             north: { to: 'stilthaven', entryX: 30, entryY: 37 },
             south: { to: 'heart_of_the_fen', entryX: 45, entryY: 5 }
         },
+        // Narrative stamps — witch's domain, eerie and mystical
+        stamps: [
+            // Ritual circle near the hut (witch's magic)
+            { x: 42, y: 28, ch: 'Q' },
+            // Altar of offerings
+            { x: 52, y: 32, ch: 'A' },
+            // Warning signpost
+            { x: 50, y: 12, ch: 'Z' },
+            // Bones of those who displeased the witch
+            { x: 35, y: 35, ch: 'X' },
+            // Skeleton in the swamp (adventurer who went south)
+            { x: 50, y: 55, ch: 'J' },
+            // Another ritual circle (hidden, deep in swamp)
+            { x: 20, y: 50, ch: 'Q' },
+        ],
         entities: [
             { x: 48, y: 33, type: 'npc', id: 'granny_moss' },
             { x: 25, y: 20, type: 'enemy_spawn', enemies: ['fen_witch'] },
@@ -363,6 +433,21 @@ const MAP_DEFS = {
         exits: {
             north: { to: 'witchs_hut', entryX: 50, entryY: 67 }
         },
+        // Boss arena stamps — the Mother's domain
+        stamps: [
+            // Ancient ritual circle (the Mother's binding)
+            { x: 45, y: 30, ch: 'Q' },
+            // Altar of the drowned
+            { x: 40, y: 25, ch: 'A' },
+            // Drowned knight remains (failed challengers)
+            { x: 30, y: 35, ch: 'J' },
+            { x: 60, y: 35, ch: 'J' },
+            // Bones in the muck
+            { x: 20, y: 50, ch: 'X' },
+            { x: 70, y: 50, ch: 'X' },
+            // Banner of a lost expedition
+            { x: 45, y: 10, ch: 'N' },
+        ],
         entities: [
             { x: 45, y: 33, type: 'boss', id: 'mother_of_the_fen' },
             { x: 22, y: 18, type: 'enemy_spawn', enemies: ['drowned_knight'] },
@@ -396,6 +481,27 @@ const MAP_DEFS = {
         exits: {
             south: { to: 'last_vigil', entryX: 30, entryY: 3 }
         },
+        // Narrative stamps — void sanctum entrance, reality fraying
+        stamps: [
+            // Altar of the void (where acolytes commune)
+            { x: 40, y: 20, ch: 'A' },
+            // Ritual circle at the gate threshold
+            { x: 50, y: 30, ch: 'Q' },
+            // Fallen sentinel's remains
+            { x: 80, y: 20, ch: 'J' },
+            // Warning barricade (set up by defenders)
+            { x: 50, y: 55, ch: 'U' },
+            // Skeleton of a lost explorer
+            { x: 14, y: 52, ch: 'J' },
+            // Broken cart (supply run that never returned)
+            { x: 65, y: 40, ch: 'Y' },
+            // Banner of the void cult
+            { x: 37, y: 18, ch: 'N' },
+            // Second ritual circle (hidden)
+            { x: 85, y: 50, ch: 'Q' },
+            // Signpost (defaced, corrupted text)
+            { x: 50, y: 45, ch: 'Z' },
+        ],
         entities: [
             { x: 25, y: 20, type: 'enemy_spawn', enemies: ['void_acolyte'] },
             { x: 70, y: 48, type: 'enemy_spawn', enemies: ['reality_shard', 'void_acolyte'] },
@@ -452,6 +558,25 @@ const MAP_DEFS = {
             north: { to: 'last_vigil', entryX: 30, entryY: 37 },
             south: { to: 'throne_of_unmaking', entryX: 25, entryY: 3 }
         },
+        // Narrative stamps — hall of echoes, deepest void
+        stamps: [
+            // Ritual circle at the hall center (echoes converge here)
+            { x: 50, y: 35, ch: 'Q' },
+            // Altar of echoes (past memories trapped)
+            { x: 40, y: 25, ch: 'A' },
+            // Fallen defender skeletons
+            { x: 52, y: 44, ch: 'J' },
+            { x: 30, y: 55, ch: 'J' },
+            // Void banner (cult markers)
+            { x: 77, y: 16, ch: 'N' },
+            { x: 37, y: 23, ch: 'N' },
+            // Bones of the echoed dead
+            { x: 65, y: 30, ch: 'X' },
+            // Barricade (last stand of defenders)
+            { x: 50, y: 60, ch: 'U' },
+            // Signpost (text shifts when you read it)
+            { x: 50, y: 15, ch: 'Z' },
+        ],
         entities: [
             { x: 20, y: 20, type: 'enemy_spawn', enemies: ['shadow_sentinel'] },
             { x: 70, y: 42, type: 'enemy_spawn', enemies: ['reality_shard', 'void_acolyte'] },
@@ -477,6 +602,24 @@ const MAP_DEFS = {
         exits: {
             north: { to: 'hall_of_echoes', entryX: 35, entryY: 47 }
         },
+        // Final boss arena stamps — Ruun's throne, reality unraveling
+        stamps: [
+            // The Unmaking Altar (center of power)
+            { x: 25, y: 15, ch: 'A' },
+            // Ritual circles — the binding pattern
+            { x: 18, y: 19, ch: 'Q' },
+            { x: 32, y: 19, ch: 'Q' },
+            { x: 25, y: 25, ch: 'Q' },
+            // Fallen heroes
+            { x: 16, y: 25, ch: 'J' },
+            { x: 34, y: 25, ch: 'J' },
+            // Void banners
+            { x: 15, y: 11, ch: 'N' },
+            { x: 35, y: 11, ch: 'N' },
+            // Bones of sacrifices
+            { x: 20, y: 35, ch: 'X' },
+            { x: 30, y: 35, ch: 'X' },
+        ],
         entities: [
             { x: 25, y: 19, type: 'boss', id: 'ruun_the_unraveler' },
             { x: 16, y: 8, type: 'enemy_spawn', enemies: ['shadow_sentinel'] },

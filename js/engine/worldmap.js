@@ -717,6 +717,14 @@ const WorldMap = {
             }
         } else if (tile.resource) {
             promptText = 'Gather';
+        } else if (tile.name === 'Water' || tile.name === 'Pond') {
+            // Check if player has a fishing rod equipped
+            if (GameState.player && GameState.player.equipment && GameState.player.equipment.weapon) {
+                const weapon = ITEMS[GameState.player.equipment.weapon];
+                if (weapon && weapon.toolType === 'fishing') {
+                    promptText = 'Fish';
+                }
+            }
         } else if (this.mapData && this.mapData.isCamp) {
             const campCh = this.getTerrainChar(fx, fy);
             if (campCh === 'B' || campCh === '.' || campCh === 'p' || campCh === 'g' || campCh === 'w' || campCh === 'h') {
@@ -767,6 +775,15 @@ const WorldMap = {
         if (tile.resource) {
             this.gatherResource(fx, fy, tile);
             return;
+        }
+
+        // Fishing at water tiles
+        if ((tile.name === 'Water' || tile.name === 'Pond') && GameState.player && GameState.player.equipment) {
+            const weapon = ITEMS[GameState.player.equipment.weapon];
+            if (weapon && weapon.toolType === 'fishing') {
+                this.fish(fx, fy, weapon);
+                return;
+            }
         }
 
         // Building spot (legacy) or free building in camp
@@ -889,11 +906,35 @@ const WorldMap = {
         // Gather 1-3 of the resource
         let qty = 1 + Math.floor(Math.random() * 2);
 
-        // Tool bonus
+        // Tool bonus (from equipped weapon)
         if (GameState.player && GameState.player.equipment) {
             const weapon = GameState.player.equipment.weapon;
             if (weapon && ITEMS[weapon] && ITEMS[weapon].gatherBonus) {
-                qty += ITEMS[weapon].gatherBonus;
+                // Check tool-type matching for extra bonus
+                const tool = ITEMS[weapon];
+                const isTree = (tile.name === 'Tree' || tile.name === 'Pine Tree' || tile.name === 'Dead Tree');
+                const isRock = (tile.name === 'Rock' || tile.name === 'Iron Vein');
+                const isHerb = (tile.name === 'Herb' || tile.name === 'Ember Root' || tile.name === 'Shadow Silk' || tile.name === 'Veil Crystal');
+
+                if ((tool.toolType === 'axe' && isTree) ||
+                    (tool.toolType === 'pickaxe' && isRock) ||
+                    (tool.toolType === 'sickle' && isHerb)) {
+                    qty += tool.gatherBonus; // Full bonus for matching tool
+                } else {
+                    qty += Math.max(1, Math.floor(tool.gatherBonus / 2)); // Half bonus for mismatched tool
+                }
+            }
+
+            // Armor work bonus (miner's gear, forester's cloak)
+            const armor = ITEMS[GameState.player.equipment.armor];
+            if (armor && armor.workBonus) {
+                const isTree = (tile.name === 'Tree' || tile.name === 'Pine Tree' || tile.name === 'Dead Tree');
+                const isRock = (tile.name === 'Rock' || tile.name === 'Iron Vein');
+                if (armor.workBonus.type === 'mining' && isRock && armor.workBonus.gatherBonus) {
+                    qty += armor.workBonus.gatherBonus;
+                } else if (armor.workBonus.type === 'woodcutting' && isTree && armor.workBonus.gatherBonus) {
+                    qty += armor.workBonus.gatherBonus;
+                }
             }
         }
 
@@ -937,6 +978,76 @@ const WorldMap = {
         if (typeof Base !== 'undefined') {
             Base.showBuildMenu(x, y);
         }
+    },
+
+    // ---- FISHING ----
+    fish(x, y, rod) {
+        const tier = rod.toolTier || 1;
+        const region = GameState.currentRegion || 'ashen_wastes';
+
+        // Check angler's hat for quality boost
+        let qualityMult = 1.0;
+        if (GameState.player && GameState.player.equipment) {
+            const helmet = ITEMS[GameState.player.equipment.helmet];
+            if (helmet && helmet.workBonus && helmet.workBonus.type === 'fishing') {
+                qualityMult = helmet.workBonus.qualityMult || 1.0;
+            }
+        }
+
+        // Determine catch based on rod tier and luck
+        const roll = Math.random() * qualityMult;
+        let catchItem, catchQty;
+
+        if (roll > 0.95 && region === 'void_sanctum') {
+            catchItem = 'void_fish'; catchQty = 1;
+        } else if (roll > 0.9) {
+            catchItem = 'golden_fish'; catchQty = 1;
+        } else if (roll > 0.8 && tier >= 2) {
+            catchItem = 'treasure_chest_fish'; catchQty = 1;
+        } else if (roll > 0.6) {
+            catchItem = 'large_fish'; catchQty = 1;
+        } else if (roll > 0.15) {
+            catchItem = tier >= 2 ? 'raw_fish' : 'small_fish';
+            catchQty = 1 + Math.floor(Math.random() * tier);
+        } else {
+            catchItem = 'old_boot'; catchQty = 1;
+        }
+
+        const item = ITEMS[catchItem];
+        if (!item) return;
+
+        GameState.addToInventory(catchItem, catchQty);
+
+        // Flavor text
+        if (catchItem === 'old_boot') {
+            Narrative.addFlavor('You pull your line and reel in... an old boot. Better luck next time.');
+        } else if (catchItem === 'golden_fish') {
+            Narrative.addLoot(`A golden shimmer breaks the surface! You caught a ${item.name}!`);
+        } else if (catchItem === 'void_fish') {
+            Narrative.addLoot(`Something otherworldly tugs at your line... You caught a ${item.name}!`);
+        } else if (catchItem === 'treasure_chest_fish') {
+            Narrative.addLoot('Your hook snags something heavy... a sunken treasure chest!');
+            GameState.player.gold += 15 + Math.floor(Math.random() * 20);
+        } else {
+            Narrative.addLoot(`You cast your line and catch ${catchQty > 1 ? catchQty + 'x ' : ''}${item.name}!`);
+        }
+
+        if (typeof Notifications !== 'undefined') {
+            Notifications.show(`Caught ${item.name}!`, catchItem === 'old_boot' ? 'red' : 'gold');
+        }
+
+        // Particles
+        const worldX = x * this.TS + this.TS / 2;
+        const worldY = y * this.TS + this.TS / 2;
+        Sprites.addParticles(worldX, worldY, '#4488cc', 6);
+
+        // Cooldown and turn tick
+        this.interactCooldown = 1.0;
+        GameState.turnCount++;
+        if (typeof Base !== 'undefined' && Base.tickFarming) Base.tickFarming();
+
+        HUD.update();
+        GameState.save();
     },
 
     // ---- RANDOM ENCOUNTERS ----
@@ -997,6 +1108,9 @@ const WorldMap = {
             }
             if (GameState.base && GameState.base.buildings.shelter) {
                 buttons.push({ text: 'Rest', class: '', action: 'Base.restAtShelter()' });
+            }
+            if (typeof Base !== 'undefined' && Base.hasPlaceable && Base.hasPlaceable('enchanting')) {
+                buttons.push({ text: 'Enchant', class: '', action: 'Base.showEnchantPanel()' });
             }
         }
 

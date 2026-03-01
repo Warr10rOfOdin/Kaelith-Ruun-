@@ -564,6 +564,122 @@ const BUILDINGS = {
     }
 };
 
+const BUILDING_UPGRADES = {
+    shelter: {
+        maxLevel: 3,
+        levels: {
+            2: {
+                name: 'Reinforced Shelter',
+                description: 'Thicker walls. Resting also removes debuffs.',
+                cost: { wood: 15, stone: 10, iron_ingot: 3 },
+                effect: 'rest_cleanse'
+            },
+            3: {
+                name: 'Fortified Lodge',
+                description: 'A strong lodge. Resting grants a temporary HP shield.',
+                cost: { hardwood: 10, granite: 8, iron_ingot: 5 },
+                effect: 'rest_shield'
+            }
+        }
+    },
+    forge: {
+        maxLevel: 3,
+        levels: {
+            2: {
+                name: 'Advanced Forge',
+                description: 'Better forge. 10% chance to craft double output.',
+                cost: { iron_ingot: 8, stone: 12, flame_essence: 3 },
+                effect: 'double_craft_10'
+            },
+            3: {
+                name: 'Master Forge',
+                description: 'Master-tier forge. 20% chance to craft double output.',
+                cost: { mithril_ingot: 5, granite: 10, flame_essence: 5 },
+                effect: 'double_craft_20'
+            }
+        }
+    },
+    workshop: {
+        maxLevel: 3,
+        levels: {
+            2: {
+                name: 'Advanced Workshop',
+                description: 'Better tools. Smelting yields +1 extra ingot.',
+                cost: { iron_ingot: 6, wood: 15, stone: 8 },
+                effect: 'smelt_bonus'
+            },
+            3: {
+                name: 'Master Workshop',
+                description: 'Top-tier workshop. All tool crafting costs 1 less of each material.',
+                cost: { mithril_ingot: 3, hardwood: 10, iron_ingot: 5 },
+                effect: 'reduced_tool_cost'
+            }
+        }
+    },
+    garden: {
+        maxLevel: 3,
+        levels: {
+            2: {
+                name: 'Irrigated Garden',
+                description: 'Irrigation channels. +1 crop slot, crops grow 25% faster.',
+                cost: { wood: 10, stone: 8, iron_ingot: 2 },
+                effect: 'garden_upgrade'
+            },
+            3: {
+                name: 'Greenhouse',
+                description: 'Glass greenhouse. +2 crop slots, crops grow 50% faster.',
+                cost: { hardwood: 8, granite: 6, veil_crystal: 2 },
+                effect: 'greenhouse'
+            }
+        }
+    },
+    storage: {
+        maxLevel: 3,
+        levels: {
+            2: {
+                name: 'Large Storage',
+                description: 'Expanded storage. +15 more inventory slots.',
+                cost: { wood: 15, iron_ingot: 4, stone: 10 },
+                effect: 'extra_storage_15'
+            },
+            3: {
+                name: 'Vault',
+                description: 'A massive vault. +20 more inventory slots.',
+                cost: { hardwood: 12, mithril_ingot: 3, granite: 8 },
+                effect: 'extra_storage_20'
+            }
+        }
+    },
+    herbalist_bench: {
+        maxLevel: 3,
+        levels: {
+            2: {
+                name: 'Alchemist\'s Bench',
+                description: 'Improved bench. Potions restore 15% more.',
+                cost: { wood: 8, ember_root: 8, veil_crystal: 2 },
+                effect: 'potion_boost_15'
+            },
+            3: {
+                name: 'Master Apothecary',
+                description: 'Master-grade bench. Potions restore 30% more.',
+                cost: { hardwood: 6, shadow_silk: 4, veil_crystal: 4 },
+                effect: 'potion_boost_30'
+            }
+        }
+    },
+    farm: {
+        maxLevel: 2,
+        levels: {
+            2: {
+                name: 'Expanded Farm',
+                description: 'Bigger farm. +3 crop slots.',
+                cost: { wood: 12, stone: 8, ember_root: 6, iron_ingot: 3 },
+                effect: 'farm_expand'
+            }
+        }
+    }
+};
+
 // Crafting recipes
 const RECIPES = {
     // ═══════════════════════════════════════
@@ -1037,6 +1153,24 @@ const RECIPES = {
         result: { item: 'cooked_fish', quantity: 1 },
         description: 'Grill a fresh fish over the fire.'
     },
+    fish_stew_craft: {
+        name: 'Cook Fish Stew', icon: '🍲', station: 'shelter',
+        ingredients: { large_fish: 2, ember_root: 1 },
+        result: { item: 'fish_stew', quantity: 1 },
+        description: 'Cook a hearty fish stew.'
+    },
+    grilled_golden_fish_craft: {
+        name: 'Grill Golden Fish', icon: '🍽️', station: 'shelter',
+        ingredients: { golden_fish: 1, ember_root: 1 },
+        result: { item: 'grilled_golden_fish', quantity: 1 },
+        description: 'Grill a golden fish to perfection.'
+    },
+    spicy_fish_skewer_craft: {
+        name: 'Cook Spicy Fish Skewer', icon: '🍢', station: 'shelter',
+        ingredients: { small_fish: 2, shadow_pepper: 1 },
+        result: { item: 'spicy_fish_skewer', quantity: 2 },
+        description: 'Spicy grilled fish on a stick.'
+    },
 
     // ═══════════════════════════════════════
     // TIER 3 — Fen Master (Mithril)
@@ -1410,5 +1544,37 @@ const CROPS = {
         harvestQty: 2,
         seedCost: { ember_root: 1, bog_fiber: 1 },
         stages: ['🟫', '🌱', '🌿', '🌺']
+    },
+    shadow_pepper_seed: {
+        name: 'Shadow Pepper', icon: '🌶️',
+        growthTurns: 7,
+        harvestItem: 'shadow_pepper',
+        harvestQty: 2,
+        seedCost: { ember_root: 1, flame_essence: 1 },
+        stages: ['🟫', '🌱', '🌿', '🌶️']
+    },
+    starfruit_seed: {
+        name: 'Starfruit', icon: '⭐',
+        growthTurns: 12,
+        harvestItem: 'starfruit',
+        harvestQty: 2,
+        seedCost: { veil_crystal: 1, bog_fiber: 2 },
+        stages: ['🟫', '🌱', '🌿', '⭐']
+    },
+    ironroot_seed: {
+        name: 'Ironroot', icon: '🥔',
+        growthTurns: 9,
+        harvestItem: 'ironroot_tuber',
+        harvestQty: 3,
+        seedCost: { iron_ore: 1, ember_root: 1 },
+        stages: ['🟫', '🌱', '🥔', '🥔']
+    },
+    voidberry_seed: {
+        name: 'Voidberry', icon: '🫐',
+        growthTurns: 15,
+        harvestItem: 'voidberry',
+        harvestQty: 2,
+        seedCost: { void_essence: 1, bog_fiber: 2 },
+        stages: ['🟫', '🌱', '🌿', '🫐']
     }
 };

@@ -45,7 +45,8 @@ const TECH_TREE = {
                 'greater_health_craft', 'hearth_stew', 'grilled_meat_craft',
                 'placeable_torch_craft', 'placeable_storage_chest_craft',
                 'placeable_scarecrow_craft', 'placeable_flower_pot_craft',
-                'hardened_leather_craft'
+                'hardened_leather_craft',
+                'fish_stew_craft', 'spicy_fish_skewer_craft'
             ]
         }
     },
@@ -77,7 +78,8 @@ const TECH_TREE = {
                 'placeable_bed_craft', 'placeable_well_craft',
                 'placeable_banner_ashen_craft', 'placeable_bookshelf_craft',
                 'mushroom_soup_craft', 'cooked_fish_craft',
-                'silk_thread_craft'
+                'silk_thread_craft',
+                'grilled_golden_fish_craft'
             ]
         }
     },

@@ -123,6 +123,17 @@ const GameState = {
         const baseMaxMp = 30 + (p.stats.int * 2) + p.stats.wis + (race ? race.mpBonus : 0) + ((p.level - 1) * (cls.mpPerLevel + Math.floor(p.stats.int * 0.3)));
         p.maxHp = baseMaxHp + bHp;
         p.maxMp = baseMaxMp + bMp;
+
+        // Apply enchantment bonuses
+        if (p.enchantments) {
+            for (const slot of Object.keys(p.enchantments)) {
+                const ench = p.enchantments[slot];
+                if (ench && ench.stat && typeof p[ench.stat] === 'number') {
+                    p[ench.stat] += ench.amount;
+                }
+            }
+        }
+
         if (p.hp > p.maxHp) p.hp = p.maxHp;
         if (p.mp > p.maxMp) p.mp = p.maxMp;
     },
@@ -351,6 +362,8 @@ const GameState = {
             if (!this.base.crops) this.base.crops = [];
             if (!this.base.placeables) this.base.placeables = [];
             if (!this.base.placedBuildings) this.base.placedBuildings = [];
+            if (!this.base.buildingLevels) this.base.buildingLevels = {};
+            if (!this.player.enchantments) this.player.enchantments = {};
             this.MAX_INVENTORY_SIZE = s.maxInventorySize || 40;
 
             if (s.unlockedRegions) {

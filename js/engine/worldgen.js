@@ -71,12 +71,12 @@ const WorldGen = {
 
         // 6) Ensure player start and entity positions are clear
         if (mapDef.playerStart) {
-            this.clearArea(grid, mapDef.playerStart.x, mapDef.playerStart.y, 2);
+            this.clearArea(grid, mapDef.playerStart.x, mapDef.playerStart.y, 2, biome);
         }
         if (mapDef.entities) {
             mapDef.entities.forEach(e => {
                 if (e.type === 'npc' || e.type === 'campfire') {
-                    this.clearArea(grid, e.x, e.y, 1);
+                    this.clearArea(grid, e.x, e.y, 1, biome);
                 }
             });
         }
@@ -87,7 +87,7 @@ const WorldGen = {
                 if (s.x >= 0 && s.x < w && s.y >= 0 && s.y < h) {
                     grid[s.y][s.x] = s.ch;
                     // Clear a small area around props for readability
-                    this.clearArea(grid, s.x, s.y, 0);
+                    this.clearArea(grid, s.x, s.y, 0, biome);
                 }
             });
         }
@@ -98,7 +98,7 @@ const WorldGen = {
                 if (bs.x < w && bs.y < h) {
                     grid[bs.y][bs.x] = 'B';
                     // Clear around it
-                    this.clearArea(grid, bs.x, bs.y, 1);
+                    this.clearArea(grid, bs.x, bs.y, 1, biome);
                 }
             });
         }
@@ -133,6 +133,7 @@ const WorldGen = {
             case 'void_wilderness': return this.voidWildTile(elev, moist, detail);
             case 'village': return this.villageTile(elev, moist, detail);
             case 'camp': return this.campTile(elev, moist, detail);
+            case 'scorched_village': return this.scorchedVillageTile(elev, moist, detail, x, y, seed);
             case 'boss_arena': return '.';
             default: return this.ashenTile(elev, moist, detail);
         }
@@ -259,6 +260,51 @@ const WorldGen = {
         return '.';
     },
 
+    // Scorched Village — ash, charred ground, dead trees, rubble, burned structures
+    // The ground is mostly ash and char with patches of surviving grass
+    scorchedVillageTile(elev, moist, detail, x, y, seed) {
+        // Distance from map center for radial composition
+        const cx = 50, cy = 35; // center of 100x70 map
+        const dx = (x - cx) / 50, dy = (y - cy) / 35;
+        const distFromCenter = Math.sqrt(dx * dx + dy * dy);
+
+        // Core village area (inner ~40%) is heavily scorched
+        if (distFromCenter < 0.5) {
+            if (elev > 0.65 && detail > 0.5) return 'K'; // charred dead trees
+            if (detail > 0.82) return 'v';                 // smoke vents in ruins
+            if (detail > 0.75 && moist < 0.4) return 'o';  // ash piles
+            if (detail > 0.7) return 'l';                   // burned timber
+            if (elev < 0.25) return 'd';                    // heavily charred
+            if (elev < 0.4) return 'a';                     // ash ground
+            if (detail > 0.6 && moist > 0.5) return 'E';   // ember root (resources)
+            return 'a';                                      // default ash
+        }
+
+        // Transition zone (40-70%) — mix of ash and surviving terrain
+        if (distFromCenter < 0.7) {
+            if (elev > 0.68) return 'K';                    // dead trees
+            if (elev > 0.58 && detail > 0.45) return 'K';
+            if (elev > 0.5 && detail > 0.65) return 'T';   // some surviving trees
+            if (detail > 0.78) return 'o';                   // ash piles
+            if (detail > 0.72 && moist > 0.5) return 'E';   // ember root
+            if (elev < 0.3) return 'a';                      // ash patches
+            if (detail > 0.6) return 'a';                    // more ash
+            if (detail > 0.4 && detail < 0.46) return 'g';  // surviving grass
+            return '.';                                       // sparse grass
+        }
+
+        // Outer ring — recovering wilderness, more green
+        if (elev > 0.65) return detail > 0.6 ? 'P' : 'T';
+        if (elev > 0.55 && detail > 0.5) return 'T';
+        if (elev > 0.48 && detail > 0.6) return 'K';        // some dead trees
+        if (elev < 0.2 && moist > 0.5) return 'R';           // rocks
+        if (detail > 0.75) return 'H';                        // herbs recovering
+        if (detail > 0.7 && elev > 0.35) return 'E';         // ember root
+        if (detail > 0.4 && detail < 0.46) return 'g';       // tall grass
+        if (detail > 0.8 && moist > 0.55) return 'w';        // rare wildflowers
+        return '.';
+    },
+
     // ── Dense forest cluster generation ──────
     // Places tight groups of trees to create natural "walls" and clearings
     // instead of evenly scattered individual trees
@@ -316,9 +362,11 @@ const WorldGen = {
     // ── Border generation ────────────────────
 
     generateBorders(grid, w, h, biome) {
-        const borderTile = biome.includes('fen') ? '~' : (biome.includes('void') ? '#' : 'T');
-        const secondaryTile = biome.includes('fen') ? 'O' : (biome.includes('void') ? 'R' : 'P');
-        const grassSet = new Set(['.', 'g', 'w', 'h']);
+        const borderTile = biome === 'scorched_village' ? 'K' :
+                           biome.includes('fen') ? '~' : (biome.includes('void') ? '#' : 'T');
+        const secondaryTile = biome === 'scorched_village' ? 'T' :
+                              biome.includes('fen') ? 'O' : (biome.includes('void') ? 'R' : 'P');
+        const grassSet = new Set(['.', 'g', 'w', 'h', 'a', 'o']);
 
         // Hard outer border
         for (let x = 0; x < w; x++) {
@@ -369,6 +417,12 @@ const WorldGen = {
                 break;
             case 'camp_fence':
                 this.stampFence(grid, x, y, w, h, mapW, mapH);
+                break;
+            case 'scorched_ruin':
+                this.stampScorchedRuin(grid, x, y, w, h, mapW, mapH, struct);
+                break;
+            case 'burned_hall':
+                this.stampBurnedHall(grid, x, y, w, h, mapW, mapH);
                 break;
             default:
                 this.stampBuilding(grid, x, y, w, h, mapW, mapH);
@@ -524,12 +578,207 @@ const WorldGen = {
         }
     },
 
+    // Scorched ruin — burned-out building with identifiable purpose
+    stampScorchedRuin(grid, bx, by, bw, bh, mapW, mapH, struct) {
+        const seed = bx * 83 + by * 47;
+        const purpose = struct.purpose || 'house';
+
+        // Scorched walls — more destroyed than regular ruins
+        for (let y = by; y < by + bh && y < mapH; y++) {
+            for (let x = bx; x < bx + bw && x < mapW; x++) {
+                const isEdge = x === bx || x === bx + bw - 1 || y === by || y === by + bh - 1;
+                const isCorner = (x === bx || x === bx + bw - 1) && (y === by || y === by + bh - 1);
+                if (isCorner) {
+                    grid[y][x] = 'e'; // scorched wall at corners
+                } else if (isEdge) {
+                    const distFromCorner = Math.min(
+                        Math.abs(x - bx), Math.abs(x - (bx + bw - 1)),
+                        Math.abs(y - by), Math.abs(y - (by + bh - 1))
+                    );
+                    const wallChance = 0.6 - distFromCorner * 0.08;
+                    if (this._noise(x, y, seed) < wallChance) {
+                        grid[y][x] = 'e'; // scorched wall
+                    } else {
+                        grid[y][x] = this._noise(x, y, seed + 3) < 0.5 ? 'r' : 'a'; // rubble or ash
+                    }
+                } else {
+                    grid[y][x] = 'a'; // ash floor inside
+                }
+            }
+        }
+
+        // Door (burned out opening) at bottom center
+        const doorX = bx + Math.floor(bw / 2);
+        if (doorX < mapW && by + bh - 1 < mapH) {
+            grid[by + bh - 1][doorX] = 'D';
+        }
+
+        const innerW = bw - 2;
+        const innerH = bh - 2;
+        if (innerW < 2 || innerH < 2) return;
+        const ix = bx + 1, iy = by + 1;
+
+        // Purpose-specific interior details
+        switch (purpose) {
+            case 'blacksmith':
+                // Broken anvil/forge remnants
+                if (ix + 2 < mapW && iy + 1 < mapH) {
+                    grid[iy + 1][ix + 1] = 'r';  // collapsed forge
+                    grid[iy][ix + 2] = 'l';       // burned timber
+                    if (iy + 2 < mapH && ix + 3 < bx + bw - 1) grid[iy + 2][ix + 3] = 'v'; // smoke vent
+                }
+                break;
+            case 'tavern':
+                // Broken tables, barrels
+                if (ix + 1 < mapW) grid[iy][ix + 1] = 'l'; // burned bar
+                for (let i = 0; i < Math.min(2, innerH - 1); i++) {
+                    const tx = ix + Math.floor(this._noise(ix + i, iy, seed + 50) * innerW);
+                    if (tx < bx + bw - 1 && iy + i + 1 < mapH) grid[iy + i + 1][tx] = 'k'; // collapsed
+                }
+                break;
+            case 'stable':
+                // Burned fence posts and hay remnants
+                if (iy + 1 < mapH) {
+                    for (let x = ix; x < ix + innerW && x < bx + bw - 1; x += 2) {
+                        if (this._noise(x, iy + 1, seed + 60) < 0.6) grid[iy + 1][x] = 'l';
+                    }
+                }
+                break;
+            case 'chapel':
+                // Altar remains, ritual circle
+                const cx = ix + Math.floor(innerW / 2);
+                const cy = iy + Math.floor(innerH / 2);
+                if (cx < mapW && cy < mapH) grid[cy][cx] = 'A';
+                break;
+            case 'storehouse':
+                // Rubble from collapsed shelves
+                for (let i = 0; i < 3; i++) {
+                    const rx = ix + Math.floor(this._noise(ix + i, iy, seed + 70) * innerW);
+                    const ry = iy + Math.floor(this._noise(ix, iy + i, seed + 71) * innerH);
+                    if (rx < bx + bw - 1 && ry < by + bh - 1) grid[ry][rx] = 'r';
+                }
+                break;
+            default: // house
+                // Collapsed roof timbers, ash
+                if (ix + 1 < mapW && iy + 1 < mapH) grid[iy + 1][ix + 1] = 'k';
+                if (ix + innerW - 1 < mapW && iy + 1 < mapH) grid[iy + 1][ix + innerW - 1] = 'l';
+                break;
+        }
+
+        // Scatter ash piles and debris near broken walls
+        for (let y = by; y < by + bh && y < mapH; y++) {
+            for (let x = bx; x < bx + bw && x < mapW; x++) {
+                const isEdge = x === bx || x === bx + bw - 1 || y === by || y === by + bh - 1;
+                if (isEdge && (grid[y][x] === 'r' || grid[y][x] === 'a')) {
+                    // Scatter debris outward from broken walls
+                    const outX = x === bx ? x - 1 : x === bx + bw - 1 ? x + 1 : x;
+                    const outY = y === by ? y - 1 : y === by + bh - 1 ? y + 1 : y;
+                    if (outX >= 0 && outX < mapW && outY >= 0 && outY < mapH) {
+                        if (this._noise(outX, outY, seed + 80) < 0.35) {
+                            grid[outY][outX] = 'o'; // ash pile outside
+                        }
+                    }
+                }
+            }
+        }
+    },
+
+    // Burned Hall — large focal landmark structure
+    stampBurnedHall(grid, bx, by, bw, bh, mapW, mapH) {
+        const seed = bx * 97 + by * 61;
+
+        // This is the dramatic centerpiece: a large burned-out village hall
+        for (let y = by; y < by + bh && y < mapH; y++) {
+            for (let x = bx; x < bx + bw && x < mapW; x++) {
+                const isEdge = x === bx || x === bx + bw - 1 || y === by || y === by + bh - 1;
+                const isCorner = (x === bx || x === bx + bw - 1) && (y === by || y === by + bh - 1);
+                if (isCorner) {
+                    grid[y][x] = 'e'; // scorched wall pillars
+                } else if (isEdge) {
+                    // More walls survive on this larger structure (it was sturdier)
+                    const distFromCorner = Math.min(
+                        Math.abs(x - bx), Math.abs(x - (bx + bw - 1)),
+                        Math.abs(y - by), Math.abs(y - (by + bh - 1))
+                    );
+                    const wallChance = 0.75 - distFromCorner * 0.06;
+                    grid[y][x] = this._noise(x, y, seed) < wallChance ? 'e' : 'r';
+                } else {
+                    grid[y][x] = 'a'; // ash floor
+                }
+            }
+        }
+
+        // Grand entrance (double door at bottom)
+        const doorCx = bx + Math.floor(bw / 2);
+        if (doorCx < mapW && by + bh - 1 < mapH) {
+            grid[by + bh - 1][doorCx] = 'D';
+            if (doorCx - 1 >= bx) grid[by + bh - 1][doorCx - 1] = 'D';
+        }
+
+        const innerW = bw - 2, innerH = bh - 2;
+        const ix = bx + 1, iy = by + 1;
+
+        // Central hearth/fire pit — the focal point
+        const hearth_x = ix + Math.floor(innerW / 2);
+        const hearth_y = iy + Math.floor(innerH / 2);
+        if (hearth_x < mapW && hearth_y < mapH) {
+            grid[hearth_y][hearth_x] = 'v'; // smoke vent (still smoldering)
+            // Surround with charred ground
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    const nx = hearth_x + dx, ny = hearth_y + dy;
+                    if (nx > bx && nx < bx + bw - 1 && ny > by && ny < by + bh - 1
+                        && ny < mapH && nx < mapW && grid[ny][nx] === 'a') {
+                        grid[ny][nx] = 'd';
+                    }
+                }
+            }
+        }
+
+        // Collapsed roof beams
+        for (let i = 0; i < 3; i++) {
+            const bx_ = ix + 1 + Math.floor(this._noise(i * 7, seed, seed + 90) * (innerW - 2));
+            const by_ = iy + 1 + Math.floor(this._noise(seed, i * 5, seed + 91) * (innerH - 2));
+            if (bx_ < bx + bw - 1 && by_ < by + bh - 1 && grid[by_][bx_] === 'a') {
+                grid[by_][bx_] = 'k'; // collapsed roof
+            }
+        }
+
+        // Burned timber and rubble along walls
+        for (let i = 0; i < 4; i++) {
+            const rx = ix + Math.floor(this._noise(ix + i * 3, iy, seed + 95) * innerW);
+            const ry = iy + Math.floor(this._noise(ix, iy + i * 3, seed + 96) * innerH);
+            if (rx < bx + bw - 1 && ry < by + bh - 1 && grid[ry][rx] === 'a') {
+                grid[ry][rx] = this._noise(rx, ry, seed + 97) < 0.5 ? 'l' : 'r';
+            }
+        }
+
+        // Debris field around the hall (spills outward 2 tiles)
+        for (let y = by - 2; y < by + bh + 2 && y < mapH; y++) {
+            for (let x = bx - 2; x < bx + bw + 2 && x < mapW; x++) {
+                if (x < 0 || y < 0) continue;
+                if (x >= bx && x < bx + bw && y >= by && y < by + bh) continue; // skip interior
+                const dist = Math.min(
+                    Math.abs(x - bx), Math.abs(x - (bx + bw - 1)),
+                    Math.abs(y - by), Math.abs(y - (by + bh - 1))
+                );
+                if (dist <= 2 && this._noise(x, y, seed + 100) < 0.4) {
+                    const ch = grid[y][x];
+                    if (ch === '.' || ch === 'a' || ch === 'g') {
+                        grid[y][x] = this._noise(x, y, seed + 101) < 0.5 ? 'o' : 'r';
+                    }
+                }
+            }
+        }
+    },
+
     // ── Path drawing — natural curves with Bresenham + midpoint displacement ──
 
     drawPath(grid, from, to, mapW, mapH) {
         // Tiles that paths can overwrite
         const canReplace = new Set(['.', 'T', 'R', '#', 'f', 'E', 'H', 'S', 'X', 'M', 'V', 'I',
-                                    'g', 'w', 'h', 'K', 'P', 'O', 'N', 'J', 'Q', 'U', 'Y', 'Z', 'A']);
+                                    'g', 'w', 'h', 'K', 'P', 'O', 'N', 'J', 'Q', 'U', 'Y', 'Z', 'A',
+                                    'a', 'd', 'o', 'l']);
 
         // Generate a curved path using midpoint displacement
         const points = this._curvePath(from.x, from.y, to.x, to.y, mapW, mapH);
@@ -705,13 +954,14 @@ const WorldGen = {
 
     // ── Helper: clear a small area ──────────
 
-    clearArea(grid, cx, cy, radius) {
+    clearArea(grid, cx, cy, radius, biome) {
+        const clearTile = biome === 'scorched_village' ? 'a' : '.';
         for (let dy = -radius; dy <= radius; dy++) {
             for (let dx = -radius; dx <= radius; dx++) {
                 const x = cx + dx, y = cy + dy;
                 if (y >= 0 && y < grid.length && x >= 0 && x < grid[0].length) {
                     if (grid[y][x] !== 'B' && grid[y][x] !== 'F' && grid[y][x] !== 'f') {
-                        grid[y][x] = '.';
+                        grid[y][x] = clearTile;
                     }
                 }
             }

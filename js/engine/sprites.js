@@ -161,6 +161,24 @@ const Sprites = {
         this.cache.skeleton = this.drawSkeleton();
         this.cache.barricade = this.drawBarricade();
 
+        // Scorched village tiles
+        for (let v = 0; v < 4; v++) {
+            this.cache[`ash_${v}`] = this.drawAshGround(v);
+        }
+        for (let v = 0; v < 3; v++) {
+            this.cache[`charred_${v}`] = this.drawCharredGround(v);
+        }
+        for (let v = 0; v < 2; v++) {
+            this.cache[`rubble_${v}`] = this.drawRubblePile(v);
+        }
+        this.cache.burned_timber = this.drawBurnedTimber();
+        this.cache.smoke_vent = this.drawSmokeVent();
+        this.cache.scorched_wall = this.drawScorchedWall();
+        this.cache.collapsed_roof = this.drawCollapsedRoof();
+        for (let v = 0; v < 3; v++) {
+            this.cache[`ashpile_${v}`] = this.drawAshPile(v);
+        }
+
         // Animated tiles (multiple frames)
         for (let f = 0; f < 3; f++) {
             this.cache[`water_${f}`] = this.drawWater(f);
@@ -208,6 +226,15 @@ const Sprites = {
             case 'N': return this.cache.banner;
             case 'J': return this.cache.skeleton;
             case 'U': return this.cache.barricade;
+            // Scorched village tiles
+            case 'a': return this.cache[`ash_${h % 4}`];
+            case 'd': return this.cache[`charred_${h % 3}`];
+            case 'r': return this.cache[`rubble_${h % 2}`];
+            case 'l': return this.cache.burned_timber;
+            case 'v': return this.cache.smoke_vent;
+            case 'e': return this.cache.scorched_wall;
+            case 'k': return this.cache.collapsed_roof;
+            case 'o': return this.cache[`ashpile_${h % 3}`];
             default: return this.cache.grass_0;
         }
     },
@@ -1775,6 +1802,293 @@ const Sprites = {
         ctx.fillRect(13, 12, 1, 3);
         ctx.fillRect(18, 11, 1, 4);
 
+        return c;
+    },
+
+    // ── Scorched Village Tile Drawers ──────
+
+    drawAshGround(variant) {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const rng = this.seeded(variant * 7100 + 17);
+        // Ashy grey-brown base
+        const bases = ['#4a4540', '#3e3a35', '#454038', '#3a3632'];
+        ctx.fillStyle = bases[variant];
+        ctx.fillRect(0, 0, T, T);
+        // Mottled ash patches
+        const ashColors = ['#5a5550', '#4e4a44', '#565250', '#484440', '#3a3835'];
+        for (let i = 0; i < 12; i++) {
+            ctx.fillStyle = ashColors[Math.floor(rng() * ashColors.length)];
+            ctx.globalAlpha = 0.4 + rng() * 0.3;
+            const x = Math.floor(rng() * T), y = Math.floor(rng() * T);
+            ctx.beginPath();
+            ctx.ellipse(x, y, 2 + rng() * 6, 2 + rng() * 5, rng() * 3.14, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        // Dark char streaks
+        for (let i = 0; i < 5; i++) {
+            ctx.fillStyle = '#2a2622';
+            ctx.globalAlpha = 0.3 + rng() * 0.2;
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 1 + Math.floor(rng() * 4), 1);
+        }
+        ctx.globalAlpha = 1;
+        // Tiny ember glints (rare)
+        if (variant === 0 || variant === 2) {
+            ctx.fillStyle = '#aa5522';
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(Math.floor(rng() * T), Math.floor(rng() * T), 1, 1);
+            ctx.globalAlpha = 1;
+        }
+        return c;
+    },
+
+    drawCharredGround(variant) {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const rng = this.seeded(variant * 7200 + 29);
+        // Very dark charred base
+        const bases = ['#2a2420', '#22201c', '#2e2824'];
+        ctx.fillStyle = bases[variant];
+        ctx.fillRect(0, 0, T, T);
+        // Cracked char texture
+        const charColors = ['#1a1816', '#322e28', '#282420', '#201c18'];
+        for (let i = 0; i < 10; i++) {
+            ctx.fillStyle = charColors[Math.floor(rng() * charColors.length)];
+            ctx.globalAlpha = 0.5 + rng() * 0.3;
+            const x = Math.floor(rng() * T), y = Math.floor(rng() * T);
+            ctx.beginPath();
+            ctx.ellipse(x, y, 2 + rng() * 5, 1 + rng() * 4, rng() * 3.14, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        // Crack lines
+        ctx.strokeStyle = '#1a1614';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(Math.floor(rng() * T), Math.floor(rng() * T));
+            ctx.lineTo(Math.floor(rng() * T), Math.floor(rng() * T));
+            ctx.stroke();
+        }
+        // Hot ember spots
+        if (variant === 1) {
+            ctx.fillStyle = '#cc4411';
+            ctx.globalAlpha = 0.15;
+            ctx.beginPath();
+            ctx.ellipse(16, 16, 4, 3, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+        return c;
+    },
+
+    drawRubblePile(variant) {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const rng = this.seeded(variant * 7300 + 41);
+        // Ash ground base
+        ctx.fillStyle = '#3e3a35';
+        ctx.fillRect(0, 0, T, T);
+        // Shadow under pile
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(16, 22, 12, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Rubble stones — mixed sizes
+        const stoneColors = ['#5a5555', '#4a4545', '#6a6060', '#3a3535', '#504a48'];
+        for (let i = 0; i < 8; i++) {
+            ctx.fillStyle = stoneColors[Math.floor(rng() * stoneColors.length)];
+            const sx = 4 + Math.floor(rng() * 24);
+            const sy = 8 + Math.floor(rng() * 18);
+            const sw = 3 + Math.floor(rng() * 6);
+            const sh = 2 + Math.floor(rng() * 5);
+            ctx.beginPath();
+            ctx.ellipse(sx, sy, sw / 2, sh / 2, rng() * 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        // Burned wood fragments
+        ctx.fillStyle = '#3a2a18';
+        ctx.fillRect(6 + Math.floor(rng() * 8), 12, 8, 2);
+        ctx.fillStyle = '#2a1a10';
+        ctx.fillRect(14 + Math.floor(rng() * 6), 18, 6, 2);
+        // Highlight on top stones
+        ctx.fillStyle = '#7a7570';
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(10, 10, 3, 1);
+        ctx.fillRect(18, 14, 2, 1);
+        ctx.globalAlpha = 1;
+        return c;
+    },
+
+    drawBurnedTimber() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const rng = this.seeded(7400);
+        // Ash ground base
+        ctx.fillStyle = '#3e3a35';
+        ctx.fillRect(0, 0, T, T);
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath();
+        ctx.ellipse(16, 24, 13, 4, 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        // Main charred beam (diagonal)
+        ctx.save();
+        ctx.translate(16, 16);
+        ctx.rotate(-0.3);
+        // Dark charred wood
+        ctx.fillStyle = '#2a1a0a';
+        ctx.fillRect(-14, -3, 28, 6);
+        ctx.fillStyle = '#3a2a14';
+        ctx.fillRect(-12, -2, 24, 4);
+        // Char cracks
+        ctx.fillStyle = '#1a1008';
+        ctx.fillRect(-8, -1, 1, 2);
+        ctx.fillRect(2, -2, 1, 3);
+        ctx.fillRect(8, 0, 1, 2);
+        // Ember glow at broken end
+        ctx.fillStyle = '#cc5520';
+        ctx.globalAlpha = 0.25;
+        ctx.fillRect(10, -2, 4, 4);
+        ctx.globalAlpha = 1;
+        ctx.restore();
+        // Splinter fragment
+        ctx.fillStyle = '#3a2a18';
+        ctx.fillRect(6, 22, 5, 2);
+        return c;
+    },
+
+    drawSmokeVent() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        // Charred ground base
+        ctx.fillStyle = '#2a2420';
+        ctx.fillRect(0, 0, T, T);
+        // Darker center
+        ctx.fillStyle = '#1a1614';
+        ctx.beginPath();
+        ctx.ellipse(16, 18, 8, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Cracked edges
+        ctx.fillStyle = '#3a3430';
+        ctx.beginPath();
+        ctx.ellipse(16, 18, 10, 8, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        // Ember ring
+        ctx.fillStyle = '#aa4411';
+        ctx.globalAlpha = 0.2;
+        ctx.beginPath();
+        ctx.ellipse(16, 18, 6, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        // Hot spots
+        ctx.fillStyle = '#dd6622';
+        ctx.globalAlpha = 0.15;
+        ctx.fillRect(14, 16, 2, 2);
+        ctx.fillRect(18, 19, 1, 1);
+        ctx.globalAlpha = 1;
+        return c;
+    },
+
+    drawScorchedWall() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        // Dark mortar base
+        ctx.fillStyle = '#1a1818';
+        ctx.fillRect(0, 0, T, T);
+        // Blackened stone blocks
+        const stoneShades = ['#2a2626', '#322e2e', '#262222', '#3a3434'];
+        for (let by = 0; by < 4; by++) {
+            for (let bx = 0; bx < 3; bx++) {
+                const off = (by % 2 === 0) ? 0 : 5;
+                ctx.fillStyle = stoneShades[(bx + by) % stoneShades.length];
+                ctx.fillRect(bx * 11 + off + 1, by * 8 + 1, 9, 6);
+            }
+        }
+        // Soot/char staining
+        ctx.fillStyle = '#0a0808';
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(0, 0, T, 4);
+        ctx.fillRect(0, T - 6, T, 6);
+        ctx.globalAlpha = 1;
+        // Crack details
+        ctx.strokeStyle = '#1a1212';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(8, 2); ctx.lineTo(12, 12); ctx.lineTo(10, 20);
+        ctx.stroke();
+        // Slight heat stain
+        ctx.fillStyle = '#4a2a1a';
+        ctx.globalAlpha = 0.15;
+        ctx.fillRect(16, 12, 8, 10);
+        ctx.globalAlpha = 1;
+        return c;
+    },
+
+    drawCollapsedRoof() {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const rng = this.seeded(7600);
+        // Ash base
+        ctx.fillStyle = '#3a3530';
+        ctx.fillRect(0, 0, T, T);
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.beginPath();
+        ctx.ellipse(16, 20, 14, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Collapsed timber planks (overlapping)
+        const woodDark = ['#2a1a0a', '#3a2a14', '#22180c'];
+        for (let i = 0; i < 4; i++) {
+            ctx.fillStyle = woodDark[i % woodDark.length];
+            const angle = -0.5 + rng() * 1.0;
+            ctx.save();
+            ctx.translate(8 + rng() * 16, 10 + rng() * 12);
+            ctx.rotate(angle);
+            ctx.fillRect(-8, -2, 16, 3);
+            ctx.restore();
+        }
+        // Tile/thatch fragments
+        ctx.fillStyle = '#5a4a3a';
+        ctx.globalAlpha = 0.6;
+        for (let i = 0; i < 5; i++) {
+            ctx.fillRect(4 + Math.floor(rng() * 24), 6 + Math.floor(rng() * 20), 3, 2);
+        }
+        ctx.globalAlpha = 1;
+        // Dust/debris
+        ctx.fillStyle = '#6a6055';
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(2, 24, 28, 4);
+        ctx.globalAlpha = 1;
+        return c;
+    },
+
+    drawAshPile(variant) {
+        const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
+        const rng = this.seeded(variant * 7700 + 53);
+        // Ash ground
+        ctx.fillStyle = '#3e3a35';
+        ctx.fillRect(0, 0, T, T);
+        // Soft ash mound
+        const ashBase = ['#5a5550', '#555048', '#4e4a44'];
+        ctx.fillStyle = ashBase[variant];
+        ctx.beginPath();
+        ctx.ellipse(16, 18, 10 + variant * 2, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // Lighter top
+        ctx.fillStyle = '#6a6560';
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.ellipse(15, 16, 6, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        // Dark edges
+        ctx.fillStyle = '#3a3530';
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.ellipse(16, 22, 9, 3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        // Fragments in ash
+        if (variant === 1) {
+            ctx.fillStyle = '#8a7a6a';
+            ctx.fillRect(12, 16, 2, 1);
+            ctx.fillRect(18, 18, 3, 1);
+        }
         return c;
     },
 
@@ -4050,6 +4364,17 @@ const Sprites = {
                         radius: 100 * pulse * Z,
                         color: [170, 100, 255],
                         intensity: 0.4 * pulse
+                    });
+                }
+                // Smoke vents — dim ember glow
+                if (ch === 'v') {
+                    const flicker = 0.7 + Math.sin(this.animFrame * 1.8 + tx * 2.9) * 0.3;
+                    this.lightSources.push({
+                        x: (tx * TS + TS / 2 - camX) * Z,
+                        y: (ty * TS + TS / 2 - camY) * Z,
+                        radius: 100 * flicker * Z,
+                        color: [200, 80, 30],
+                        intensity: 0.35 * flicker
                     });
                 }
                 // Ritual circles glow faintly

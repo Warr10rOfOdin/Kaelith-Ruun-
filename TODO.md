@@ -29,7 +29,6 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 - [ ] Environmental puzzles
 
 ### Polish
-- [ ] Screen transition animations
 - [ ] Accessibility options (font size, colorblind)
 - [ ] Performance optimization pass
 - [ ] Update ARCHITECTURE.md and DEVELOPMENT.md to reflect current HTML5/JS codebase
@@ -38,6 +37,9 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ## Recently Completed
 
+- [x] Character Creation visual overhaul (progress dots, stat chips, sprite preview, animated steps) — `main.js` + `style.css` + `index.html`
+- [x] Dialogue/NPC visual overhaul (pixel art portrait, typewriter text, choice arrows) — `dialogue.js` + `style.css`
+- [x] Screen transition animations (scale enter/exit) — `screens.js` + `style.css`
 - [x] Character Sheet visual overhaul (stat bars, icons, ability cards, skill tree) — `progression.js` + `style.css`
 - [x] Journal visual overhaul (quest badges, checkboxes, progress bars) — `progression.js` + `style.css`
 - [x] Achievements visual overhaul (badges, progress bar, sorted display) — `progression.js` + `style.css`

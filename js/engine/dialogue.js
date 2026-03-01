@@ -7,6 +7,9 @@ const Dialogue = {
     currentNpcKey: null,
     currentNode: null,
     _choiceHandlers: [],
+    _typewriterTimer: null,
+    _typewriterDone: false,
+    _fullText: '',
 
     start(npcKey) {
         const npc = NPCS[npcKey];
@@ -19,6 +22,76 @@ const Dialogue = {
         } else {
             this.close();
         }
+    },
+
+    _renderPortrait(portrait) {
+        if (!portrait || !this.currentNpc) return;
+
+        // Try to render pixel art NPC sprite
+        if (typeof Sprites !== 'undefined' && Sprites.drawNPC && this.currentNpcKey) {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = 64;
+                canvas.height = 64;
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = false;
+                const spriteCanvas = Sprites.drawNPC(this.currentNpcKey);
+                if (spriteCanvas) {
+                    ctx.drawImage(spriteCanvas, 0, 0, 64, 64);
+                    portrait.textContent = '';
+                    portrait.appendChild(canvas);
+                    return;
+                }
+            } catch(e) { /* fallback to icon */ }
+        }
+
+        // Fallback to emoji icon
+        portrait.textContent = this.currentNpc.icon;
+    },
+
+    _startTypewriter(textEl, text, onDone) {
+        if (this._typewriterTimer) {
+            clearInterval(this._typewriterTimer);
+            this._typewriterTimer = null;
+        }
+
+        this._fullText = text;
+        this._typewriterDone = false;
+        let charIndex = 0;
+        textEl.textContent = '';
+
+        // Add cursor
+        const cursor = document.createElement('span');
+        cursor.className = 'dialogue-text-cursor';
+
+        const speed = 18; // ms per char
+
+        this._typewriterTimer = setInterval(() => {
+            if (charIndex < text.length) {
+                textEl.textContent = text.substring(0, charIndex + 1);
+                textEl.appendChild(cursor);
+                charIndex++;
+            } else {
+                clearInterval(this._typewriterTimer);
+                this._typewriterTimer = null;
+                this._typewriterDone = true;
+                textEl.textContent = text;
+                if (onDone) onDone();
+            }
+        }, speed);
+
+        // Allow tap to skip typewriter
+        const skipHandler = () => {
+            if (!this._typewriterDone && this._typewriterTimer) {
+                clearInterval(this._typewriterTimer);
+                this._typewriterTimer = null;
+                this._typewriterDone = true;
+                textEl.textContent = text;
+                if (onDone) onDone();
+            }
+            textEl.removeEventListener('click', skipHandler);
+        };
+        textEl.addEventListener('click', skipHandler);
     },
 
     show(node) {
@@ -36,9 +109,24 @@ const Dialogue = {
         const speaker = document.getElementById('dialogue-speaker');
         const textEl = document.getElementById('dialogue-text');
 
-        if (portrait && this.currentNpc) portrait.textContent = this.currentNpc.icon;
-        if (speaker && this.currentNpc) speaker.textContent = `${this.currentNpc.name} — ${this.currentNpc.title}`;
-        if (textEl) textEl.textContent = node.text;
+        this._renderPortrait(portrait);
+
+        if (speaker && this.currentNpc) {
+            speaker.textContent = this.currentNpc.name;
+            // Add title separator
+            let titleSep = speaker.parentElement.querySelector('.dialogue-title-separator');
+            if (!titleSep) {
+                titleSep = document.createElement('p');
+                titleSep.className = 'dialogue-title-separator';
+                speaker.parentElement.insertBefore(titleSep, textEl);
+            }
+            titleSep.textContent = this.currentNpc.title;
+        }
+
+        // Use typewriter effect for dialogue text
+        if (textEl) {
+            this._startTypewriter(textEl, node.text);
+        }
 
         const choicesDiv = document.getElementById('dialogue-choices');
         if (!choicesDiv) return;
@@ -300,8 +388,16 @@ const Dialogue = {
 
     close() {
         this._cleanupHandlers();
+        if (this._typewriterTimer) {
+            clearInterval(this._typewriterTimer);
+            this._typewriterTimer = null;
+        }
+        this._typewriterDone = false;
         const overlay = document.getElementById('dialogue-overlay');
         if (overlay) overlay.classList.add('hidden');
+        // Remove title separator
+        const titleSep = document.querySelector('.dialogue-title-separator');
+        if (titleSep) titleSep.remove();
         this.currentNpc = null;
         this.currentNpcKey = null;
         this.currentNode = null;

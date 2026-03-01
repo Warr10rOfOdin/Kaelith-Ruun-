@@ -83,6 +83,11 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 - [x] Achievements: badge layout, progress bar header, sorted display, stat icons
 - [x] Inventory: labeled equipment grid, rarity glow borders, item detail panel overhaul
 
+### Creation & Dialogue Polish (v0.9.1)
+- [x] Character Creation: step progress dots, stat modifier chips, sprite preview canvas, animated step transitions
+- [x] Dialogue: pixel art NPC portrait rendering, typewriter text effect, choice button arrow indicators
+- [x] Screen transitions: scale-based enter/exit animations with transition lock
+
 ---
 
 ## In Progress
@@ -111,7 +116,7 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 - [ ] Ambient soundscapes per region
 - [ ] Combat music with dynamic intensity
 - [ ] UI sound effects
-- [ ] Screen transition animations
+- [x] Screen transition animations
 
 ### Progression & Endgame
 - [ ] New Game+ mode with scaled enemies

@@ -18,6 +18,12 @@ const Combat = {
     comboCount: 0,
     maxCombo: 0,
     totalDamageDealt: 0,
+    _counterWindowActive: false,
+    _counterSuccess: false,
+    _lastAbilityElement: null,
+    _comboChain: [],
+    _comboChainBonus: 0,
+    _discoveredWeaknesses: {},
 
     start(enemyKey, onEnd) {
         const template = ENEMIES[enemyKey];
@@ -50,7 +56,10 @@ const Combat = {
             currentPhase: 0,
             lootTable: template.lootTable,
             xpReward: template.xpReward,
-            goldReward: template.goldReward
+            goldReward: template.goldReward,
+            behavior: template.behavior || 'aggro',
+            resistances: template.resistances ? { ...template.resistances } : { fire: 0, ice: 0, lightning: 0, shadow: 0 },
+            area: template.area || ''
         };
 
         this.enemyMaxHp = this.enemy.maxHp;
@@ -61,6 +70,11 @@ const Combat = {
         this.comboCount = 0;
         this.maxCombo = 0;
         this.totalDamageDealt = 0;
+        this._counterWindowActive = false;
+        this._counterSuccess = false;
+        this._lastAbilityElement = null;
+        this._comboChain = [];
+        this._comboChainBonus = 0;
 
         // Ensure player statusEffects array exists
         if (!GameState.player.statusEffects) GameState.player.statusEffects = [];
@@ -76,6 +90,13 @@ const Combat = {
             else if (region === 'void_sanctum') combatScreen.classList.add('region-void');
         }
 
+        // Render procedural battlefield background
+        this.renderBattlefield();
+
+        // Clear enemy intent
+        const intentEl = document.getElementById('enemy-intent');
+        if (intentEl) intentEl.innerHTML = '';
+
         // Boss intro effect
         if (this.enemy.isBoss) {
             this.showBossIntro();
@@ -86,6 +107,10 @@ const Combat = {
         if (typeof Audio !== 'undefined') Audio.startCombatAmbient(this.enemy.isBoss);
 
         this.renderCombatUI();
+
+        // Start persistent ambient particles
+        this._setTimeout(() => this.startAmbientParticles(), 300);
+
         this.logCombat(`A ${this.enemy.name} appears!`, 'info');
 
         if (this.enemy.isBoss && this.enemy.phases.length > 0) {
@@ -146,25 +171,22 @@ const Combat = {
             `;
         }
 
-        // Player combat sprite
-        const playerSection = document.getElementById('player-combat-section');
-        if (playerSection && typeof Sprites !== 'undefined') {
-            let spriteDiv = document.getElementById('player-combat-sprite');
-            if (!spriteDiv) {
-                spriteDiv = document.createElement('div');
-                spriteDiv.id = 'player-combat-sprite';
-                playerSection.insertBefore(spriteDiv, playerSection.firstChild);
-            }
-            const playerSprite = Sprites.getPlayerSprite ? Sprites.getPlayerSprite() : null;
-            if (playerSprite) {
-                spriteDiv.innerHTML = '';
-                const pCanvas = document.createElement('canvas');
-                pCanvas.width = playerSprite.width;
-                pCanvas.height = playerSprite.height;
-                const pCtx = pCanvas.getContext('2d');
-                pCtx.imageSmoothingEnabled = false;
-                pCtx.drawImage(playerSprite, 0, 0);
-                spriteDiv.appendChild(pCanvas);
+        // Player combat sprite — now in #combat-stage
+        if (typeof Sprites !== 'undefined') {
+            const spriteDiv = document.getElementById('player-combat-sprite');
+            if (spriteDiv) {
+                const playerSprite = Sprites.getPlayer ? Sprites.getPlayer('up', 0) : null;
+                if (playerSprite) {
+                    spriteDiv.innerHTML = '';
+                    const pCanvas = document.createElement('canvas');
+                    pCanvas.width = playerSprite.width;
+                    pCanvas.height = playerSprite.height;
+                    pCanvas.className = 'player-art-canvas';
+                    const pCtx = pCanvas.getContext('2d');
+                    pCtx.imageSmoothingEnabled = false;
+                    pCtx.drawImage(playerSprite, 0, 0);
+                    spriteDiv.appendChild(pCanvas);
+                }
             }
         }
 
@@ -189,6 +211,9 @@ const Combat = {
         // Combat actions
         this.renderActions();
 
+        // Show weakness tooltip if this enemy was encountered before
+        this.showWeaknessTooltip();
+
         // Clear combat log
         this.log = document.getElementById('combat-log');
         if (this.log) this.log.innerHTML = '';
@@ -201,28 +226,40 @@ const Combat = {
 
         let html = '';
 
-        // Basic attack
-        html += `<button class="combat-btn attack" onclick="Combat.playerAction('attack')">Attack</button>`;
+        // Basic attack — always available
+        html += `<button class="combat-btn attack" onclick="Combat.playerAction('attack')">
+            <span class="btn-label">Attack</span>
+        </button>`;
 
-        // Abilities
+        // Abilities with MP cost display
         if (p.abilities && p.abilities.length > 0) {
             p.abilities.forEach((ability, idx) => {
                 if (!ability) return;
                 const canUse = ability.mpCost <= p.mp;
-                html += `<button class="combat-btn magic" ${!canUse ? 'disabled' : ''} onclick="Combat.playerAction('ability', ${idx})">${ability.name} (${ability.mpCost} MP)</button>`;
+                const btnType = ability.type === 'buff' ? 'defend' : 'magic';
+                html += `<button class="combat-btn ${btnType}" ${!canUse ? 'disabled' : ''} onclick="Combat.playerAction('ability', ${idx})">
+                    <span class="btn-label">${ability.name}</span>
+                    <span class="btn-cost">${ability.mpCost} MP</span>
+                </button>`;
             });
         }
 
+        // Defend
+        html += `<button class="combat-btn defend" onclick="Combat.playerAction('defend')">
+            <span class="btn-label">Defend</span>
+        </button>`;
+
         // Use item
         const hasConsumables = p.inventory.some(i => ITEMS[i.key] && ITEMS[i.key].type === 'consumable');
-        html += `<button class="combat-btn item" ${!hasConsumables ? 'disabled' : ''} onclick="Combat.showItemMenu()">Use Item</button>`;
-
-        // Defend
-        html += `<button class="combat-btn defend" onclick="Combat.playerAction('defend')">Defend</button>`;
+        html += `<button class="combat-btn item" ${!hasConsumables ? 'disabled' : ''} onclick="Combat.showItemMenu()">
+            <span class="btn-label">Use Item</span>
+        </button>`;
 
         // Flee
         if (!this.enemy.isBoss) {
-            html += `<button class="combat-btn flee" onclick="Combat.playerAction('flee')">Flee</button>`;
+            html += `<button class="combat-btn flee" onclick="Combat.playerAction('flee')">
+                <span class="btn-label">Flee</span>
+            </button>`;
         }
 
         actionsDiv.innerHTML = html;
@@ -321,10 +358,94 @@ const Combat = {
         const isSlowed = this.playerBuffs.some(b => b.type === 'slow');
         const enemyDelay = isSlowed ? 300 : 600;
 
-        // Enemy turn after a delay
+        // Show enemy intent telegraph, then execute enemy turn
         this._setTimeout(() => {
-            if (this.active) this.enemyTurn();
+            if (!this.active) return;
+            this.telegraphEnemyTurn();
         }, enemyDelay);
+    },
+
+    // Telegraph the enemy's upcoming action, then execute after brief delay
+    telegraphEnemyTurn() {
+        if (!this.active || !this.enemy || this.enemy.hp <= 0) return;
+
+        const behavior = this.enemy.behavior || 'aggro';
+        const abilities = this.enemy.abilities || [];
+        const hpRatio = this.enemy.maxHp > 0 ? this.enemy.hp / this.enemy.maxHp : 1;
+
+        // Filter abilities by threshold
+        const available = abilities.filter(a => {
+            if (!a) return false;
+            if (a.threshold && this.enemy.maxHp > 0 && hpRatio > a.threshold) return false;
+            return true;
+        });
+
+        // Heal check — all behaviors may heal when low
+        const healAbility = available.find(a => a.type === 'heal');
+        const healChance = behavior === 'support' ? 0.5 : (behavior === 'defensive' ? 0.4 : 0.25);
+        const willHeal = healAbility && hpRatio < 0.5 && Math.random() < healChance;
+
+        let telegraphed = null;
+
+        if (willHeal) {
+            telegraphed = healAbility;
+        } else {
+            // Behavior-driven selection with weighted categories
+            const damageAbilities = available.filter(a => a.type === 'physical' || a.type === 'magical');
+            const buffAbilities = available.filter(a => a.type === 'buff');
+            const debuffAbilities = available.filter(a => a.type === 'debuff');
+
+            // Build weighted pool based on behavior
+            let pool = [];
+            if (behavior === 'aggro') {
+                // Aggro: strongly prefer damage, occasional debuff
+                damageAbilities.forEach(a => { pool.push(a, a, a); }); // 3x weight
+                debuffAbilities.forEach(a => { pool.push(a); }); // 1x weight
+                // Buff only if low HP
+                if (hpRatio < 0.3) buffAbilities.forEach(a => { pool.push(a); });
+            } else if (behavior === 'defensive') {
+                // Defensive: prefer buffs/shields, moderate damage
+                buffAbilities.forEach(a => { pool.push(a, a, a); }); // 3x weight
+                damageAbilities.forEach(a => { pool.push(a, a); }); // 2x weight
+                debuffAbilities.forEach(a => { pool.push(a); }); // 1x weight
+            } else if (behavior === 'support') {
+                // Support: prefer debuffs and heals, moderate damage
+                debuffAbilities.forEach(a => { pool.push(a, a, a); }); // 3x weight
+                buffAbilities.forEach(a => { pool.push(a, a); }); // 2x weight
+                damageAbilities.forEach(a => { pool.push(a, a); }); // 2x weight
+            }
+
+            if (pool.length > 0) {
+                telegraphed = pool[Math.floor(Math.random() * pool.length)];
+            } else if (available.length > 0) {
+                telegraphed = available[Math.floor(Math.random() * available.length)];
+            } else if (abilities.length > 0) {
+                telegraphed = abilities[0];
+            }
+        }
+
+        // Store the telegraphed ability so enemyTurn uses the same one
+        this._telegraphedAbility = telegraphed;
+
+        // Show the intent indicator and trigger wind-up animation
+        if (telegraphed) {
+            this.showEnemyIntent(telegraphed);
+            this.triggerEnemyWindUp(telegraphed);
+        }
+
+        // Show counter window for damage abilities
+        const isDamageAbility = telegraphed && (telegraphed.type === 'physical' || telegraphed.type === 'magical');
+        if (isDamageAbility) {
+            this.showCounterWindow();
+        }
+
+        // Execute after telegraph delay (600ms for normal, 900ms for boss specials)
+        const telegraphDelay = (this.enemy.isBoss && telegraphed && telegraphed.damage && telegraphed.damage[1] >= 20) ? 900 : 600;
+        this._setTimeout(() => {
+            this.clearEnemyIntent();
+            this.hideCounterWindow();
+            if (this.active) this.enemyTurn();
+        }, telegraphDelay);
     },
 
     performAttack() {
@@ -375,11 +496,16 @@ const Combat = {
         this.totalDamageDealt += damage;
         if (this.comboCount > this.maxCombo) this.maxCombo = this.comboCount;
         this.updateComboDisplay();
-        this.shakeElement('enemy-display');
+        this.shakeElement('enemy-display', damage);
+        this.triggerEnemyHitRecoil();
+        this.triggerBarDrain();
         this.flashEnemy(isCrit ? 'rgba(255,200,50,0.7)' : 'rgba(255,255,255,0.5)');
         this.showSlashEffect('physical');
         this.showImpactParticles('enemy-display', isCrit ? '#ffcc44' : '#aabbff', isCrit ? 8 : 5);
         this.animatePlayerSprite('attacking');
+        if (isCrit) {
+            this.shakeElement('combat-arena', damage);
+        }
         NativeBridge.hapticMedium();
     },
 
@@ -431,6 +557,42 @@ const Combat = {
                 damage = this.calculateDamage(baseDamage + Math.floor(p.magicAttack * 0.5), this.enemy.magicDefense);
             }
 
+            // Elemental resistance/weakness
+            const element = this.getAbilityElement(ability);
+            let resistResult = 'normal';
+            if (element) {
+                const res = this.applyElementalResistance(damage, element);
+                damage = res.damage;
+                resistResult = res.result;
+            }
+
+            // Combo chain bonus
+            this._comboChainBonus = 0;
+            if (element) {
+                this._comboChain.push(element);
+                if (this._comboChain.length >= 2) {
+                    const last = this._comboChain[this._comboChain.length - 2];
+                    if (last === element) {
+                        // Same-element chain: +10% per chain length (max +30%)
+                        const chainLen = this._getElementChainLength(element);
+                        this._comboChainBonus = Math.min(30, chainLen * 10);
+                        damage = Math.floor(damage * (1 + this._comboChainBonus / 100));
+                    } else {
+                        // Element switch combo: specific combos grant bonus
+                        const switchBonus = this._getElementSwitchBonus(last, element);
+                        if (switchBonus > 0) {
+                            this._comboChainBonus = switchBonus;
+                            damage = Math.floor(damage * (1 + switchBonus / 100));
+                        }
+                    }
+                }
+                this._lastAbilityElement = element;
+            } else {
+                this._lastAbilityElement = null;
+            }
+            // Keep chain at reasonable length
+            if (this._comboChain.length > 6) this._comboChain = this._comboChain.slice(-4);
+
             // Weaken debuff
             const isWeakened = this.playerBuffs.some(b => b.type === 'weaken');
             if (isWeakened) {
@@ -462,25 +624,49 @@ const Combat = {
                 this.showDamageNumber(damage, 'damage');
             }
 
+            // Show elemental result label
+            if (resistResult === 'weak') {
+                this.showElementalLabel('WEAK!', 'weak');
+                this.logCombat(`It's weak to ${element}!`, 'critical');
+            } else if (resistResult === 'resist') {
+                this.showElementalLabel('RESIST', 'resist');
+                this.logCombat(`It resists ${element}...`, 'miss');
+            }
+
+            // Show combo chain bonus
+            if (this._comboChainBonus > 0) {
+                this.showElementalLabel(`CHAIN +${this._comboChainBonus}%`, 'chain');
+            }
+
             this.applyDamageToEnemy(damage);
             this.comboCount++;
             this.totalDamageDealt += damage;
             if (this.comboCount > this.maxCombo) this.maxCombo = this.comboCount;
             this.updateComboDisplay();
-            this.shakeElement('enemy-display');
-            // Spell visual + sound effect
-            const spellType = ability.type === 'magical' ? (ability.element === 'fire' ? 'fire' : 'ice') : 'physical';
-            this.showSpellEffect(spellType);
+            this.shakeElement('enemy-display', damage);
+            this.triggerEnemyHitRecoil();
+            this.triggerBarDrain();
+
+            // Update weakness tooltip after elemental hit
+            if (element && resistResult !== 'normal') {
+                this.showWeaknessTooltip();
+            }
+
+            // Ability-specific VFX dispatch
+            const vfx = this.getAbilityVFX(ability);
+            this.showSpellEffect(vfx.spell);
+            this.flashEnemy(vfx.flash);
+            this.showSlashEffect(vfx.slash);
+            this.showImpactParticles('enemy-display', vfx.particleColor, isCrit ? 10 : 6);
+
             if (typeof Audio !== 'undefined') {
                 if (ability.type === 'magical') Audio.playSpell(ability.element || 'generic');
                 else Audio.playAttack();
             }
-            this.flashEnemy(ability.type === 'magical' ? 'rgba(100,150,255,0.6)' : 'rgba(255,255,255,0.5)');
-            const slashType = ability.type === 'magical' ? (ability.element === 'fire' ? 'fire' : ability.element === 'ice' ? 'ice' : 'shadow') : 'physical';
-            this.showSlashEffect(slashType);
-            const particleColor = ability.type === 'magical' ? (ability.element === 'fire' ? '#ff6622' : '#44aaff') : '#ffffff';
-            this.showImpactParticles('enemy-display', particleColor, isCrit ? 10 : 6);
             this.animatePlayerSprite('attacking');
+            if (isCrit) {
+                this.shakeElement('combat-arena', damage);
+            }
 
             // Lifesteal abilities
             if (ability.name === 'Crimson Drain' || ability.name === 'Reaping Strike') {
@@ -520,7 +706,7 @@ const Combat = {
         } else {
             this.logCombat('You fail to escape!', 'miss');
             this._setTimeout(() => {
-                if (this.active) this.enemyTurn();
+                if (this.active) this.telegraphEnemyTurn();
             }, 600);
         }
     },
@@ -564,20 +750,7 @@ const Combat = {
             this.checkBossPhase();
         }
 
-        // Enemy heal ability
-        if (this.enemy.abilities && this.enemy.abilities.length > 0) {
-            const healAbility = this.enemy.abilities.find(a => a && a.type === 'heal');
-            if (healAbility && this.enemy.hp < this.enemy.maxHp * 0.5 && Math.random() < 0.3) {
-                const healAmount = healAbility.amount || 20;
-                this.enemy.hp = Math.min(this.enemy.maxHp, this.enemy.hp + healAmount);
-                this.logCombat(`${this.enemy.name} regenerates ${healAmount} HP!`, 'heal');
-                this.updateBars();
-                this.finishEnemyTurn();
-                return;
-            }
-        }
-
-        // Choose enemy ability — guard against empty abilities
+        // Choose enemy ability — use telegraphed ability if available
         if (!this.enemy.abilities || this.enemy.abilities.length === 0) {
             const damage = this.calculateDamage(this.enemy.attack, GameState.player.defense);
             GameState.player.hp = Math.max(0, GameState.player.hp - damage);
@@ -592,16 +765,32 @@ const Combat = {
             return;
         }
 
-        const validAbilities = this.enemy.abilities.filter(a => {
-            if (!a) return false;
-            if (a.threshold && this.enemy.maxHp > 0 && (this.enemy.hp / this.enemy.maxHp) > a.threshold) return false;
-            if (a.type === 'buff' || a.type === 'debuff') return Math.random() < 0.3;
-            return true;
-        });
+        // Use pre-telegraphed ability if it exists, otherwise pick fresh
+        let ability = this._telegraphedAbility || null;
+        this._telegraphedAbility = null;
 
-        const ability = validAbilities.length > 0
-            ? validAbilities[Math.floor(Math.random() * validAbilities.length)]
-            : this.enemy.abilities[0];
+        if (!ability) {
+            const validAbilities = this.enemy.abilities.filter(a => {
+                if (!a) return false;
+                if (a.threshold && this.enemy.maxHp > 0 && (this.enemy.hp / this.enemy.maxHp) > a.threshold) return false;
+                if (a.type === 'buff' || a.type === 'debuff') return Math.random() < 0.3;
+                return true;
+            });
+            ability = validAbilities.length > 0
+                ? validAbilities[Math.floor(Math.random() * validAbilities.length)]
+                : this.enemy.abilities[0];
+        }
+
+        // If the selected ability is a heal, execute it
+        if (ability && ability.type === 'heal') {
+            const healAmount = ability.amount || 20;
+            this.enemy.hp = Math.min(this.enemy.maxHp, this.enemy.hp + healAmount);
+            this.logCombat(`${this.enemy.name} uses ${ability.name}! Regenerates ${healAmount} HP!`, 'heal');
+            this.showDamageNumber(healAmount, 'heal');
+            this.updateBars();
+            this.finishEnemyTurn();
+            return;
+        }
 
         if (!ability) {
             this.finishEnemyTurn();
@@ -672,6 +861,19 @@ const Combat = {
 
             if (this.playerDefending) {
                 damage = Math.floor(damage * 0.5);
+            }
+
+            // Counter success: 40% damage reduction + reflect 20% back
+            if (this._counterSuccess) {
+                const reflected = Math.floor(damage * 0.2);
+                damage = Math.floor(damage * 0.6);
+                if (reflected > 0) {
+                    this.enemy.hp = Math.max(0, this.enemy.hp - reflected);
+                    this.logCombat(`Counter reflects ${reflected} damage back!`, 'player-attack');
+                    this.showDamageNumber(reflected, 'damage');
+                    this.triggerEnemyHitRecoil();
+                }
+                this._counterSuccess = false;
             }
 
             // Apply damage reduction buffs
@@ -783,6 +985,7 @@ const Combat = {
         }
 
         this.updateBars();
+        this.updateStatusOverlays();
 
         if (GameState.player.hp <= 0) {
             this.handleDefeat();
@@ -821,6 +1024,41 @@ const Combat = {
         const base = Math.max(1, attackPower - Math.floor(defense * 0.5));
         const variance = Math.floor(base * 0.2);
         return Math.max(1, base + Math.floor(Math.random() * (variance + 1)) - Math.floor(variance / 2));
+    },
+
+    // Apply elemental resistance/weakness to damage
+    applyElementalResistance(damage, element) {
+        if (!element || !this.enemy || !this.enemy.resistances) return { damage, result: 'normal' };
+        const resistance = this.enemy.resistances[element] || 0;
+        if (resistance === 0) return { damage, result: 'normal' };
+
+        const modified = Math.max(1, Math.floor(damage * (1 - resistance)));
+
+        // Track discovered weaknesses
+        if (!this._discoveredWeaknesses[this.enemy.key]) {
+            this._discoveredWeaknesses[this.enemy.key] = {};
+        }
+        if (resistance < 0) {
+            this._discoveredWeaknesses[this.enemy.key][element] = 'weak';
+        } else if (resistance > 0) {
+            this._discoveredWeaknesses[this.enemy.key][element] = 'resist';
+        }
+
+        if (resistance < -0.15) return { damage: modified, result: 'weak' };
+        if (resistance > 0.15) return { damage: modified, result: 'resist' };
+        return { damage: modified, result: 'normal' };
+    },
+
+    // Get element from ability name/properties
+    getAbilityElement(ability) {
+        if (!ability) return null;
+        if (ability.element) return ability.element;
+        const name = (ability.name || '').toLowerCase();
+        if (name.includes('fire') || name.includes('flame') || name.includes('ember') || name.includes('meteor') || name.includes('crown of flame')) return 'fire';
+        if (name.includes('frost') || name.includes('ice') || name.includes('cold') || name.includes('blizzard')) return 'ice';
+        if (name.includes('lightning') || name.includes('shock') || name.includes('chain') || name.includes('thunder')) return 'lightning';
+        if (name.includes('void') || name.includes('shadow') || name.includes('dark') || name.includes('umbral') || name.includes('null') || name.includes('rift') || name.includes('unravel') || name.includes('annihilate')) return 'shadow';
+        return null;
     },
 
     applyDamageToEnemy(damage) {
@@ -876,9 +1114,18 @@ const Combat = {
         this.log.scrollTop = this.log.scrollHeight;
     },
 
-    shakeElement(id) {
+    shakeElement(id, damage) {
         const el = document.getElementById(id);
-        if (el) {
+        if (!el) return;
+        // Scale shake intensity by damage
+        if (damage && damage >= 30) {
+            el.classList.remove('shake', 'heavy-shake');
+            void el.offsetWidth;
+            el.classList.add('heavy-shake');
+            this._setTimeout(() => el.classList.remove('heavy-shake'), 500);
+        } else {
+            el.classList.remove('shake', 'heavy-shake');
+            void el.offsetWidth;
             el.classList.add('shake');
             this._setTimeout(() => el.classList.remove('shake'), 300);
         }
@@ -1070,16 +1317,8 @@ const Combat = {
 
     // ---- STATUS DISPLAY IN COMBAT ----
     updateCombatStatus() {
-        // Player buffs/debuffs under player bars
-        let statusContainer = document.getElementById('combat-status-bar');
-        if (!statusContainer) {
-            const playerSection = document.getElementById('player-combat-section');
-            if (playerSection) {
-                statusContainer = document.createElement('div');
-                statusContainer.id = 'combat-status-bar';
-                playerSection.insertBefore(statusContainer, playerSection.querySelector('#combat-actions'));
-            }
-        }
+        // Player buffs/debuffs under player bars — container exists in HTML
+        const statusContainer = document.getElementById('combat-status-bar');
         if (!statusContainer) return;
 
         let html = '';
@@ -1158,11 +1397,13 @@ const Combat = {
         if (!this.active) return;
         this.active = false;
         this._clearTimers();
+        this.stopAmbientParticles();
 
         const enemy = this.enemy;
         if (!enemy) return;
 
         this.logCombat(`The ${enemy.name} has been defeated!`, 'victory');
+        this.triggerEnemyDeathAnim();
         NativeBridge.hapticNotification('success');
         if (typeof Audio !== 'undefined') Audio.playVictory();
 
@@ -1264,6 +1505,7 @@ const Combat = {
         if (!this.active) return;
         this.active = false;
         this._clearTimers();
+        this.stopAmbientParticles();
 
         this.logCombat('You have fallen...', 'defeat');
         NativeBridge.hapticNotification('error');
@@ -1324,6 +1566,7 @@ const Combat = {
     },
 
     returnToGame() {
+        this.stopAmbientParticles();
         ScreenManager.showScreen('game');
         Exploration.showCurrentLocation();
         HUD.update();
@@ -1340,6 +1583,7 @@ const Combat = {
     endCombat(reason) {
         this.active = false;
         this._clearTimers();
+        this.stopAmbientParticles();
         ScreenManager.showScreen('game');
         HUD.update();
 
@@ -1358,5 +1602,382 @@ const Combat = {
         if (callback) {
             callback(reason);
         }
+    },
+
+    // ---- BATTLEFIELD BACKGROUND ----
+    renderBattlefield() {
+        const canvas = document.getElementById('combat-bg-canvas');
+        if (!canvas || typeof Sprites === 'undefined') return;
+        // Size canvas to screen
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const region = GameState.currentRegion || 'ashen_wastes';
+        Sprites.drawCombatBattlefield(canvas, region);
+    },
+
+    // ---- ENEMY TELEGRAPH / INTENT ----
+    showEnemyIntent(ability) {
+        const intentEl = document.getElementById('enemy-intent');
+        if (!intentEl || !ability) return;
+
+        let intentType = 'attack';
+        let intentText = ability.name;
+        if (ability.type === 'buff') {
+            intentType = 'buff';
+        } else if (ability.type === 'debuff') {
+            intentType = 'debuff';
+        } else if (ability.type === 'heal') {
+            intentType = 'buff';
+        } else if (ability.damage && ability.damage[1] >= 20) {
+            intentType = 'special';
+        }
+
+        intentEl.innerHTML = `<span class="intent-indicator ${intentType}-intent">${intentText}</span>`;
+        intentEl.classList.add('visible');
+    },
+
+    clearEnemyIntent() {
+        const intentEl = document.getElementById('enemy-intent');
+        if (intentEl) {
+            intentEl.classList.remove('visible');
+            intentEl.innerHTML = '';
+        }
+    },
+
+    // ---- ENEMY HIT/DEATH ANIMATIONS ----
+    triggerEnemyHitRecoil() {
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+        const canvas = display.querySelector('.enemy-art-canvas');
+        if (canvas) {
+            canvas.classList.remove('hit');
+            void canvas.offsetWidth;
+            canvas.classList.add('hit');
+            this._setTimeout(() => canvas.classList.remove('hit'), 400);
+        }
+    },
+
+    triggerEnemyDeathAnim() {
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+        const canvas = display.querySelector('.enemy-art-canvas');
+        if (canvas) {
+            canvas.classList.add('dying');
+        }
+    },
+
+    // ---- DRAINING BAR EFFECT ----
+    triggerBarDrain() {
+        const bar = document.getElementById('enemy-hp-bar');
+        if (!bar) return;
+        bar.classList.add('draining');
+        this._setTimeout(() => bar.classList.remove('draining'), 400);
+
+        // Low HP pulse
+        if (this.enemy && this.enemy.maxHp > 0 && this.enemy.hp / this.enemy.maxHp < 0.25) {
+            bar.classList.add('low-hp');
+        } else if (bar) {
+            bar.classList.remove('low-hp');
+        }
+    },
+
+    // ---- ELEMENTAL LABELS (Weak! / Resist! / Chain) ----
+    showElementalLabel(text, type) {
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+        const label = document.createElement('div');
+        label.className = `elemental-label ${type}`;
+        label.textContent = text;
+        display.appendChild(label);
+        this._setTimeout(() => { if (label.parentNode) label.remove(); }, 1200);
+    },
+
+    // ---- COMBO CHAIN HELPERS ----
+    _getElementChainLength(element) {
+        let count = 0;
+        for (let i = this._comboChain.length - 1; i >= 0; i--) {
+            if (this._comboChain[i] === element) count++;
+            else break;
+        }
+        return count;
+    },
+
+    _getElementSwitchBonus(prevElement, currentElement) {
+        // Specific element combos that grant bonus damage
+        const combos = {
+            'fire_ice': 15,    // Thermal shock
+            'ice_fire': 15,
+            'fire_lightning': 20, // Storm of flame
+            'lightning_fire': 20,
+            'ice_lightning': 15,  // Frozen conductor
+            'lightning_ice': 15,
+            'shadow_fire': 10,   // Dark flame
+            'fire_shadow': 10,
+            'shadow_lightning': 15, // Void spark
+            'lightning_shadow': 15
+        };
+        return combos[`${prevElement}_${currentElement}`] || 0;
+    },
+
+    // ---- ABILITY-SPECIFIC VFX MAPPING ----
+    getAbilityVFX(ability) {
+        if (!ability) return { spell: 'physical', flash: 'rgba(255,255,255,0.5)', slash: 'physical', particleColor: '#aabbff' };
+
+        const name = (ability.name || '').toLowerCase();
+
+        // Blood / lifesteal abilities
+        if (name.includes('blood') || name.includes('crimson') || name.includes('sanguine') || name.includes('exsanguinate') || name.includes('hemorrhage') || name.includes('drain')) {
+            return { spell: 'blood', flash: 'rgba(180,20,20,0.6)', slash: 'blood', particleColor: '#cc2222' };
+        }
+
+        // Void / shadow abilities
+        if (name.includes('void') || name.includes('shadow') || name.includes('umbral') || name.includes('dark') || name.includes('unmaking') || name.includes('rift') || name.includes('null') || name.includes('reality') || name.includes('phase')) {
+            return { spell: 'void', flash: 'rgba(100,30,180,0.6)', slash: 'void', particleColor: '#9944dd' };
+        }
+
+        // Fire abilities
+        if (ability.element === 'fire' || name.includes('fire') || name.includes('flame') || name.includes('ember') || name.includes('runefire') || name.includes('meteor') || name.includes('crown of flame')) {
+            return { spell: 'fire', flash: 'rgba(255,120,30,0.6)', slash: 'fire', particleColor: '#ff6622' };
+        }
+
+        // Ice abilities
+        if (ability.element === 'ice' || name.includes('frost') || name.includes('ice') || name.includes('cold')) {
+            return { spell: 'ice', flash: 'rgba(80,180,255,0.6)', slash: 'ice', particleColor: '#44aaff' };
+        }
+
+        // Lightning abilities
+        if (ability.element === 'lightning' || name.includes('lightning') || name.includes('chain') || name.includes('shock')) {
+            return { spell: 'lightning', flash: 'rgba(180,220,255,0.7)', slash: 'lightning', particleColor: '#aaddff' };
+        }
+
+        // Heal / restoration abilities
+        if (ability.type === 'heal' || name.includes('heal') || name.includes('restoration') || name.includes('soul heal')) {
+            return { spell: 'heal', flash: 'rgba(60,200,80,0.5)', slash: 'heal', particleColor: '#44aa55' };
+        }
+
+        // Buff abilities
+        if (ability.type === 'buff') {
+            return { spell: 'buff', flash: 'rgba(201,168,76,0.4)', slash: 'heal', particleColor: '#c9a84c' };
+        }
+
+        // Multi-hit abilities
+        if (ability.hits && ability.hits > 1 || name.includes('fan') || name.includes('thousand') || name.includes('rift walk')) {
+            return { spell: 'physical', flash: 'rgba(255,255,255,0.6)', slash: 'multi', particleColor: '#ffffff' };
+        }
+
+        // Soul / spectral abilities
+        if (name.includes('soul') || name.includes('spectral') || name.includes('spirit') || name.includes('reaping')) {
+            return { spell: 'shadow', flash: 'rgba(120,140,200,0.5)', slash: 'shadow', particleColor: '#8899cc' };
+        }
+
+        // Generic magical
+        if (ability.type === 'magical') {
+            return { spell: 'shadow', flash: 'rgba(100,150,255,0.5)', slash: 'shadow', particleColor: '#6699cc' };
+        }
+
+        // Generic physical
+        return { spell: 'physical', flash: 'rgba(255,255,255,0.5)', slash: 'physical', particleColor: '#aabbff' };
+    },
+
+    // ---- ENEMY WIND-UP ANIMATION ----
+    triggerEnemyWindUp(ability) {
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+        const canvas = display.querySelector('.enemy-art-canvas');
+        if (!canvas) return;
+
+        canvas.classList.remove('wind-up-physical', 'wind-up-magical', 'wind-up-heavy');
+        void canvas.offsetWidth;
+
+        let windUpClass = 'wind-up-physical';
+        if (ability) {
+            if (ability.damage && ability.damage[1] >= 25) {
+                windUpClass = 'wind-up-heavy';
+            } else if (ability.type === 'magical') {
+                windUpClass = 'wind-up-magical';
+            }
+        }
+
+        canvas.classList.add(windUpClass);
+        const duration = windUpClass === 'wind-up-heavy' ? 700 : 500;
+        this._setTimeout(() => canvas.classList.remove(windUpClass), duration);
+    },
+
+    // ---- STATUS EFFECT VISUAL OVERLAYS ----
+    updateStatusOverlays() {
+        const stage = document.getElementById('combat-stage');
+        if (!stage) return;
+
+        // Remove all existing status overlays
+        stage.querySelectorAll('[class^="status-overlay-"]').forEach(el => el.remove());
+
+        // Add overlays for active debuffs on the player
+        const activeTypes = new Set();
+        for (const buff of this.playerBuffs) {
+            if (buff.type === 'poison' || buff.type === 'blind' || buff.type === 'slow' || buff.type === 'weaken') {
+                activeTypes.add(buff.type);
+            }
+        }
+        if (GameState.player.statusEffects) {
+            for (const se of GameState.player.statusEffects) {
+                if (se.type === 'poison') activeTypes.add('poison');
+            }
+        }
+
+        for (const type of activeTypes) {
+            const overlay = document.createElement('div');
+            overlay.className = `status-overlay-${type}`;
+            stage.appendChild(overlay);
+        }
+    },
+
+    // ---- PERSISTENT COMBAT AMBIENT PARTICLES ----
+    _ambientParticleInterval: null,
+
+    startAmbientParticles() {
+        this.stopAmbientParticles();
+        const stage = document.getElementById('combat-stage');
+        if (!stage) return;
+
+        const region = GameState.currentRegion || 'ashen_wastes';
+        let particleClass, count;
+
+        if (region === 'hollowfen') {
+            particleClass = 'spore';
+            count = 8;
+        } else if (region === 'void_sanctum') {
+            particleClass = 'void-mote';
+            count = 10;
+        } else {
+            particleClass = 'ember';
+            count = 12;
+        }
+
+        // Create initial batch
+        this._spawnAmbientBatch(stage, particleClass, count);
+
+        // Respawn particles periodically
+        this._ambientParticleInterval = setInterval(() => {
+            // Clean up old particles (beyond a reasonable count)
+            const existing = stage.querySelectorAll('.combat-ambient-particle');
+            if (existing.length < count * 2) {
+                this._spawnAmbientBatch(stage, particleClass, Math.ceil(count / 2));
+            }
+        }, 3000);
+    },
+
+    _spawnAmbientBatch(stage, particleClass, count) {
+        const stageRect = stage.getBoundingClientRect();
+        const W = stageRect.width || 300;
+        const H = stageRect.height || 400;
+
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement('div');
+            p.className = `combat-ambient-particle ${particleClass}`;
+            const size = 2 + Math.random() * 4;
+            const x = Math.random() * W;
+            const y = H * 0.3 + Math.random() * H * 0.6;
+            const duration = 3 + Math.random() * 4;
+            const delay = Math.random() * 3;
+            const dx = (Math.random() - 0.5) * 30;
+            const dy = -(20 + Math.random() * 40);
+            const dx2 = dx + (Math.random() - 0.5) * 20;
+            const dy2 = dy - (20 + Math.random() * 30);
+            const alpha = 0.3 + Math.random() * 0.4;
+
+            p.style.cssText = `
+                left:${x}px;top:${y}px;
+                width:${size}px;height:${size}px;
+                --duration:${duration}s;--delay:${delay}s;
+                --dx:${dx}px;--dy:${dy}px;
+                --dx2:${dx2}px;--dy2:${dy2}px;
+                --alpha:${alpha};
+            `;
+            stage.appendChild(p);
+
+            // Remove after animation cycle
+            setTimeout(() => { if (p.parentNode) p.remove(); }, (duration + delay) * 1000);
+        }
+    },
+
+    stopAmbientParticles() {
+        if (this._ambientParticleInterval) {
+            clearInterval(this._ambientParticleInterval);
+            this._ambientParticleInterval = null;
+        }
+        const stage = document.getElementById('combat-stage');
+        if (stage) {
+            stage.querySelectorAll('.combat-ambient-particle').forEach(el => el.remove());
+        }
+    },
+
+    // ---- COUNTER / REACTION WINDOW ----
+    showCounterWindow() {
+        this._counterWindowActive = true;
+        this._counterSuccess = false;
+
+        const stage = document.getElementById('combat-stage');
+        if (!stage) return;
+
+        const counterBtn = document.createElement('button');
+        counterBtn.id = 'counter-btn';
+        counterBtn.className = 'counter-window-btn';
+        counterBtn.innerHTML = '<span class="counter-icon">⚡</span><span class="counter-text">COUNTER</span>';
+        counterBtn.addEventListener('click', () => {
+            if (this._counterWindowActive) {
+                this._counterSuccess = true;
+                this._counterWindowActive = false;
+                counterBtn.classList.add('counter-success');
+                this.logCombat('Counter! You brace at the perfect moment!', 'buff');
+                if (typeof Audio !== 'undefined') Audio.playDefend();
+                NativeBridge.hapticMedium();
+            }
+        });
+
+        // Add shrinking timer bar
+        const timerBar = document.createElement('div');
+        timerBar.className = 'counter-timer-bar';
+        counterBtn.appendChild(timerBar);
+
+        stage.appendChild(counterBtn);
+
+        // Force reflow then animate in
+        void counterBtn.offsetWidth;
+        counterBtn.classList.add('active');
+    },
+
+    hideCounterWindow() {
+        this._counterWindowActive = false;
+        const btn = document.getElementById('counter-btn');
+        if (btn) {
+            btn.classList.remove('active');
+            btn.classList.add('fading');
+            setTimeout(() => { if (btn.parentNode) btn.remove(); }, 300);
+        }
+    },
+
+    // ---- ENEMY WEAKNESS TOOLTIP ----
+    showWeaknessTooltip() {
+        if (!this.enemy) return;
+        const discovered = this._discoveredWeaknesses[this.enemy.key];
+        if (!discovered || Object.keys(discovered).length === 0) return;
+
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+
+        // Remove existing tooltip
+        const existing = display.querySelector('.weakness-tooltip');
+        if (existing) existing.remove();
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'weakness-tooltip';
+        let html = '';
+        const icons = { fire: '🔥', ice: '❄️', lightning: '⚡', shadow: '🌑' };
+        for (const [elem, result] of Object.entries(discovered)) {
+            const icon = icons[elem] || elem;
+            html += `<span class="weakness-entry ${result}">${icon}</span>`;
+        }
+        tooltip.innerHTML = html;
+        display.appendChild(tooltip);
     }
 };

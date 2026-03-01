@@ -5427,5 +5427,252 @@ const Sprites = {
             ctx.fillRect(p.x - camX, p.y - camY, p.size, p.size);
         }
         ctx.globalAlpha = 1;
+    },
+
+    // ── Combat Battlefield Backgrounds ─────────
+    // Procedural scene rendered onto #combat-bg-canvas
+
+    drawCombatBattlefield(canvas, region) {
+        if (!canvas) return;
+        const W = canvas.width;
+        const H = canvas.height;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        switch (region) {
+            case 'hollowfen': this._drawBattlefieldHollowfen(ctx, W, H); break;
+            case 'void_sanctum': this._drawBattlefieldVoidSanctum(ctx, W, H); break;
+            default: this._drawBattlefieldAshenWastes(ctx, W, H); break;
+        }
+    },
+
+    _drawBattlefieldAshenWastes(ctx, W, H) {
+        // Sky — smoky red-orange gradient
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.45);
+        skyGrad.addColorStop(0, '#1a0808');
+        skyGrad.addColorStop(0.3, '#2a100a');
+        skyGrad.addColorStop(0.6, '#3a1510');
+        skyGrad.addColorStop(1, '#4a2015');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, W, H * 0.45);
+
+        // Distant ember glow on horizon
+        ctx.fillStyle = 'rgba(255,80,20,0.08)';
+        ctx.beginPath();
+        ctx.ellipse(W * 0.3, H * 0.4, W * 0.25, H * 0.06, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(W * 0.7, H * 0.38, W * 0.15, H * 0.04, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Distant mountains / ruins silhouettes
+        ctx.fillStyle = '#1a0e0a';
+        ctx.beginPath();
+        ctx.moveTo(0, H * 0.42);
+        ctx.lineTo(W * 0.1, H * 0.32);
+        ctx.lineTo(W * 0.18, H * 0.36);
+        ctx.lineTo(W * 0.25, H * 0.28);
+        ctx.lineTo(W * 0.35, H * 0.38);
+        ctx.lineTo(W * 0.42, H * 0.34);
+        ctx.lineTo(W * 0.55, H * 0.40);
+        ctx.lineTo(W * 0.62, H * 0.30);
+        ctx.lineTo(W * 0.72, H * 0.36);
+        ctx.lineTo(W * 0.85, H * 0.32);
+        ctx.lineTo(W * 0.92, H * 0.38);
+        ctx.lineTo(W, H * 0.35);
+        ctx.lineTo(W, H * 0.45);
+        ctx.lineTo(0, H * 0.45);
+        ctx.closePath();
+        ctx.fill();
+
+        // Ground — scorched earth
+        const groundGrad = ctx.createLinearGradient(0, H * 0.44, 0, H);
+        groundGrad.addColorStop(0, '#2a1810');
+        groundGrad.addColorStop(0.3, '#1e120c');
+        groundGrad.addColorStop(1, '#0e0806');
+        ctx.fillStyle = groundGrad;
+        ctx.fillRect(0, H * 0.44, W, H * 0.56);
+
+        // Ash/crack texture on ground
+        const rng = this.seeded(42);
+        ctx.fillStyle = '#1a100a';
+        for (let i = 0; i < 40; i++) {
+            const x = rng() * W;
+            const y = H * 0.46 + rng() * H * 0.50;
+            const w = 2 + rng() * 8;
+            ctx.fillRect(x, y, w, 1);
+        }
+
+        // Embers / ash particles (static)
+        for (let i = 0; i < 20; i++) {
+            const x = rng() * W;
+            const y = rng() * H * 0.8;
+            const size = 1 + rng() * 2;
+            const alpha = 0.2 + rng() * 0.4;
+            ctx.fillStyle = `rgba(255,${60 + Math.floor(rng() * 80)},0,${alpha})`;
+            ctx.fillRect(x, y, size, size);
+        }
+
+        // Dead tree silhouettes on the sides
+        ctx.fillStyle = '#0e0806';
+        // Left tree
+        ctx.fillRect(W * 0.05, H * 0.25, 3, H * 0.2);
+        ctx.fillRect(W * 0.04, H * 0.25, 5, 2);
+        ctx.fillRect(W * 0.02, H * 0.20, 2, H * 0.08);
+        ctx.fillRect(W * 0.07, H * 0.22, 2, H * 0.06);
+        // Right tree
+        ctx.fillRect(W * 0.90, H * 0.28, 3, H * 0.18);
+        ctx.fillRect(W * 0.89, H * 0.28, 5, 2);
+        ctx.fillRect(W * 0.92, H * 0.24, 2, H * 0.06);
+        ctx.fillRect(W * 0.88, H * 0.26, 2, H * 0.05);
+
+        // Vignette overlay
+        this._drawBattlefieldVignette(ctx, W, H);
+    },
+
+    _drawBattlefieldHollowfen(ctx, W, H) {
+        // Sky — sickly green-grey fog
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.5);
+        skyGrad.addColorStop(0, '#0a0e08');
+        skyGrad.addColorStop(0.4, '#121a10');
+        skyGrad.addColorStop(1, '#1a2216');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, W, H * 0.5);
+
+        // Fog glow
+        ctx.fillStyle = 'rgba(80,120,60,0.06)';
+        ctx.beginPath();
+        ctx.ellipse(W * 0.5, H * 0.35, W * 0.4, H * 0.12, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Twisted tree silhouettes
+        ctx.fillStyle = '#0a0e06';
+        // Left twisted tree
+        ctx.fillRect(W * 0.08, H * 0.15, 4, H * 0.35);
+        ctx.fillRect(W * 0.06, H * 0.15, 8, 2);
+        ctx.fillRect(W * 0.03, H * 0.10, 3, H * 0.10);
+        ctx.fillRect(W * 0.10, H * 0.12, 3, H * 0.08);
+        ctx.fillRect(W * 0.05, H * 0.20, 2, H * 0.06);
+        // Right hanging vines tree
+        ctx.fillRect(W * 0.88, H * 0.10, 4, H * 0.40);
+        ctx.fillRect(W * 0.85, H * 0.10, 10, 2);
+        ctx.fillRect(W * 0.92, H * 0.08, 3, H * 0.08);
+        ctx.fillRect(W * 0.84, H * 0.14, 2, H * 0.06);
+        // Hanging vines
+        ctx.fillStyle = '#1a2a12';
+        for (let i = 0; i < 4; i++) {
+            const vx = W * 0.84 + i * 4;
+            ctx.fillRect(vx, H * 0.12, 1, H * 0.15 + i * 4);
+        }
+
+        // Swamp water/ground
+        const groundGrad = ctx.createLinearGradient(0, H * 0.48, 0, H);
+        groundGrad.addColorStop(0, '#1a2216');
+        groundGrad.addColorStop(0.3, '#121a10');
+        groundGrad.addColorStop(1, '#080e06');
+        ctx.fillStyle = groundGrad;
+        ctx.fillRect(0, H * 0.48, W, H * 0.52);
+
+        // Water reflections
+        const rng = this.seeded(77);
+        ctx.fillStyle = 'rgba(40,80,30,0.15)';
+        for (let i = 0; i < 15; i++) {
+            const x = rng() * W;
+            const y = H * 0.55 + rng() * H * 0.35;
+            ctx.fillRect(x, y, 6 + rng() * 12, 1);
+        }
+
+        // Fog wisps
+        ctx.fillStyle = 'rgba(100,130,80,0.04)';
+        for (let i = 0; i < 5; i++) {
+            const x = rng() * W;
+            const y = H * 0.3 + rng() * H * 0.3;
+            ctx.beginPath();
+            ctx.ellipse(x, y, 20 + rng() * 30, 4 + rng() * 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        this._drawBattlefieldVignette(ctx, W, H);
+    },
+
+    _drawBattlefieldVoidSanctum(ctx, W, H) {
+        // Deep void — near-black with purple cosmic energy
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+        skyGrad.addColorStop(0, '#04020a');
+        skyGrad.addColorStop(0.3, '#0a0614');
+        skyGrad.addColorStop(0.6, '#08041a');
+        skyGrad.addColorStop(1, '#020108');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Void energy rifts
+        ctx.fillStyle = 'rgba(120,40,180,0.06)';
+        ctx.beginPath();
+        ctx.ellipse(W * 0.3, H * 0.3, W * 0.15, H * 0.25, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(80,20,160,0.04)';
+        ctx.beginPath();
+        ctx.ellipse(W * 0.7, H * 0.5, W * 0.2, H * 0.15, -0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Floating stone platform (ground)
+        ctx.fillStyle = '#1a1428';
+        ctx.beginPath();
+        ctx.ellipse(W * 0.5, H * 0.65, W * 0.45, H * 0.12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#221a30';
+        ctx.beginPath();
+        ctx.ellipse(W * 0.5, H * 0.63, W * 0.40, H * 0.08, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Rune marks on platform
+        const rng = this.seeded(99);
+        ctx.fillStyle = 'rgba(150,60,220,0.12)';
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const r = W * 0.25;
+            const x = W * 0.5 + Math.cos(angle) * r;
+            const y = H * 0.63 + Math.sin(angle) * r * 0.3;
+            ctx.fillRect(x - 1, y - 1, 3, 3);
+        }
+
+        // Distant floating shards
+        ctx.fillStyle = '#2a1a3a';
+        ctx.save();
+        ctx.translate(W * 0.15, H * 0.25);
+        ctx.rotate(0.4);
+        ctx.fillRect(-4, -8, 8, 16);
+        ctx.restore();
+        ctx.save();
+        ctx.translate(W * 0.85, H * 0.2);
+        ctx.rotate(-0.3);
+        ctx.fillRect(-3, -6, 6, 12);
+        ctx.restore();
+        ctx.save();
+        ctx.translate(W * 0.75, H * 0.45);
+        ctx.rotate(0.6);
+        ctx.fillRect(-2, -5, 4, 10);
+        ctx.restore();
+
+        // Stars / void particles
+        for (let i = 0; i < 30; i++) {
+            const x = rng() * W;
+            const y = rng() * H * 0.55;
+            const alpha = 0.1 + rng() * 0.3;
+            const size = rng() < 0.3 ? 2 : 1;
+            ctx.fillStyle = `rgba(${150 + Math.floor(rng() * 60)},${100 + Math.floor(rng() * 60)},${200 + Math.floor(rng() * 55)},${alpha})`;
+            ctx.fillRect(x, y, size, size);
+        }
+
+        this._drawBattlefieldVignette(ctx, W, H);
+    },
+
+    _drawBattlefieldVignette(ctx, W, H) {
+        // Dark vignette around edges
+        const vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.25, W / 2, H / 2, Math.max(W, H) * 0.7);
+        vg.addColorStop(0, 'rgba(0,0,0,0)');
+        vg.addColorStop(1, 'rgba(0,0,0,0.5)');
+        ctx.fillStyle = vg;
+        ctx.fillRect(0, 0, W, H);
     }
 };

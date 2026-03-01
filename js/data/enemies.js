@@ -8,6 +8,8 @@ const ENEMIES = {
         name: 'Void Rat', icon: '🐀', level: 1, area: 'ashen_wastes',
         hp: 20, attack: 4, defense: 1, speed: 6, magicDefense: 0,
         xpReward: 12, goldReward: [2, 6],
+        behavior: 'aggro',
+        resistances: { fire: 0, ice: 0, lightning: 0, shadow: -0.25 },
         abilities: [
             { name: 'Bite', damage: [3, 6], type: 'physical' }
         ],
@@ -18,6 +20,8 @@ const ENEMIES = {
         name: 'Ashen Wraith', icon: '👻', level: 2, area: 'ashen_wastes',
         hp: 35, attack: 6, defense: 2, speed: 4, magicDefense: 4,
         xpReward: 25, goldReward: [5, 12],
+        behavior: 'support',
+        resistances: { fire: 0.3, ice: -0.25, lightning: 0, shadow: 0.5 },
         abilities: [
             { name: 'Spectral Touch', damage: [5, 10], type: 'magical' },
             { name: 'Wail', damage: [3, 5], type: 'magical', aoe: true }
@@ -29,6 +33,8 @@ const ENEMIES = {
         name: 'Scorched Bandit', icon: '🗡️', level: 2, area: 'ashen_wastes',
         hp: 40, attack: 8, defense: 3, speed: 4, magicDefense: 1,
         xpReward: 28, goldReward: [8, 20],
+        behavior: 'aggro',
+        resistances: { fire: 0.2, ice: -0.2, lightning: 0, shadow: 0 },
         abilities: [
             { name: 'Slash', damage: [6, 12], type: 'physical' },
             { name: 'Throw Ash', damage: [3, 5], type: 'physical', debuff: 'blind' }
@@ -40,6 +46,8 @@ const ENEMIES = {
         name: 'Ember Hound', icon: '🐕', level: 3, area: 'ashen_wastes',
         hp: 50, attack: 10, defense: 3, speed: 7, magicDefense: 2,
         xpReward: 35, goldReward: [6, 15],
+        behavior: 'aggro',
+        resistances: { fire: 0.5, ice: -0.5, lightning: 0, shadow: 0 },
         abilities: [
             { name: 'Fire Bite', damage: [8, 14], type: 'physical', element: 'fire' },
             { name: 'Flame Breath', damage: [10, 16], type: 'magical', element: 'fire' }
@@ -53,6 +61,8 @@ const ENEMIES = {
         name: 'Bog Crawler', icon: '🦎', level: 3, area: 'hollowfen',
         hp: 45, attack: 7, defense: 5, speed: 3, magicDefense: 2,
         xpReward: 30, goldReward: [8, 18],
+        behavior: 'defensive',
+        resistances: { fire: -0.3, ice: 0.2, lightning: -0.2, shadow: 0 },
         abilities: [
             { name: 'Claw Swipe', damage: [6, 11], type: 'physical' },
             { name: 'Venomous Spit', damage: [4, 8], type: 'magical', debuff: 'poison' }
@@ -64,6 +74,8 @@ const ENEMIES = {
         name: 'Fen Witch', icon: '🧙', level: 4, area: 'hollowfen',
         hp: 38, attack: 4, defense: 2, speed: 5, magicDefense: 8,
         xpReward: 45, goldReward: [12, 25],
+        behavior: 'support',
+        resistances: { fire: -0.2, ice: 0.3, lightning: 0, shadow: 0.3 },
         abilities: [
             { name: 'Hex Bolt', damage: [10, 18], type: 'magical' },
             { name: 'Life Drain', damage: [8, 12], type: 'magical', lifesteal: 50 },
@@ -76,6 +88,8 @@ const ENEMIES = {
         name: 'Drowned Knight', icon: '🛡️', level: 5, area: 'hollowfen',
         hp: 70, attack: 12, defense: 8, speed: 2, magicDefense: 3,
         xpReward: 55, goldReward: [15, 35],
+        behavior: 'defensive',
+        resistances: { fire: -0.3, ice: 0.4, lightning: -0.4, shadow: 0 },
         abilities: [
             { name: 'Heavy Swing', damage: [12, 20], type: 'physical' },
             { name: 'Shield Wall', damage: [0, 0], type: 'buff', buff: 'defense' },
@@ -90,6 +104,8 @@ const ENEMIES = {
         name: 'Void Acolyte', icon: '🧛', level: 5, area: 'void_sanctum',
         hp: 50, attack: 8, defense: 3, speed: 5, magicDefense: 6,
         xpReward: 50, goldReward: [15, 30],
+        behavior: 'support',
+        resistances: { fire: 0, ice: 0, lightning: -0.2, shadow: 0.5 },
         abilities: [
             { name: 'Void Bolt', damage: [12, 20], type: 'magical' },
             { name: 'Dark Shield', damage: [0, 0], type: 'buff', buff: 'magicDefense' }
@@ -101,6 +117,8 @@ const ENEMIES = {
         name: 'Reality Shard', icon: '💎', level: 6, area: 'void_sanctum',
         hp: 40, attack: 15, defense: 10, speed: 3, magicDefense: 10,
         xpReward: 65, goldReward: [20, 45],
+        behavior: 'defensive',
+        resistances: { fire: 0.2, ice: 0.2, lightning: 0.2, shadow: -0.3 },
         abilities: [
             { name: 'Fracture', damage: [15, 25], type: 'magical' },
             { name: 'Reflect', damage: [0, 0], type: 'buff', buff: 'reflect' }
@@ -112,6 +130,8 @@ const ENEMIES = {
         name: 'Shadow Sentinel', icon: '⚫', level: 7, area: 'void_sanctum',
         hp: 85, attack: 14, defense: 7, speed: 6, magicDefense: 7,
         xpReward: 80, goldReward: [25, 55],
+        behavior: 'aggro',
+        resistances: { fire: -0.2, ice: 0, lightning: -0.2, shadow: 0.5 },
         abilities: [
             { name: 'Shadow Cleave', damage: [14, 24], type: 'physical' },
             { name: 'Void Pulse', damage: [10, 18], type: 'magical', aoe: true },
@@ -127,6 +147,8 @@ const ENEMIES = {
         hp: 150, attack: 14, defense: 6, speed: 4, magicDefense: 4,
         xpReward: 150, goldReward: [50, 100],
         isBoss: true,
+        behavior: 'aggro',
+        resistances: { fire: 0.5, ice: -0.4, lightning: 0, shadow: 0.2 },
         abilities: [
             { name: 'Regal Strike', damage: [12, 20], type: 'physical' },
             { name: 'Crown of Flames', damage: [15, 25], type: 'magical', element: 'fire', aoe: true },
@@ -146,6 +168,8 @@ const ENEMIES = {
         hp: 200, attack: 16, defense: 5, speed: 5, magicDefense: 10,
         xpReward: 250, goldReward: [80, 150],
         isBoss: true,
+        behavior: 'support',
+        resistances: { fire: -0.4, ice: 0.3, lightning: -0.3, shadow: 0.2 },
         abilities: [
             { name: 'Constrict', damage: [14, 22], type: 'physical', debuff: 'slow' },
             { name: 'Plague Breath', damage: [12, 20], type: 'magical', debuff: 'poison' },
@@ -165,6 +189,8 @@ const ENEMIES = {
         hp: 350, attack: 22, defense: 8, speed: 7, magicDefense: 12,
         xpReward: 500, goldReward: [200, 400],
         isBoss: true,
+        behavior: 'aggro',
+        resistances: { fire: 0, ice: 0, lightning: 0, shadow: 0.75 },
         abilities: [
             { name: 'Unravel', damage: [20, 35], type: 'magical' },
             { name: 'Reality Tear', damage: [25, 40], type: 'magical', aoe: true },

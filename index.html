@@ -197,15 +197,22 @@
 
         <!-- Combat Screen -->
         <div id="combat-screen" class="screen">
+            <canvas id="combat-bg-canvas"></canvas>
             <div id="combat-arena">
-                <div id="enemy-section">
-                    <div id="enemy-display"></div>
-                    <div id="enemy-bars"></div>
+                <div id="combat-stage">
+                    <div id="enemy-section">
+                        <div id="enemy-intent"></div>
+                        <div id="enemy-display"></div>
+                        <div id="enemy-bars"></div>
+                    </div>
+                    <div id="combat-vfx-layer"></div>
+                    <div id="player-combat-sprite"></div>
                 </div>
                 <div id="combat-log-container">
                     <div id="combat-log"></div>
                 </div>
                 <div id="player-combat-section">
+                    <div id="combat-status-bar"></div>
                     <div id="player-combat-bars"></div>
                     <div id="combat-actions"></div>
                 </div>

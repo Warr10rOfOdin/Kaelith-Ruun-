@@ -76,6 +76,13 @@ const Combat = {
             else if (region === 'void_sanctum') combatScreen.classList.add('region-void');
         }
 
+        // Render procedural battlefield background
+        this.renderBattlefield();
+
+        // Clear enemy intent
+        const intentEl = document.getElementById('enemy-intent');
+        if (intentEl) intentEl.innerHTML = '';
+
         // Boss intro effect
         if (this.enemy.isBoss) {
             this.showBossIntro();
@@ -146,25 +153,22 @@ const Combat = {
             `;
         }
 
-        // Player combat sprite
-        const playerSection = document.getElementById('player-combat-section');
-        if (playerSection && typeof Sprites !== 'undefined') {
-            let spriteDiv = document.getElementById('player-combat-sprite');
-            if (!spriteDiv) {
-                spriteDiv = document.createElement('div');
-                spriteDiv.id = 'player-combat-sprite';
-                playerSection.insertBefore(spriteDiv, playerSection.firstChild);
-            }
-            const playerSprite = Sprites.getPlayerSprite ? Sprites.getPlayerSprite() : null;
-            if (playerSprite) {
-                spriteDiv.innerHTML = '';
-                const pCanvas = document.createElement('canvas');
-                pCanvas.width = playerSprite.width;
-                pCanvas.height = playerSprite.height;
-                const pCtx = pCanvas.getContext('2d');
-                pCtx.imageSmoothingEnabled = false;
-                pCtx.drawImage(playerSprite, 0, 0);
-                spriteDiv.appendChild(pCanvas);
+        // Player combat sprite — now in #combat-stage
+        if (typeof Sprites !== 'undefined') {
+            const spriteDiv = document.getElementById('player-combat-sprite');
+            if (spriteDiv) {
+                const playerSprite = Sprites.getPlayer ? Sprites.getPlayer('up', 0) : null;
+                if (playerSprite) {
+                    spriteDiv.innerHTML = '';
+                    const pCanvas = document.createElement('canvas');
+                    pCanvas.width = playerSprite.width;
+                    pCanvas.height = playerSprite.height;
+                    pCanvas.className = 'player-art-canvas';
+                    const pCtx = pCanvas.getContext('2d');
+                    pCtx.imageSmoothingEnabled = false;
+                    pCtx.drawImage(playerSprite, 0, 0);
+                    spriteDiv.appendChild(pCanvas);
+                }
             }
         }
 
@@ -201,28 +205,40 @@ const Combat = {
 
         let html = '';
 
-        // Basic attack
-        html += `<button class="combat-btn attack" onclick="Combat.playerAction('attack')">Attack</button>`;
+        // Basic attack — always available
+        html += `<button class="combat-btn attack" onclick="Combat.playerAction('attack')">
+            <span class="btn-label">Attack</span>
+        </button>`;
 
-        // Abilities
+        // Abilities with MP cost display
         if (p.abilities && p.abilities.length > 0) {
             p.abilities.forEach((ability, idx) => {
                 if (!ability) return;
                 const canUse = ability.mpCost <= p.mp;
-                html += `<button class="combat-btn magic" ${!canUse ? 'disabled' : ''} onclick="Combat.playerAction('ability', ${idx})">${ability.name} (${ability.mpCost} MP)</button>`;
+                const btnType = ability.type === 'buff' ? 'defend' : 'magic';
+                html += `<button class="combat-btn ${btnType}" ${!canUse ? 'disabled' : ''} onclick="Combat.playerAction('ability', ${idx})">
+                    <span class="btn-label">${ability.name}</span>
+                    <span class="btn-cost">${ability.mpCost} MP</span>
+                </button>`;
             });
         }
 
+        // Defend
+        html += `<button class="combat-btn defend" onclick="Combat.playerAction('defend')">
+            <span class="btn-label">Defend</span>
+        </button>`;
+
         // Use item
         const hasConsumables = p.inventory.some(i => ITEMS[i.key] && ITEMS[i.key].type === 'consumable');
-        html += `<button class="combat-btn item" ${!hasConsumables ? 'disabled' : ''} onclick="Combat.showItemMenu()">Use Item</button>`;
-
-        // Defend
-        html += `<button class="combat-btn defend" onclick="Combat.playerAction('defend')">Defend</button>`;
+        html += `<button class="combat-btn item" ${!hasConsumables ? 'disabled' : ''} onclick="Combat.showItemMenu()">
+            <span class="btn-label">Use Item</span>
+        </button>`;
 
         // Flee
         if (!this.enemy.isBoss) {
-            html += `<button class="combat-btn flee" onclick="Combat.playerAction('flee')">Flee</button>`;
+            html += `<button class="combat-btn flee" onclick="Combat.playerAction('flee')">
+                <span class="btn-label">Flee</span>
+            </button>`;
         }
 
         actionsDiv.innerHTML = html;
@@ -321,10 +337,50 @@ const Combat = {
         const isSlowed = this.playerBuffs.some(b => b.type === 'slow');
         const enemyDelay = isSlowed ? 300 : 600;
 
-        // Enemy turn after a delay
+        // Show enemy intent telegraph, then execute enemy turn
         this._setTimeout(() => {
-            if (this.active) this.enemyTurn();
+            if (!this.active) return;
+            this.telegraphEnemyTurn();
         }, enemyDelay);
+    },
+
+    // Telegraph the enemy's upcoming action, then execute after brief delay
+    telegraphEnemyTurn() {
+        if (!this.active || !this.enemy || this.enemy.hp <= 0) return;
+
+        // Pick the ability the enemy will use (same logic as enemyTurn)
+        const validAbilities = (this.enemy.abilities || []).filter(a => {
+            if (!a) return false;
+            if (a.threshold && this.enemy.maxHp > 0 && (this.enemy.hp / this.enemy.maxHp) > a.threshold) return false;
+            if (a.type === 'buff' || a.type === 'debuff') return Math.random() < 0.3;
+            return true;
+        });
+        const healAbility = (this.enemy.abilities || []).find(a => a && a.type === 'heal');
+        const willHeal = healAbility && this.enemy.hp < this.enemy.maxHp * 0.5 && Math.random() < 0.3;
+
+        let telegraphed = null;
+        if (willHeal) {
+            telegraphed = healAbility;
+        } else if (validAbilities.length > 0) {
+            telegraphed = validAbilities[Math.floor(Math.random() * validAbilities.length)];
+        } else if (this.enemy.abilities && this.enemy.abilities.length > 0) {
+            telegraphed = this.enemy.abilities[0];
+        }
+
+        // Store the telegraphed ability so enemyTurn uses the same one
+        this._telegraphedAbility = telegraphed;
+
+        // Show the intent indicator
+        if (telegraphed) {
+            this.showEnemyIntent(telegraphed);
+        }
+
+        // Execute after telegraph delay (600ms for normal, 900ms for boss specials)
+        const telegraphDelay = (this.enemy.isBoss && telegraphed && telegraphed.damage && telegraphed.damage[1] >= 20) ? 900 : 600;
+        this._setTimeout(() => {
+            this.clearEnemyIntent();
+            if (this.active) this.enemyTurn();
+        }, telegraphDelay);
     },
 
     performAttack() {
@@ -376,10 +432,15 @@ const Combat = {
         if (this.comboCount > this.maxCombo) this.maxCombo = this.comboCount;
         this.updateComboDisplay();
         this.shakeElement('enemy-display');
+        this.triggerEnemyHitRecoil();
+        this.triggerBarDrain();
         this.flashEnemy(isCrit ? 'rgba(255,200,50,0.7)' : 'rgba(255,255,255,0.5)');
         this.showSlashEffect('physical');
         this.showImpactParticles('enemy-display', isCrit ? '#ffcc44' : '#aabbff', isCrit ? 8 : 5);
         this.animatePlayerSprite('attacking');
+        if (isCrit) {
+            this.shakeElement('combat-arena');
+        }
         NativeBridge.hapticMedium();
     },
 
@@ -468,6 +529,8 @@ const Combat = {
             if (this.comboCount > this.maxCombo) this.maxCombo = this.comboCount;
             this.updateComboDisplay();
             this.shakeElement('enemy-display');
+            this.triggerEnemyHitRecoil();
+            this.triggerBarDrain();
             // Spell visual + sound effect
             const spellType = ability.type === 'magical' ? (ability.element === 'fire' ? 'fire' : 'ice') : 'physical';
             this.showSpellEffect(spellType);
@@ -481,6 +544,9 @@ const Combat = {
             const particleColor = ability.type === 'magical' ? (ability.element === 'fire' ? '#ff6622' : '#44aaff') : '#ffffff';
             this.showImpactParticles('enemy-display', particleColor, isCrit ? 10 : 6);
             this.animatePlayerSprite('attacking');
+            if (isCrit) {
+                this.shakeElement('combat-arena');
+            }
 
             // Lifesteal abilities
             if (ability.name === 'Crimson Drain' || ability.name === 'Reaping Strike') {
@@ -520,7 +586,7 @@ const Combat = {
         } else {
             this.logCombat('You fail to escape!', 'miss');
             this._setTimeout(() => {
-                if (this.active) this.enemyTurn();
+                if (this.active) this.telegraphEnemyTurn();
             }, 600);
         }
     },
@@ -564,20 +630,7 @@ const Combat = {
             this.checkBossPhase();
         }
 
-        // Enemy heal ability
-        if (this.enemy.abilities && this.enemy.abilities.length > 0) {
-            const healAbility = this.enemy.abilities.find(a => a && a.type === 'heal');
-            if (healAbility && this.enemy.hp < this.enemy.maxHp * 0.5 && Math.random() < 0.3) {
-                const healAmount = healAbility.amount || 20;
-                this.enemy.hp = Math.min(this.enemy.maxHp, this.enemy.hp + healAmount);
-                this.logCombat(`${this.enemy.name} regenerates ${healAmount} HP!`, 'heal');
-                this.updateBars();
-                this.finishEnemyTurn();
-                return;
-            }
-        }
-
-        // Choose enemy ability — guard against empty abilities
+        // Choose enemy ability — use telegraphed ability if available
         if (!this.enemy.abilities || this.enemy.abilities.length === 0) {
             const damage = this.calculateDamage(this.enemy.attack, GameState.player.defense);
             GameState.player.hp = Math.max(0, GameState.player.hp - damage);
@@ -592,16 +645,32 @@ const Combat = {
             return;
         }
 
-        const validAbilities = this.enemy.abilities.filter(a => {
-            if (!a) return false;
-            if (a.threshold && this.enemy.maxHp > 0 && (this.enemy.hp / this.enemy.maxHp) > a.threshold) return false;
-            if (a.type === 'buff' || a.type === 'debuff') return Math.random() < 0.3;
-            return true;
-        });
+        // Use pre-telegraphed ability if it exists, otherwise pick fresh
+        let ability = this._telegraphedAbility || null;
+        this._telegraphedAbility = null;
 
-        const ability = validAbilities.length > 0
-            ? validAbilities[Math.floor(Math.random() * validAbilities.length)]
-            : this.enemy.abilities[0];
+        if (!ability) {
+            const validAbilities = this.enemy.abilities.filter(a => {
+                if (!a) return false;
+                if (a.threshold && this.enemy.maxHp > 0 && (this.enemy.hp / this.enemy.maxHp) > a.threshold) return false;
+                if (a.type === 'buff' || a.type === 'debuff') return Math.random() < 0.3;
+                return true;
+            });
+            ability = validAbilities.length > 0
+                ? validAbilities[Math.floor(Math.random() * validAbilities.length)]
+                : this.enemy.abilities[0];
+        }
+
+        // If the selected ability is a heal, execute it
+        if (ability && ability.type === 'heal') {
+            const healAmount = ability.amount || 20;
+            this.enemy.hp = Math.min(this.enemy.maxHp, this.enemy.hp + healAmount);
+            this.logCombat(`${this.enemy.name} uses ${ability.name}! Regenerates ${healAmount} HP!`, 'heal');
+            this.showDamageNumber(healAmount, 'heal');
+            this.updateBars();
+            this.finishEnemyTurn();
+            return;
+        }
 
         if (!ability) {
             this.finishEnemyTurn();
@@ -1070,16 +1139,8 @@ const Combat = {
 
     // ---- STATUS DISPLAY IN COMBAT ----
     updateCombatStatus() {
-        // Player buffs/debuffs under player bars
-        let statusContainer = document.getElementById('combat-status-bar');
-        if (!statusContainer) {
-            const playerSection = document.getElementById('player-combat-section');
-            if (playerSection) {
-                statusContainer = document.createElement('div');
-                statusContainer.id = 'combat-status-bar';
-                playerSection.insertBefore(statusContainer, playerSection.querySelector('#combat-actions'));
-            }
-        }
+        // Player buffs/debuffs under player bars — container exists in HTML
+        const statusContainer = document.getElementById('combat-status-bar');
         if (!statusContainer) return;
 
         let html = '';
@@ -1163,6 +1224,7 @@ const Combat = {
         if (!enemy) return;
 
         this.logCombat(`The ${enemy.name} has been defeated!`, 'victory');
+        this.triggerEnemyDeathAnim();
         NativeBridge.hapticNotification('success');
         if (typeof Audio !== 'undefined') Audio.playVictory();
 
@@ -1357,6 +1419,83 @@ const Combat = {
 
         if (callback) {
             callback(reason);
+        }
+    },
+
+    // ---- BATTLEFIELD BACKGROUND ----
+    renderBattlefield() {
+        const canvas = document.getElementById('combat-bg-canvas');
+        if (!canvas || typeof Sprites === 'undefined') return;
+        // Size canvas to screen
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const region = GameState.currentRegion || 'ashen_wastes';
+        Sprites.drawCombatBattlefield(canvas, region);
+    },
+
+    // ---- ENEMY TELEGRAPH / INTENT ----
+    showEnemyIntent(ability) {
+        const intentEl = document.getElementById('enemy-intent');
+        if (!intentEl || !ability) return;
+
+        let intentType = 'attack';
+        let intentText = ability.name;
+        if (ability.type === 'buff') {
+            intentType = 'buff';
+        } else if (ability.type === 'debuff') {
+            intentType = 'debuff';
+        } else if (ability.type === 'heal') {
+            intentType = 'buff';
+        } else if (ability.damage && ability.damage[1] >= 20) {
+            intentType = 'special';
+        }
+
+        intentEl.innerHTML = `<span class="intent-indicator ${intentType}-intent">${intentText}</span>`;
+        intentEl.classList.add('visible');
+    },
+
+    clearEnemyIntent() {
+        const intentEl = document.getElementById('enemy-intent');
+        if (intentEl) {
+            intentEl.classList.remove('visible');
+            intentEl.innerHTML = '';
+        }
+    },
+
+    // ---- ENEMY HIT/DEATH ANIMATIONS ----
+    triggerEnemyHitRecoil() {
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+        const canvas = display.querySelector('.enemy-art-canvas');
+        if (canvas) {
+            canvas.classList.remove('hit');
+            void canvas.offsetWidth;
+            canvas.classList.add('hit');
+            this._setTimeout(() => canvas.classList.remove('hit'), 400);
+        }
+    },
+
+    triggerEnemyDeathAnim() {
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+        const canvas = display.querySelector('.enemy-art-canvas');
+        if (canvas) {
+            canvas.classList.add('dying');
+        }
+    },
+
+    // ---- DRAINING BAR EFFECT ----
+    triggerBarDrain() {
+        const bar = document.getElementById('enemy-hp-bar');
+        if (!bar) return;
+        bar.classList.add('draining');
+        this._setTimeout(() => bar.classList.remove('draining'), 400);
+
+        // Low HP pulse
+        if (this.enemy && this.enemy.maxHp > 0 && this.enemy.hp / this.enemy.maxHp < 0.25) {
+            bar.classList.add('low-hp');
+        } else if (bar) {
+            bar.classList.remove('low-hp');
         }
     }
 };

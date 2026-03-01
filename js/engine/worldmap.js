@@ -27,6 +27,9 @@ const WorldMap = {
     // Tile size
     TS: 32,
 
+    // Camera zoom (1.0 = default, higher = closer)
+    zoom: 1.35,
+
     // Input state (held keys)
     keys: { up: false, down: false, left: false, right: false, sprint: false },
 
@@ -192,9 +195,9 @@ const WorldMap = {
         // Movement
         this.handleMovement(dt);
 
-        // Camera follow with lerp
-        const targetCamX = this.px - this.vpW / 2;
-        const targetCamY = this.py - this.vpH / 2;
+        // Camera follow with lerp (account for zoom)
+        const targetCamX = this.px - this.vpW / (2 * this.zoom);
+        const targetCamY = this.py - this.vpH / (2 * this.zoom);
         const smoothing = 1 - Math.pow(this.camSmooth, dt);
         this.camX += (targetCamX - this.camX) * smoothing;
         this.camY += (targetCamY - this.camY) * smoothing;
@@ -202,9 +205,9 @@ const WorldMap = {
         // Update particles
         Sprites.updateParticles(dt);
 
-        // Update ambient particles
+        // Update ambient particles (use zoomed viewport)
         Sprites.updateAmbientParticles(dt, GameState.currentRegion,
-            this.camX, this.camY, this.vpW, this.vpH);
+            this.camX, this.camY, this.vpW / this.zoom, this.vpH / this.zoom);
 
         // Update diegetic overlay
         if (typeof DiegeticFX !== 'undefined') DiegeticFX.update();
@@ -549,8 +552,9 @@ const WorldMap = {
         const w = this.vpW;
         const h = this.vpH;
         const T = this.TS;
+        const Z = this.zoom;
 
-        // Clear with biome-appropriate color (no more black void)
+        // Clear with biome-appropriate color
         const bgColors = {
             ashen_wastes: '#2a1f14',
             hollowfen: '#0f1a1f',
@@ -559,23 +563,31 @@ const WorldMap = {
         ctx.fillStyle = bgColors[GameState.currentRegion] || '#1a2a15';
         ctx.fillRect(0, 0, w, h);
 
+        // Apply zoom — crisp pixel scaling
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.scale(Z, Z);
+
+        // Effective viewport in world space (smaller when zoomed)
+        const vw = w / Z;
+        const vh = h / Z;
+
         // Which tiles are visible
         const startTX = Math.floor(this.camX / T) - 1;
         const startTY = Math.floor(this.camY / T) - 1;
-        const endTX = Math.ceil((this.camX + w) / T) + 1;
-        const endTY = Math.ceil((this.camY + h) / T) + 1;
+        const endTX = Math.ceil((this.camX + vw) / T) + 1;
+        const endTY = Math.ceil((this.camY + vh) / T) + 1;
 
         const mapH = this.terrain.length;
         const mapW = this.terrain[0].length;
 
-        // Draw terrain tiles (including OOB as ground so world fills the screen)
+        // ── Pass 1: Base terrain tiles ──
         for (let ty = startTY; ty <= endTY; ty++) {
             for (let tx = startTX; tx <= endTX; tx++) {
                 const screenX = Math.floor(tx * T - this.camX);
                 const screenY = Math.floor(ty * T - this.camY);
 
                 if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) {
-                    // Out-of-bounds: draw repeating ground so no black void
                     const oobTile = Sprites.getTile('.', Math.abs(tx) % 64, Math.abs(ty) % 64);
                     if (oobTile) ctx.drawImage(oobTile, screenX, screenY, T, T);
                     continue;
@@ -589,59 +601,214 @@ const WorldMap = {
             }
         }
 
-        // Terrain shadow pass — tall objects cast directional shadows (southeast)
-        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        // ── Pass 2: Ground detail overlay — contextual details based on neighbors ──
+        this.drawGroundDetails(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
+
+        // ── Pass 2b: Animated grass sway on grass/tall grass tiles ──
+        this.drawGrassSway(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
+
+        // ── Pass 3: Terrain shadows — tall objects cast directional shadows ──
         for (let ty = startTY; ty <= endTY; ty++) {
             for (let tx = startTX; tx <= endTX; tx++) {
                 if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
                 const ch = this.getTerrainChar(tx, ty);
                 if (ch === 'T' || ch === '#' || ch === 'R' || ch === 'P' || ch === 'K') {
-                    // Shadow offset: 4px right, 4px down
-                    const sx = Math.floor(tx * T - this.camX) + 4;
-                    const sy = Math.floor(ty * T - this.camY) + 4;
-                    ctx.fillRect(sx, sy, T, T);
+                    const sx = Math.floor(tx * T - this.camX) + 5;
+                    const sy = Math.floor(ty * T - this.camY) + 5;
+                    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                    ctx.beginPath();
+                    ctx.ellipse(sx + T * 0.4, sy + T * 0.5, T * 0.45, T * 0.3, 0.3, 0, Math.PI * 2);
+                    ctx.fill();
                 }
             }
         }
 
-        // Draw entities
+        // ── Pass 4: Entity shadows ──
         for (const key in this.entityMap) {
             const entity = this.entityMap[key];
             const [ex, ey] = key.split(',').map(Number);
             const screenX = Math.floor(ex * T - this.camX);
             const screenY = Math.floor(ey * T - this.camY);
+            if (screenX < -T || screenX > vw || screenY < -T || screenY > vh) continue;
+            if (entity.type === 'npc' || entity.type === 'enemy_spawn' || entity.type === 'boss') {
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.ellipse(screenX + T / 2, screenY + T - 3, T * 0.35, 3, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
 
-            // Skip if off-screen
-            if (screenX < -T || screenX > w || screenY < -T || screenY > h) continue;
-
+        // ── Pass 5: Entities ──
+        for (const key in this.entityMap) {
+            const entity = this.entityMap[key];
+            const [ex, ey] = key.split(',').map(Number);
+            const screenX = Math.floor(ex * T - this.camX);
+            const screenY = Math.floor(ey * T - this.camY);
+            if (screenX < -T || screenX > vw || screenY < -T || screenY > vh) continue;
             this.drawEntity(ctx, entity, screenX, screenY);
         }
 
-        // Draw player
+        // ── Pass 6: Player shadow + player ──
         this.drawPlayer(ctx);
 
-        // Draw interaction prompt
+        // ── Pass 7: Interaction prompt ──
         this.drawInteractPrompt(ctx);
 
-        // Gathering particles
+        // ── Pass 8: Particles ──
         Sprites.drawParticles(ctx, this.camX, this.camY);
-
-        // Ambient biome particles (ash, fog, corruption motes)
         Sprites.drawAmbientParticles(ctx, this.camX, this.camY);
 
-        // Region tint
+        // Restore zoom transform before post-processing (these work in screen space)
+        ctx.restore();
+
+        // ── Pass 9: Post-processing (in screen space) ──
         Sprites.applyRegionTint(ctx, w, h, GameState.currentRegion);
 
-        // Dynamic lighting (darkness + light sources)
         Sprites.collectLightSources(this.terrain, this.entityMap,
-            this.camX, this.camY, w, h, this.TS);
+            this.camX, this.camY, vw, vh, this.TS);
         Sprites.drawLighting(ctx, w, h, GameState.currentRegion, this.timeOfDay);
 
-        // Weather overlay
         this.drawWeather(ctx);
-
-        // Vignette
         Sprites.drawVignette(ctx, w, h);
+    },
+
+    // ── Ground detail overlay — contextual details clustered near features ──
+    drawGroundDetails(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T) {
+        const terrainSet = new Set(['T', 'P', 'K', '#', 'R', 'I', '~', 'O', 'F', 'E', 'V', 'L']);
+
+        for (let ty = startTY; ty <= endTY; ty++) {
+            for (let tx = startTX; tx <= endTX; tx++) {
+                if (tx < 1 || ty < 1 || ty >= mapH - 1 || tx >= mapW - 1) continue;
+                const ch = this.getTerrainChar(tx, ty);
+                // Only overlay on walkable ground tiles
+                if (ch !== '.' && ch !== 'g' && ch !== 'w' && ch !== 'h' && ch !== 'B') continue;
+
+                const screenX = Math.floor(tx * T - this.camX);
+                const screenY = Math.floor(ty * T - this.camY);
+                const hash = Sprites.hash(tx, ty);
+
+                // Check what's adjacent
+                const n = this.getTerrainChar(tx, ty - 1);
+                const s = this.getTerrainChar(tx, ty + 1);
+                const e = this.getTerrainChar(tx + 1, ty);
+                const w = this.getTerrainChar(tx - 1, ty);
+
+                const nearPath = n === 'p' || s === 'p' || e === 'p' || w === 'p';
+                const nearTree = n === 'T' || s === 'T' || e === 'T' || w === 'T' ||
+                                 n === 'P' || s === 'P' || e === 'P' || w === 'P';
+                const nearWall = n === '#' || s === '#' || e === '#' || w === '#';
+                const nearWater = n === '~' || s === '~' || e === '~' || w === '~' ||
+                                  n === 'O' || s === 'O' || e === 'O' || w === 'O';
+                const nearFire = n === 'F' || s === 'F' || e === 'F' || w === 'F';
+                const nearDead = n === 'K' || s === 'K' || e === 'K' || w === 'K' ||
+                                 n === 'X' || s === 'X' || e === 'X' || w === 'X';
+
+                // Path-edge dirt scatter
+                if (nearPath && (hash % 5) < 3) {
+                    ctx.fillStyle = '#7a6a55';
+                    ctx.globalAlpha = 0.25;
+                    const dx = (hash % 7) * 4;
+                    const dy = ((hash >> 3) % 6) * 4;
+                    ctx.fillRect(screenX + dx, screenY + dy, 3, 2);
+                    if ((hash % 3) === 0) ctx.fillRect(screenX + dx + 8, screenY + dy + 6, 2, 2);
+                    ctx.globalAlpha = 1;
+                }
+
+                // Fallen leaves near trees
+                if (nearTree && (hash % 7) < 3) {
+                    const leafColors = ['#5a7a2a', '#4a6a1a', '#6a5a2a', '#7a6a3a'];
+                    ctx.fillStyle = leafColors[hash % leafColors.length];
+                    ctx.globalAlpha = 0.4;
+                    const lx = (hash % 5) * 5 + 2;
+                    const ly = ((hash >> 4) % 5) * 5 + 2;
+                    ctx.fillRect(screenX + lx, screenY + ly, 2, 1);
+                    ctx.fillRect(screenX + lx + 10, screenY + ly + 8, 1, 2);
+                    ctx.globalAlpha = 1;
+                }
+
+                // Rubble and moss near walls/ruins
+                if (nearWall && (hash % 4) < 2) {
+                    // Rubble
+                    ctx.fillStyle = '#5a5a5a';
+                    ctx.globalAlpha = 0.3;
+                    const rx = (hash % 6) * 4;
+                    const ry = ((hash >> 2) % 5) * 5;
+                    ctx.fillRect(screenX + rx, screenY + ry, 3, 2);
+                    ctx.fillRect(screenX + rx + 7, screenY + ry + 4, 2, 2);
+                    // Green moss patch
+                    ctx.fillStyle = '#3a6a3a';
+                    ctx.globalAlpha = 0.2;
+                    ctx.fillRect(screenX + rx + 14, screenY + ry + 10, 4, 3);
+                    ctx.globalAlpha = 1;
+                }
+
+                // Wet darkening near water
+                if (nearWater) {
+                    ctx.fillStyle = '#1a3a2a';
+                    ctx.globalAlpha = 0.15;
+                    ctx.fillRect(screenX, screenY, T, T);
+                    ctx.globalAlpha = 1;
+                }
+
+                // Scorch marks near campfires
+                if (nearFire) {
+                    ctx.fillStyle = '#3a2a1a';
+                    ctx.globalAlpha = 0.2;
+                    ctx.beginPath();
+                    ctx.ellipse(screenX + T / 2, screenY + T / 2, T * 0.4, T * 0.35, hash * 0.1, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+
+                // Bone fragments and dried patches near dead trees/bones
+                if (nearDead && (hash % 6) < 2) {
+                    ctx.fillStyle = '#8a7a6a';
+                    ctx.globalAlpha = 0.25;
+                    const bx = (hash % 8) * 3;
+                    const by = ((hash >> 3) % 7) * 3;
+                    ctx.fillRect(screenX + bx, screenY + by, 3, 1);
+                    ctx.globalAlpha = 1;
+                }
+            }
+        }
+    },
+
+    // ── Animated grass sway — subtle wind-driven blade movement ──
+    drawGrassSway(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T) {
+        const time = Date.now() * 0.001;
+        const bladeColors = ['#5aaa3e', '#6aba4e', '#4a9a2e'];
+        ctx.globalAlpha = 0.5;
+
+        for (let ty = startTY; ty <= endTY; ty++) {
+            for (let tx = startTX; tx <= endTX; tx++) {
+                if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
+                const ch = this.getTerrainChar(tx, ty);
+                // Only sway on grass/tallgrass/wildflower tiles
+                if (ch !== '.' && ch !== 'g' && ch !== 'w' && ch !== 'Q' && ch !== 'J') continue;
+
+                const hash = Sprites.hash(tx, ty);
+                // Only some tiles get sway (not every one — performance + visual rhythm)
+                if ((hash % 4) !== 0) continue;
+
+                const screenX = Math.floor(tx * T - this.camX);
+                const screenY = Math.floor(ty * T - this.camY);
+
+                // Wind wave: phase varies by position for natural wave effect
+                const phase = tx * 0.7 + ty * 0.4 + time * 2.5;
+                const sway = Math.sin(phase) * 2;
+
+                ctx.fillStyle = bladeColors[hash % bladeColors.length];
+
+                // Draw 2-3 swaying grass blades
+                const bx1 = (hash % 6) * 4 + 4;
+                const bx2 = ((hash >> 2) % 5) * 4 + 8;
+                const bh = ch === 'g' ? 6 : 4;
+
+                ctx.fillRect(screenX + bx1 + sway, screenY + T - bh - 2, 1, bh);
+                ctx.fillRect(screenX + bx2 + sway * 0.7, screenY + T - bh - 4, 1, bh + 1);
+            }
+        }
+        ctx.globalAlpha = 1;
     },
 
     drawPlayer(ctx) {
@@ -650,7 +817,16 @@ const WorldMap = {
 
         // Player drawn centered at their position
         const screenX = Math.floor(this.px - this.camX - sprite.width / 2);
-        const screenY = Math.floor(this.py - this.camY - sprite.height / 2 - 4); // offset up slightly
+        const screenY = Math.floor(this.py - this.camY - sprite.height / 2 - 4);
+
+        // Shadow under player's feet
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.beginPath();
+        ctx.ellipse(screenX + sprite.width / 2, screenY + sprite.height - 2,
+            sprite.width * 0.4, 4, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw player sprite
         ctx.drawImage(sprite, screenX, screenY);
     },
 
@@ -660,11 +836,27 @@ const WorldMap = {
             case 'npc': {
                 const npcSprite = Sprites.getNPC(entity.id);
                 if (npcSprite) {
+                    // NPC quest/talk indicator
+                    const bob = Math.sin(Date.now() * 0.003) * 2;
+                    ctx.fillStyle = '#ffcc00';
+                    ctx.globalAlpha = 0.7 + Math.sin(Date.now() * 0.004) * 0.3;
+                    ctx.beginPath();
+                    ctx.moveTo(screenX + T / 2, screenY - 4 + bob);
+                    ctx.lineTo(screenX + T / 2 - 3, screenY - 10 + bob);
+                    ctx.lineTo(screenX + T / 2 + 3, screenY - 10 + bob);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
                     ctx.drawImage(npcSprite, screenX + (T - npcSprite.width) / 2, screenY + (T - npcSprite.height) / 2);
                 }
                 break;
             }
             case 'enemy_spawn': {
+                // Danger marker with pulse
+                const pulse = 0.6 + Math.sin(Date.now() * 0.004 + screenX) * 0.4;
+                ctx.fillStyle = `rgba(180,40,40,${(0.15 * pulse).toFixed(2)})`;
+                ctx.beginPath();
+                ctx.ellipse(screenX + T / 2, screenY + T / 2, T * 0.5, T * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
                 const marker = Sprites.cache.enemy_marker;
                 if (marker) {
                     ctx.drawImage(marker, screenX + (T - marker.width) / 2, screenY + 2);
@@ -672,6 +864,12 @@ const WorldMap = {
                 break;
             }
             case 'boss': {
+                // Boss aura
+                const pulse = 0.5 + Math.sin(Date.now() * 0.003) * 0.5;
+                ctx.fillStyle = `rgba(200,160,40,${(0.12 * pulse).toFixed(2)})`;
+                ctx.beginPath();
+                ctx.ellipse(screenX + T / 2, screenY + T / 2, T * 0.6, T * 0.6, 0, 0, Math.PI * 2);
+                ctx.fill();
                 const boss = Sprites.cache.boss_marker;
                 if (boss) {
                     ctx.drawImage(boss, screenX + (T - boss.width) / 2, screenY + 2);
@@ -679,9 +877,21 @@ const WorldMap = {
                 break;
             }
             case 'chest': {
+                // Sparkle effect on chest
                 const chest = Sprites.cache.chest;
                 if (chest) {
                     ctx.drawImage(chest, screenX, screenY, T, T);
+                    // Sparkle particles
+                    const t = Date.now() * 0.002;
+                    for (let i = 0; i < 3; i++) {
+                        const angle = t + i * 2.1;
+                        const dist = 4 + Math.sin(t * 1.5 + i) * 3;
+                        const sx = screenX + T / 2 + Math.cos(angle) * dist;
+                        const sy = screenY + T * 0.3 + Math.sin(angle) * dist * 0.6;
+                        const alpha = 0.3 + Math.sin(t * 3 + i * 1.7) * 0.3;
+                        ctx.fillStyle = `rgba(255,220,100,${alpha.toFixed(2)})`;
+                        ctx.fillRect(Math.floor(sx), Math.floor(sy), 2, 2);
+                    }
                 }
                 break;
             }

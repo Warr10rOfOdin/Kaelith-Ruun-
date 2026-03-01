@@ -4,6 +4,32 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v0.8.2] — 2026-03-01 — Combat Phase 2: Real Immersion
+
+### Added
+- **Per-skill VFX system** — abilities now have unique visual effects mapped by name, element, and type
+  - New spell overlays: lightning (electric arc flash), blood (crimson pulse), heal (green glow), void (purple rip), buff (gold shimmer)
+  - New slash effects: lightning strike, blood splash, void burst, heal ring, multi-strike (3 overlapping arcs)
+  - `getAbilityVFX()` maps all 55+ player abilities to correct visual style
+- **Enemy attack wind-up animations** — visible charge/lean before enemy strikes land
+  - Physical: lean forward + lunge (0.5s)
+  - Magical: glow + saturate (0.5s)
+  - Heavy/boss: large wind-up with screen-edge glow (0.7s)
+- **Status effect overlays** on the battlefield during combat
+  - Poison: green drip gradient pulsing at bottom of stage
+  - Blind: dark vignette closing inward, pulsing
+  - Slow: frost border with ice glow shimmer
+  - Weaken: dim red-tinted ground overlay
+  - Auto-update each turn as debuffs tick and expire
+- **Persistent ambient combat particles** per region
+  - Ashen Wastes: 12 floating ember particles (orange-red, drift upward)
+  - Hollowfen: 8 floating spore particles (green, slow drift)
+  - Void Sanctum: 10 void mote particles (purple, ethereal float)
+  - Auto-spawn on combat start, respawn periodically, cleanup on exit
+- **Damage-scaled camera shake** — heavy shake (12px + rotation) for damage >= 30, standard for lighter hits
+
+---
+
 ## [v0.8.1] — 2026-03-01 — Immersive Combat Overhaul
 
 ### Added

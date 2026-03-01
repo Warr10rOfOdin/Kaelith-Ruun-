@@ -4,32 +4,26 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ---
 
-## Current Priority: Combat Phase 2 — Real Immersion
+## Current Priority: Combat Phase 3 — Gameplay Depth
 
-### Per-Skill VFX
-- [ ] Fire abilities: expanding flame burst with ember particles
-- [ ] Ice abilities: crystalline shard spray with frost overlay
-- [ ] Shadow abilities: dark tendrils with purple void glow
-- [ ] Blood abilities: crimson drain effect with lifesteal visual
-- [ ] Physical abilities: enhanced slash arcs with directional trails
+### Enemy Behavior Patterns
+- [ ] Aggro types: rush attacks, close-range focus
+- [ ] Defensive types: buff/shield-heavy, punish overcommit
+- [ ] Support types: heal/debuff-focused enemies
+- [ ] Boss-specific environmental mechanics
 
-### Enemy Attack Animations
-- [ ] Visible wind-up animation before enemy strikes (scale up, lean forward)
-- [ ] Different wind-up styles per enemy type (lunge, cast, roar)
-- [ ] Impact timing — delay damage number until animation peak
+### Reaction/Counter Window
+- [ ] Brief window to tap "Counter" when enemy telegraphs
+- [ ] Successful counter reduces damage or reflects partial
 
-### Status Effect Visuals
-- [ ] Poison: green drip overlay on affected character
-- [ ] Blind: dark vignette pulsing on player screen
-- [ ] Slow: frost crystal border on player sprite
-- [ ] Weaken: cracked/dim overlay on player
-- [ ] Reflect: shimmering barrier around enemy
+### Combo Chain Bonuses
+- [ ] Ability combos: using specific abilities in sequence grants bonus
+- [ ] Combo UI indicator showing chain progress
 
-### Particle Systems
-- [ ] Ashen Wastes combat: drifting ember particles (animated)
-- [ ] Hollowfen combat: fog wisps and floating spores
-- [ ] Void Sanctum combat: purple void energy motes
-- [ ] Boss fights: intensified particles during phase transitions
+### Elemental Resistances
+- [ ] Enemies have elemental weaknesses/resistances
+- [ ] Damage multipliers shown on hit (Weak! / Resist!)
+- [ ] UI tooltip showing enemy weaknesses after first encounter
 
 ### Sound Integration
 - [ ] Map Web Audio API sounds to combat actions
@@ -41,13 +35,6 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 ---
 
 ## Backlog
-
-### Combat Phase 3 — Gameplay Depth
-- [ ] Enemy behavior patterns (aggro types, defensive types, support types)
-- [ ] Reaction/counter window on telegraphed attacks
-- [ ] Combo chain bonuses
-- [ ] Elemental weakness/resistance system
-- [ ] Boss-specific environmental mechanics
 
 ### World Content
 - [ ] Fourth region: The Shattered Spire
@@ -65,6 +52,11 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ## Recently Completed
 
+- [x] Per-skill VFX system (fire/ice/lightning/blood/void/heal/buff/multi) — `combat.js` + `combat.css`
+- [x] Enemy wind-up animations (physical/magical/heavy) — `combat.css` + `combat.js`
+- [x] Status effect overlays (poison/blind/slow/weaken) — `combat.css` + `combat.js`
+- [x] Persistent ambient particles per region — `combat.js` + `combat.css`
+- [x] Damage-scaled camera shake — `combat.js`
 - [x] Procedural battlefield backgrounds (3 regions) — `sprites.js`
 - [x] Enemy telegraph/intent system — `combat.js`
 - [x] Enemy hit recoil + death animations — `combat.css` + `combat.js`

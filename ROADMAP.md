@@ -63,15 +63,17 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 
 ---
 
+### Immersive Combat — Phase 2: Real Immersion (v0.8.2)
+- [x] Per-skill VFX — unique visual effects for each ability (fire, ice, lightning, blood, void, heal, buff, multi-hit)
+- [x] Camera shake intensity scaling by damage amount
+- [x] Particle systems — persistent ember/fog/void particles during combat
+- [x] Enemy attack animations — visible wind-up before strike lands (physical/magical/heavy)
+- [x] Status effect visuals — poison drip, blind vignette, slow frost, weaken overlay
+
 ## In Progress
 
-### Immersive Combat — Phase 2: Real Immersion
-- [ ] Per-skill VFX — unique visual effects for each ability (fire burst, ice shards, shadow tendrils, blood drain)
-- [ ] Camera shake intensity scaling by damage amount
-- [ ] Particle systems — persistent ember/fog/void particles during combat
+### Audio & Sound Design
 - [ ] Sound design integration — hit sounds, spell SFX, ambient combat audio
-- [ ] Enemy attack animations — visible wind-up before strike lands
-- [ ] Status effect visuals — poison drip, blind overlay, slow frost
 
 ---
 

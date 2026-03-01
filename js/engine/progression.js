@@ -162,5 +162,129 @@ const Progression = {
         html += '</div>';
 
         panel.innerHTML = html;
+    },
+
+    renderAchievements() {
+        const panel = document.getElementById('side-panel-content');
+        if (!panel) return;
+        const s = GameState.stats || {};
+        const a = GameState.achievements || {};
+        const defs = GameState._achievementDefs || {};
+
+        let html = '<h3>Achievements</h3>';
+
+        // Achievement count
+        const total = Object.keys(defs).length;
+        const unlocked = Object.keys(a).length;
+        html += `<p style="color:var(--accent-gold);margin-bottom:1rem;font-size:0.9rem">${unlocked} / ${total} unlocked</p>`;
+
+        // Unlocked achievements
+        for (const [id, def] of Object.entries(defs)) {
+            const isUnlocked = a[id];
+            html += `<div style="padding:0.4rem 0;border-bottom:1px solid var(--bg-light);opacity:${isUnlocked ? '1' : '0.35'}">`;
+            html += `<div style="color:${isUnlocked ? 'var(--accent-gold)' : 'var(--text-dim)'};font-size:0.9rem">${isUnlocked ? '★' : '☆'} ${def.name}</div>`;
+            html += `<div style="color:var(--text-secondary);font-size:0.78rem">${def.desc}</div>`;
+            html += '</div>';
+        }
+
+        // Statistics section
+        html += '<h3 style="margin-top:1.5rem">Statistics</h3>';
+        html += '<div class="char-sheet"><div class="stat-group">';
+
+        const statDisplay = [
+            ['enemiesKilled', 'Enemies Defeated'],
+            ['bossesKilled', 'Bosses Defeated'],
+            ['totalDamageDealt', 'Total Damage Dealt'],
+            ['totalDamageReceived', 'Damage Received'],
+            ['criticalHits', 'Critical Hits'],
+            ['maxCombo', 'Best Combo'],
+            ['deathCount', 'Deaths'],
+            ['goldEarned', 'Gold Earned'],
+            ['goldSpent', 'Gold Spent'],
+            ['fishCaught', 'Fish Caught'],
+            ['resourcesGathered', 'Resources Gathered'],
+            ['itemsCrafted', 'Items Crafted'],
+            ['buildingsBuilt', 'Buildings Built'],
+            ['questsCompleted', 'Quests Completed'],
+            ['regionsDiscovered', 'Regions Discovered'],
+            ['highestLevel', 'Highest Level'],
+        ];
+
+        statDisplay.forEach(([key, label]) => {
+            html += `<div class="stat-row"><span class="stat-name">${label}</span><span class="stat-value">${s[key] || 0}</span></div>`;
+        });
+
+        // Play time
+        const mins = Math.floor((s.playTime || 0) / 60);
+        const hrs = Math.floor(mins / 60);
+        const remMins = mins % 60;
+        html += `<div class="stat-row"><span class="stat-name">Play Time</span><span class="stat-value">${hrs > 0 ? hrs + 'h ' : ''}${remMins}m</span></div>`;
+
+        html += '</div></div>';
+        panel.innerHTML = html;
+    },
+
+    // Check and grant quest rewards when all objectives in a stage/quest complete
+    checkQuestCompletion() {
+        if (!GameState.questProgress) return;
+
+        // Check main quest stages
+        const mainQuest = QUESTS.main_quest;
+        const mainProgress = GameState.questProgress.main;
+        if (!mainProgress._stagesRewarded) mainProgress._stagesRewarded = {};
+
+        for (let i = 0; i < mainQuest.stages.length; i++) {
+            const stage = mainQuest.stages[i];
+            if (mainProgress._stagesRewarded[i]) continue;
+
+            const allComplete = stage.objectives.every(obj =>
+                GameState.isObjectiveComplete('main', null, obj.id)
+            );
+            if (allComplete) {
+                mainProgress._stagesRewarded[i] = true;
+                if (stage.xpReward) {
+                    GameState.gainXp(stage.xpReward);
+                    Notifications.show(`Quest stage complete! +${stage.xpReward} XP`, 'gold');
+                }
+                if (stage.onComplete && typeof Narrative !== 'undefined') {
+                    Narrative.addSeparator();
+                    Narrative.addStory(stage.onComplete);
+                }
+                GameState.trackStat('questsCompleted');
+                // Advance stage
+                if (i + 1 < mainQuest.stages.length) {
+                    mainProgress.stage = i + 1;
+                }
+            }
+        }
+
+        // Check side quests
+        for (const [questId, quest] of Object.entries(QUESTS.side_quests)) {
+            const progress = GameState.questProgress.side[questId];
+            if (!progress || progress._rewarded) continue;
+
+            const allComplete = quest.objectives.every(obj =>
+                GameState.isObjectiveComplete('side', questId, obj.id)
+            );
+            if (allComplete) {
+                progress._rewarded = true;
+                if (quest.xpReward) {
+                    GameState.gainXp(quest.xpReward);
+                    Notifications.show(`${quest.name} complete! +${quest.xpReward} XP`, 'gold');
+                }
+                if (quest.itemReward) {
+                    GameState.addToInventory(quest.itemReward);
+                    const item = ITEMS[quest.itemReward];
+                    if (item) Notifications.show(`Received: ${item.icon} ${item.name}`, 'gold');
+                }
+                if (quest.onComplete && typeof Narrative !== 'undefined') {
+                    Narrative.addSeparator();
+                    Narrative.addStory(quest.onComplete);
+                }
+                GameState.trackStat('questsCompleted');
+            }
+        }
+
+        GameState.save();
     }
 };

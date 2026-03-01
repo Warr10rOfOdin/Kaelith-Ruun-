@@ -211,6 +211,9 @@ const Base = {
         Narrative.addStory(`You build a ${bld.name}! ${bld.description}`);
         Notifications.show(`${bld.name} built!`, 'gold');
 
+        GameState.trackStat('buildingsBuilt');
+        if (typeof Audio !== 'undefined') Audio.playBuild();
+
         HUD.update();
         GameState.save();
         if (typeof WorldMap !== 'undefined') WorldMap.updateActions();
@@ -412,6 +415,9 @@ const Base = {
         const resultItem = ITEMS[recipe.result.item];
         Narrative.addLoot(`Crafted: ${resultItem ? resultItem.icon : ''} ${resultItem ? resultItem.name : recipe.result.item} x${quantity}`);
         Notifications.show(`Crafted ${resultItem ? resultItem.name : recipe.result.item}!`, 'gold');
+
+        GameState.trackStat('itemsCrafted');
+        if (typeof Audio !== 'undefined') Audio.playCraft();
 
         HUD.update();
         GameState.save();

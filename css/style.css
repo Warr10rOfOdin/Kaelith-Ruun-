@@ -224,6 +224,39 @@ body {
     pointer-events: none;
 }
 
+.save-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 80%;
+    max-width: 280px;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.8rem;
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+}
+
+.autosave-indicator {
+    position: fixed;
+    top: calc(0.5rem + var(--sat));
+    right: 0.5rem;
+    padding: 0.3rem 0.7rem;
+    background: rgba(42, 42, 60, 0.85);
+    border: 1px solid var(--accent-gold-dim);
+    border-radius: 4px;
+    color: var(--accent-gold);
+    font-size: 0.7rem;
+    font-family: var(--font-heading);
+    letter-spacing: 0.05em;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+
 .version-info {
     position: absolute;
     bottom: calc(1rem + var(--sab));

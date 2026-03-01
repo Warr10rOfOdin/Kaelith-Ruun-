@@ -70,11 +70,37 @@ const Inventory = {
         html += `<p style="color:var(--text-secondary);font-style:italic;margin-bottom:1rem">${item.description}</p>`;
 
         if (item.stats) {
+            // Compare against currently equipped item
+            const slot = item.slot || this.guessSlot(item);
+            const equippedKey = slot && GameState.player.equipment[slot] ? GameState.player.equipment[slot] : null;
+            const equippedItem = equippedKey ? ITEMS[equippedKey] : null;
+            const equippedStats = equippedItem && equippedItem.stats ? equippedItem.stats : {};
+
             html += '<div class="char-sheet"><div class="stat-group"><h4>Stats</h4>';
-            for (const [stat, val] of Object.entries(item.stats)) {
-                html += `<div class="stat-row"><span class="stat-name">${this.formatStatName(stat)}</span><span class="stat-value stat-bonus">+${val}</span></div>`;
+            // Collect all stat keys from both items
+            const allStats = new Set([...Object.keys(item.stats), ...Object.keys(equippedStats)]);
+            for (const stat of allStats) {
+                const newVal = item.stats[stat] || 0;
+                const oldVal = equippedStats[stat] || 0;
+                const diff = newVal - oldVal;
+                let diffHtml = '';
+                if (equippedItem && diff !== 0) {
+                    const color = diff > 0 ? 'var(--accent-green-bright)' : 'var(--accent-red-bright)';
+                    const sign = diff > 0 ? '+' : '';
+                    diffHtml = ` <span style="color:${color};font-size:0.75rem">(${sign}${diff})</span>`;
+                }
+                if (newVal > 0) {
+                    html += `<div class="stat-row"><span class="stat-name">${this.formatStatName(stat)}</span><span class="stat-value stat-bonus">+${newVal}${diffHtml}</span></div>`;
+                } else if (diff < 0) {
+                    // Stat exists on equipped but not on this item
+                    html += `<div class="stat-row"><span class="stat-name">${this.formatStatName(stat)}</span><span class="stat-value" style="color:var(--accent-red-bright)">—${diffHtml}</span></div>`;
+                }
             }
             html += '</div></div>';
+
+            if (equippedItem) {
+                html += `<p style="color:var(--text-dim);font-size:0.75rem;margin:0.5rem 0">Currently equipped: ${equippedItem.icon} ${equippedItem.name}</p>`;
+            }
         }
 
         if (item.effect) {
@@ -196,6 +222,18 @@ const Inventory = {
         Notifications.show(`Sold ${item.name} for ${sellPrice} gold`, 'gold');
         HUD.update();
         this.render();
+    },
+
+    guessSlot(item) {
+        if (item.slot) return item.slot;
+        if (item.type === 'weapon' || item.type === 'tool') return 'weapon';
+        if (item.type === 'armor') {
+            if (item.name && item.name.toLowerCase().includes('helm')) return 'helmet';
+            if (item.name && item.name.toLowerCase().includes('boot')) return 'boots';
+            if (item.name && item.name.toLowerCase().includes('shield')) return 'offhand';
+            return 'armor';
+        }
+        return null;
     },
 
     formatStatName(stat) {

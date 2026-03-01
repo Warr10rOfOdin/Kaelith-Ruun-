@@ -537,3 +537,161 @@
         bottom: 80px;
     }
 }
+
+/* ---- Status Icons ---- */
+.hud-row-status {
+    display: flex;
+    gap: 0.3rem;
+    padding: 0 0.5rem 0.2rem;
+    min-height: 0;
+    flex-wrap: wrap;
+}
+
+.status-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: 0.65rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    animation: statusPulse 2s ease-in-out infinite;
+    white-space: nowrap;
+}
+
+.status-icon.buff {
+    background: rgba(68,170,85,0.2);
+    border: 1px solid rgba(68,170,85,0.4);
+    color: var(--accent-green-bright);
+}
+
+.status-icon.debuff {
+    background: rgba(201,68,68,0.2);
+    border: 1px solid rgba(201,68,68,0.4);
+    color: var(--accent-red-bright);
+}
+
+.status-icon.enchant {
+    background: rgba(201,168,76,0.15);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--accent-gold);
+}
+
+@keyframes statusPulse {
+    0%, 100% { opacity: 0.85; }
+    50% { opacity: 1; }
+}
+
+/* ---- Minimap ---- */
+#hud-minimap {
+    position: fixed;
+    top: calc(0.5rem + var(--sat));
+    right: 0.5rem;
+    width: 80px;
+    height: 80px;
+    border: 1px solid rgba(58,58,82,0.6);
+    border-radius: 4px;
+    background: rgba(10,10,15,0.7);
+    z-index: 11;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+/* ---- Combat Status Bar ---- */
+#combat-status-bar {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.2rem 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-height: 0;
+}
+
+.combat-status-icon {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.35rem;
+    border-radius: 3px;
+    animation: statusPulse 2s ease-in-out infinite;
+}
+
+.combat-status-icon.player-buff {
+    background: rgba(68,170,85,0.2);
+    border: 1px solid rgba(68,170,85,0.4);
+    color: var(--accent-green-bright);
+}
+
+.combat-status-icon.player-debuff {
+    background: rgba(201,68,68,0.2);
+    border: 1px solid rgba(201,68,68,0.4);
+    color: var(--accent-red-bright);
+}
+
+.combat-status-icon.enemy-debuff {
+    background: rgba(100,130,255,0.2);
+    border: 1px solid rgba(100,130,255,0.4);
+    color: var(--accent-blue-bright);
+}
+
+/* ---- Combo Counter ---- */
+.combo-counter {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    color: var(--accent-gold);
+    text-shadow: 0 0 8px rgba(201,168,76,0.5);
+    z-index: 10;
+    pointer-events: none;
+    animation: comboFlash 0.3s ease;
+}
+
+.combo-counter.high {
+    font-size: 0.85rem;
+    color: var(--accent-red-bright);
+    text-shadow: 0 0 12px rgba(201,68,68,0.6);
+}
+
+@keyframes comboFlash {
+    0% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* ---- Loot Rarity Glow ---- */
+.loot-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-heading);
+    text-align: center;
+    z-index: 200;
+    pointer-events: none;
+    animation: lootAppear 2s ease forwards;
+}
+
+.loot-notification .loot-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.loot-notification .loot-name {
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+}
+
+.loot-notification.common .loot-name { color: var(--text-primary); }
+.loot-notification.uncommon .loot-name { color: var(--accent-green-bright); text-shadow: 0 0 10px rgba(68,170,85,0.5); }
+.loot-notification.rare .loot-name { color: var(--accent-blue-bright); text-shadow: 0 0 15px rgba(68,119,204,0.5); }
+.loot-notification.epic .loot-name { color: var(--accent-purple-bright); text-shadow: 0 0 20px rgba(160,68,201,0.5); }
+.loot-notification.legendary .loot-name { color: var(--accent-gold); text-shadow: 0 0 25px rgba(201,168,76,0.6); }
+
+@keyframes lootAppear {
+    0% { opacity: 0; transform: translate(-50%, -40%) scale(0.5); }
+    15% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    30% { transform: translate(-50%, -50%) scale(1); }
+    70% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
+}

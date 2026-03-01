@@ -2389,66 +2389,131 @@ const Sprites = {
     drawCombatBogCrawler() {
         const W = 64, H = 80;
         const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Murky swamp glow on ground
+        ctx.fillStyle = 'rgba(40,80,30,0.1)';
+        ctx.beginPath(); ctx.ellipse(32, 68, 28, 10, 0, 0, Math.PI*2); ctx.fill();
         // Shadow
-        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
         ctx.beginPath(); ctx.ellipse(32, 72, 22, 6, 0, 0, Math.PI*2); ctx.fill();
-        // Legs (wide stance)
+        // Mud puddle beneath
+        ctx.fillStyle = 'rgba(60,50,30,0.25)';
+        ctx.beginPath(); ctx.ellipse(32, 74, 18, 4, 0, 0, Math.PI*2); ctx.fill();
+        // Hind legs (wide stance)
         ctx.fillStyle = '#3a5a2a';
         ctx.fillRect(6, 58, 8, 14); ctx.fillRect(50, 58, 8, 14);
+        // Front legs
         ctx.fillRect(16, 60, 7, 12); ctx.fillRect(42, 60, 7, 12);
-        // Claws
+        // Leg joint highlights
+        ctx.fillStyle = '#4a6a3a';
+        ctx.fillRect(7, 58, 4, 3); ctx.fillRect(51, 58, 4, 3);
+        ctx.fillRect(17, 60, 4, 3); ctx.fillRect(43, 60, 4, 3);
+        // Claws with individual toes
         ctx.fillStyle = '#2a3a1a';
-        ctx.fillRect(4, 70, 12, 4); ctx.fillRect(48, 70, 12, 4);
-        ctx.fillRect(14, 70, 10, 3); ctx.fillRect(40, 70, 10, 3);
-        // Body (wide, low)
+        ctx.fillRect(4, 70, 4, 4); ctx.fillRect(9, 70, 4, 4);
+        ctx.fillRect(48, 70, 4, 4); ctx.fillRect(53, 70, 4, 4);
+        ctx.fillRect(14, 70, 3, 3); ctx.fillRect(18, 70, 3, 3);
+        ctx.fillRect(42, 70, 3, 3); ctx.fillRect(46, 70, 3, 3);
+        // Claw tips (bone-colored)
+        ctx.fillStyle = '#aaa08a';
+        ctx.fillRect(3, 73, 2, 2); ctx.fillRect(10, 73, 2, 2);
+        ctx.fillRect(47, 73, 2, 2); ctx.fillRect(54, 73, 2, 2);
+        // Body (wide, low, reptilian)
         ctx.fillStyle = '#3a5a2a';
         ctx.beginPath(); ctx.ellipse(32, 50, 22, 14, 0, 0, Math.PI*2); ctx.fill();
-        // Scale detail
+        // Dorsal scales - darker ridge along spine
+        ctx.fillStyle = '#2a4a1a';
+        ctx.beginPath(); ctx.ellipse(32, 46, 16, 6, 0, 0, Math.PI*2); ctx.fill();
+        // Scale detail - lighter belly area
         ctx.fillStyle = '#4a6a3a';
         ctx.beginPath(); ctx.ellipse(32, 48, 18, 11, 0, 0, Math.PI*2); ctx.fill();
-        // Scale pattern
+        // Individual scale pattern (two rows)
         ctx.fillStyle = '#3a5a2a';
         for (let i = 0; i < 8; i++) {
             const x = 18 + i * 4, y = 44 + (i % 2) * 3;
             ctx.fillRect(x, y, 3, 3);
         }
-        // Belly
+        for (let i = 0; i < 6; i++) {
+            const x = 20 + i * 4, y = 50 + (i % 2) * 2;
+            ctx.fillRect(x, y, 2, 2);
+        }
+        // Spines along back
+        ctx.fillStyle = '#2a4a1a';
+        for (let i = 0; i < 5; i++) {
+            const x = 22 + i * 5;
+            ctx.beginPath();
+            ctx.moveTo(x, 42); ctx.lineTo(x + 2, 36); ctx.lineTo(x + 4, 42);
+            ctx.fill();
+        }
+        // Belly (pale)
         ctx.fillStyle = '#5a7a4a';
         ctx.beginPath(); ctx.ellipse(32, 54, 14, 6, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#6a8a5a';
+        ctx.beginPath(); ctx.ellipse(32, 55, 10, 4, 0, 0, Math.PI*2); ctx.fill();
         // Head
         ctx.fillStyle = '#3a5a2a';
         ctx.beginPath(); ctx.ellipse(32, 34, 14, 10, 0, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#4a6a3a';
         ctx.beginPath(); ctx.ellipse(32, 33, 11, 8, 0, 0, Math.PI*2); ctx.fill();
-        // Eyes (yellow)
+        // Brow ridges
+        ctx.fillStyle = '#2a4a1a';
+        ctx.fillRect(22, 28, 6, 2); ctx.fillRect(34, 28, 6, 2);
+        // Eyes (yellow, reptilian)
         ctx.fillStyle = '#ddcc22';
         ctx.fillRect(24, 30, 4, 4);
         ctx.fillRect(36, 30, 4, 4);
+        ctx.fillStyle = '#eedd44';
+        ctx.fillRect(25, 30, 2, 2);
+        ctx.fillRect(37, 30, 2, 2);
+        // Slit pupils
         ctx.fillStyle = '#111';
-        ctx.fillRect(25, 31, 2, 2);
-        ctx.fillRect(37, 31, 2, 2);
-        // Mouth open
+        ctx.fillRect(25, 30, 1, 4);
+        ctx.fillRect(37, 30, 1, 4);
+        // Nostrils
+        ctx.fillStyle = '#2a3a1a';
+        ctx.fillRect(27, 36, 2, 2); ctx.fillRect(35, 36, 2, 2);
+        // Mouth open - dark maw
         ctx.fillStyle = '#2a1a0a';
         ctx.fillRect(24, 38, 16, 4);
-        // Fangs
+        ctx.fillStyle = '#3a1a0a';
+        ctx.fillRect(26, 39, 12, 2);
+        // Fangs (upper and lower)
         ctx.fillStyle = '#ddd';
         ctx.fillRect(26, 38, 2, 3); ctx.fillRect(36, 38, 2, 3);
-        // Tail
+        ctx.fillRect(30, 41, 1, 2); ctx.fillRect(33, 41, 1, 2);
+        // Tongue
+        ctx.fillStyle = '#8a3a3a';
+        ctx.fillRect(30, 39, 4, 1);
+        // Mud dripping from body
+        ctx.fillStyle = 'rgba(70,55,30,0.4)';
+        ctx.fillRect(18, 56, 2, 5); ctx.fillRect(44, 54, 2, 6);
+        ctx.fillRect(28, 58, 1, 4); ctx.fillRect(36, 57, 1, 5);
+        // Tail (thick, tapering)
         ctx.fillStyle = '#3a5a2a';
         ctx.beginPath();
         ctx.moveTo(50, 54); ctx.quadraticCurveTo(60, 52, 62, 44);
         ctx.lineTo(60, 46); ctx.quadraticCurveTo(58, 52, 48, 56);
         ctx.closePath(); ctx.fill();
+        // Tail scales
+        ctx.fillStyle = '#4a6a3a';
+        ctx.fillRect(54, 50, 3, 2); ctx.fillRect(58, 48, 2, 2);
+        // Tail spine tip
+        ctx.fillStyle = '#2a4a1a';
+        ctx.beginPath();
+        ctx.moveTo(62, 42); ctx.lineTo(63, 38); ctx.lineTo(60, 42);
+        ctx.fill();
         return c;
     },
 
     drawCombatFenWitch() {
         const W = 64, H = 80;
         const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Eerie swamp glow around figure
+        ctx.fillStyle = 'rgba(40,100,40,0.06)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 28, 36, 0, 0, Math.PI*2); ctx.fill();
         // Shadow
         ctx.fillStyle = 'rgba(0,0,0,0.2)';
         ctx.beginPath(); ctx.ellipse(32, 74, 14, 4, 0, 0, Math.PI*2); ctx.fill();
-        // Robes (long, flowing)
+        // Robes (long, flowing, tattered)
         ctx.fillStyle = '#2a3a2a';
         ctx.beginPath();
         ctx.moveTo(20, 36); ctx.lineTo(14, 74); ctx.lineTo(50, 74); ctx.lineTo(44, 36);
@@ -2461,135 +2526,261 @@ const Sprites = {
         ctx.strokeStyle = '#1a2a1a';
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(32, 40); ctx.lineTo(32, 72); ctx.stroke();
+        // Tattered robe edges
+        ctx.fillStyle = '#2a3a2a';
+        for (let i = 0; i < 6; i++) {
+            const x = 16 + i * 5;
+            ctx.beginPath();
+            ctx.moveTo(x, 72); ctx.lineTo(x - 1, 78); ctx.lineTo(x + 3, 72);
+            ctx.fill();
+        }
+        // Robe stitching/patches
+        ctx.fillStyle = '#344a34';
+        ctx.fillRect(24, 50, 5, 6); ctx.fillRect(36, 56, 4, 5);
         // Body
         ctx.fillStyle = '#3a4a3a';
         ctx.fillRect(22, 30, 20, 16);
-        // Arms (thin)
+        // Necklace of bones/charms
+        ctx.fillStyle = '#8a7a5a';
+        ctx.fillRect(24, 34, 2, 2); ctx.fillRect(28, 35, 2, 2);
+        ctx.fillRect(32, 35, 2, 2); ctx.fillRect(36, 34, 2, 2);
+        ctx.strokeStyle = '#6a5a3a';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(24, 34); ctx.quadraticCurveTo(30, 37, 38, 34);
+        ctx.stroke();
+        // Arms (thin, bony)
         ctx.fillStyle = '#2a3a2a';
         ctx.fillRect(10, 32, 12, 6);
         ctx.fillRect(42, 32, 12, 6);
-        // Hands
+        // Left hand (casting)
         ctx.fillStyle = '#6a8a5a';
         ctx.fillRect(6, 32, 6, 5);
+        // Bony fingers on left hand
+        ctx.fillStyle = '#5a7a4a';
+        ctx.fillRect(4, 32, 2, 6); ctx.fillRect(7, 31, 1, 5); ctx.fillRect(10, 32, 1, 5);
         // Spell glow in left hand
         ctx.fillStyle = 'rgba(80,200,80,0.4)';
         ctx.beginPath(); ctx.arc(9, 34, 8, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#44ff44';
-        ctx.beginPath(); ctx.arc(9, 34, 3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(9, 34, 4, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#aaffaa';
         ctx.fillRect(8, 33, 2, 2);
+        // Spell particles
+        ctx.fillStyle = '#66ff66';
+        ctx.globalAlpha = 0.7;
+        ctx.fillRect(4, 28, 2, 2); ctx.fillRect(14, 30, 1, 1);
+        ctx.fillRect(6, 38, 1, 1); ctx.fillRect(12, 26, 1, 1);
+        ctx.globalAlpha = 1;
+        // Right hand holding gnarled staff
+        ctx.fillStyle = '#6a8a5a';
+        ctx.fillRect(52, 32, 6, 5);
+        // Gnarled staff
+        ctx.fillStyle = '#4a3a1a';
+        ctx.fillRect(56, 10, 3, 54);
+        ctx.fillStyle = '#5a4a2a';
+        ctx.fillRect(57, 12, 1, 50);
+        // Staff top - skull/orb
+        ctx.fillStyle = '#3a6a3a';
+        ctx.beginPath(); ctx.arc(57, 10, 4, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#55ff55';
+        ctx.beginPath(); ctx.arc(57, 10, 2, 0, Math.PI*2); ctx.fill();
+        // Staff glow
+        ctx.fillStyle = 'rgba(80,200,80,0.25)';
+        ctx.beginPath(); ctx.arc(57, 10, 7, 0, Math.PI*2); ctx.fill();
         // Head (hooded)
         ctx.fillStyle = '#2a3a2a';
         ctx.beginPath(); ctx.arc(32, 20, 12, Math.PI, 0); ctx.fill();
         ctx.fillRect(20, 16, 24, 16);
+        // Hood point
+        ctx.fillStyle = '#2a3a2a';
+        ctx.beginPath(); ctx.moveTo(26, 16); ctx.lineTo(32, 4); ctx.lineTo(38, 16); ctx.fill();
+        // Hood shadow inner
+        ctx.fillStyle = '#1a2a1a';
+        ctx.beginPath(); ctx.moveTo(28, 16); ctx.lineTo(32, 7); ctx.lineTo(36, 16); ctx.fill();
         // Face shadow
         ctx.fillStyle = '#1a2a1a';
         ctx.beginPath(); ctx.ellipse(32, 24, 8, 9, 0, 0, Math.PI*2); ctx.fill();
-        // Face
+        // Face (gaunt, greenish)
         ctx.fillStyle = '#6a7a5a';
         ctx.beginPath(); ctx.ellipse(32, 24, 6, 7, 0, 0, Math.PI*2); ctx.fill();
-        // Eyes (eerie green)
+        // Sunken cheeks
+        ctx.fillStyle = '#5a6a4a';
+        ctx.fillRect(26, 25, 2, 3); ctx.fillRect(36, 25, 2, 3);
+        // Eyes (eerie green, glowing)
         ctx.fillStyle = '#44ff44';
         ctx.fillRect(28, 22, 3, 2);
         ctx.fillRect(34, 22, 3, 2);
         ctx.fillStyle = '#88ff88';
         ctx.fillRect(29, 22, 1, 1);
         ctx.fillRect(35, 22, 1, 1);
-        // Nose
+        // Eye glow effect
+        ctx.fillStyle = 'rgba(68,255,68,0.15)';
+        ctx.beginPath(); ctx.arc(29, 23, 4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(35, 23, 4, 0, Math.PI*2); ctx.fill();
+        // Crooked nose
         ctx.fillStyle = '#5a6a4a';
-        ctx.fillRect(31, 26, 2, 2);
-        // Crooked grin
+        ctx.fillRect(31, 26, 2, 3);
+        ctx.fillRect(30, 27, 1, 1);
+        // Crooked grin with teeth
         ctx.fillStyle = '#2a2a1a';
-        ctx.fillRect(28, 29, 8, 1);
-        // Hood point
-        ctx.fillStyle = '#2a3a2a';
-        ctx.beginPath(); ctx.moveTo(26, 16); ctx.lineTo(32, 4); ctx.lineTo(38, 16); ctx.fill();
+        ctx.fillRect(28, 29, 8, 2);
+        ctx.fillStyle = '#aaa';
+        ctx.fillRect(29, 29, 1, 1); ctx.fillRect(32, 29, 1, 1); ctx.fillRect(35, 29, 1, 1);
+        // Wart
+        ctx.fillStyle = '#5a7a3a';
+        ctx.fillRect(36, 26, 2, 2);
         return c;
     },
 
     drawCombatDrownedKnight() {
         const W = 64, H = 80;
         const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Watery aura around figure
+        ctx.fillStyle = 'rgba(40,100,140,0.08)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 28, 36, 0, 0, Math.PI*2); ctx.fill();
         // Shadow
         ctx.fillStyle = 'rgba(0,0,0,0.25)';
         ctx.beginPath(); ctx.ellipse(32, 74, 18, 5, 0, 0, Math.PI*2); ctx.fill();
-        // Water drip effect
+        // Water puddle at feet
+        ctx.fillStyle = 'rgba(60,120,160,0.2)';
+        ctx.beginPath(); ctx.ellipse(32, 75, 16, 3, 0, 0, Math.PI*2); ctx.fill();
+        // Water drip trails from body
         ctx.fillStyle = 'rgba(80,140,180,0.15)';
         ctx.fillRect(26, 72, 2, 6); ctx.fillRect(38, 70, 2, 8);
-        // Boots (heavy)
+        ctx.fillRect(18, 68, 1, 6); ctx.fillRect(46, 69, 1, 7);
+        // Boots (heavy, waterlogged)
         ctx.fillStyle = '#2a3a3a';
         ctx.fillRect(16, 66, 12, 8); ctx.fillRect(36, 66, 12, 8);
+        ctx.fillStyle = '#1a2a2a';
+        ctx.fillRect(16, 72, 12, 2); ctx.fillRect(36, 72, 12, 2);
         // Greaves
         ctx.fillStyle = '#3a5a5a';
         ctx.fillRect(18, 52, 10, 16); ctx.fillRect(36, 52, 10, 16);
         ctx.fillStyle = '#4a6a6a';
         ctx.fillRect(20, 54, 6, 12); ctx.fillRect(38, 54, 6, 12);
-        // Torso armor
+        // Knee guards
+        ctx.fillStyle = '#3a5a5a';
+        ctx.fillRect(19, 52, 8, 3); ctx.fillRect(37, 52, 8, 3);
+        // Torso armor (corroded)
         ctx.fillStyle = '#3a5a5a';
         ctx.fillRect(14, 26, 36, 28);
         ctx.fillStyle = '#4a6a6a';
         ctx.fillRect(16, 28, 32, 24);
-        // Armor plates
+        // Armor plates with rivets
         ctx.fillStyle = '#3a5a5a';
         ctx.fillRect(16, 34, 32, 2);
         ctx.fillRect(16, 42, 32, 2);
-        // Rust stains
+        // Rivets
+        ctx.fillStyle = '#5a7a7a';
+        ctx.fillRect(18, 34, 2, 2); ctx.fillRect(30, 34, 2, 2); ctx.fillRect(44, 34, 2, 2);
+        ctx.fillRect(18, 42, 2, 2); ctx.fillRect(30, 42, 2, 2); ctx.fillRect(44, 42, 2, 2);
+        // Rust stains (more extensive)
         ctx.fillStyle = 'rgba(120,80,40,0.3)';
         ctx.fillRect(20, 30, 6, 8);
         ctx.fillRect(38, 36, 8, 6);
-        // Pauldrons
+        ctx.fillStyle = 'rgba(100,70,30,0.25)';
+        ctx.fillRect(28, 44, 5, 4);
+        ctx.fillRect(16, 38, 4, 5);
+        // Barnacles on armor
+        ctx.fillStyle = '#6a6a5a';
+        ctx.fillRect(22, 46, 3, 2); ctx.fillRect(40, 30, 2, 3);
+        ctx.fillRect(34, 48, 2, 2);
+        // Seaweed draped on shoulders
+        ctx.fillStyle = '#2a5a2a';
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(8, 24, 2, 12); ctx.fillRect(10, 28, 1, 8);
+        ctx.fillRect(52, 26, 2, 10); ctx.fillRect(54, 24, 1, 8);
+        ctx.globalAlpha = 1;
+        // Pauldrons (barnacle-encrusted)
         ctx.fillStyle = '#3a5a5a';
         ctx.fillRect(6, 24, 12, 10);
         ctx.fillRect(46, 24, 12, 10);
         ctx.fillStyle = '#4a6a6a';
         ctx.fillRect(8, 26, 8, 6);
         ctx.fillRect(48, 26, 8, 6);
+        // Pauldron barnacles
+        ctx.fillStyle = '#5a5a4a';
+        ctx.fillRect(9, 27, 2, 2); ctx.fillRect(49, 28, 2, 2);
         // Arms
         ctx.fillStyle = '#3a4a4a';
         ctx.fillRect(6, 32, 10, 16);
         ctx.fillRect(48, 32, 10, 16);
-        // Helmet
+        // Gauntlets
+        ctx.fillStyle = '#3a5a5a';
+        ctx.fillRect(6, 44, 10, 5);
+        ctx.fillRect(48, 44, 10, 5);
+        // Helmet (great helm style)
         ctx.fillStyle = '#3a5a5a';
         ctx.fillRect(18, 6, 28, 22);
         ctx.fillStyle = '#4a6a6a';
         ctx.fillRect(20, 8, 24, 18);
+        // Helmet face plate with breathing holes
+        ctx.fillStyle = '#3a5a5a';
+        ctx.fillRect(24, 20, 16, 6);
+        ctx.fillStyle = '#1a2a2a';
+        ctx.fillRect(26, 21, 2, 1); ctx.fillRect(30, 21, 2, 1);
+        ctx.fillRect(34, 21, 2, 1); ctx.fillRect(38, 21, 2, 1);
         // Visor slit
         ctx.fillStyle = '#1a2a2a';
         ctx.fillRect(22, 14, 20, 4);
-        // Eyes (dim blue glow)
+        // Eyes (dim blue glow, spectral)
         ctx.fillStyle = '#6699bb';
         ctx.fillRect(26, 15, 3, 2);
         ctx.fillRect(36, 15, 3, 2);
-        // Helmet crest
+        ctx.fillStyle = '#88bbdd';
+        ctx.fillRect(27, 15, 1, 1);
+        ctx.fillRect(37, 15, 1, 1);
+        // Eye glow
+        ctx.fillStyle = 'rgba(80,140,200,0.15)';
+        ctx.beginPath(); ctx.arc(27, 16, 3, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(37, 16, 3, 0, Math.PI*2); ctx.fill();
+        // Helmet crest (damaged)
         ctx.fillStyle = '#3a5a5a';
         ctx.fillRect(28, 2, 8, 6);
-        // Sword (large)
-        ctx.fillStyle = '#6a7a8a';
+        ctx.fillStyle = '#4a6a6a';
+        ctx.fillRect(30, 3, 4, 4);
+        // Crest damage
+        ctx.fillStyle = '#2a4a4a';
+        ctx.fillRect(34, 2, 2, 3);
+        // Sword (rusted, large)
+        ctx.fillStyle = '#5a6a7a';
         ctx.fillRect(56, 10, 4, 40);
-        ctx.fillStyle = '#7a8a9a';
+        ctx.fillStyle = '#6a7a8a';
         ctx.fillRect(57, 12, 2, 36);
+        // Sword rust patches
+        ctx.fillStyle = 'rgba(120,80,40,0.4)';
+        ctx.fillRect(57, 18, 2, 6); ctx.fillRect(56, 30, 3, 4);
+        // Sword edge highlight
+        ctx.fillStyle = '#8a9aaa';
+        ctx.fillRect(56, 12, 1, 36);
         // Crossguard
         ctx.fillStyle = '#4a5a5a';
         ctx.fillRect(52, 48, 12, 3);
-        // Grip
+        // Grip (waterlogged leather)
         ctx.fillStyle = '#3a2a1a';
         ctx.fillRect(56, 51, 4, 8);
-        // Water drips on armor
-        ctx.fillStyle = 'rgba(100,160,200,0.25)';
+        ctx.fillStyle = '#4a3a2a';
+        ctx.fillRect(57, 52, 2, 2); ctx.fillRect(57, 56, 2, 2);
+        // Water drips on armor (more)
+        ctx.fillStyle = 'rgba(100,160,200,0.3)';
         ctx.fillRect(24, 38, 1, 4); ctx.fillRect(40, 32, 1, 6);
+        ctx.fillRect(32, 50, 1, 3); ctx.fillRect(20, 44, 1, 5);
         return c;
     },
 
     drawCombatVoidAcolyte() {
         const W = 64, H = 80;
         const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
-        // Purple glow
+        // Purple glow aura
         ctx.fillStyle = 'rgba(80,20,120,0.1)';
         ctx.beginPath(); ctx.ellipse(32, 40, 28, 35, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(100,30,140,0.06)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 22, 28, 0, 0, Math.PI*2); ctx.fill();
         // Shadow
         ctx.fillStyle = 'rgba(0,0,0,0.2)';
         ctx.beginPath(); ctx.ellipse(32, 74, 14, 4, 0, 0, Math.PI*2); ctx.fill();
-        // Robes
+        // Robes (dark purple, cultist)
         ctx.fillStyle = '#2a1a3a';
         ctx.beginPath();
         ctx.moveTo(18, 34); ctx.lineTo(12, 74); ctx.lineTo(52, 74); ctx.lineTo(46, 34);
@@ -2598,142 +2789,294 @@ const Sprites = {
         ctx.beginPath();
         ctx.moveTo(20, 36); ctx.lineTo(14, 72); ctx.lineTo(50, 72); ctx.lineTo(44, 36);
         ctx.closePath(); ctx.fill();
+        // Robe hem runes (glowing)
+        ctx.fillStyle = '#6a3a8a';
+        ctx.globalAlpha = 0.6;
+        for (let i = 0; i < 5; i++) {
+            const x = 18 + i * 6, y = 66;
+            ctx.fillRect(x, y, 3, 1);
+            ctx.fillRect(x + 1, y + 1, 1, 2);
+        }
+        ctx.globalAlpha = 1;
+        // Void symbol on chest
+        ctx.strokeStyle = '#7a3a9a';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(32, 42, 5, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(32, 37); ctx.lineTo(32, 47); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(27, 42); ctx.lineTo(37, 42); ctx.stroke();
         // Body
         ctx.fillStyle = '#3a2a4a';
         ctx.fillRect(20, 28, 24, 14);
-        // Arms raised
+        // Belt/sash
+        ctx.fillStyle = '#4a2a5a';
+        ctx.fillRect(18, 48, 28, 3);
+        ctx.fillStyle = '#6a3a8a';
+        ctx.fillRect(28, 48, 8, 3);
+        // Arms raised in worship
         ctx.fillStyle = '#2a1a3a';
         ctx.fillRect(8, 24, 12, 6);
         ctx.fillRect(44, 24, 12, 6);
-        // Hands
+        // Forearms angled up
+        ctx.fillStyle = '#2a1a3a';
+        ctx.fillRect(4, 18, 8, 8);
+        ctx.fillRect(52, 18, 8, 8);
+        // Hands (pale, withered)
         ctx.fillStyle = '#5a4a5a';
-        ctx.fillRect(4, 22, 6, 6);
-        ctx.fillRect(54, 22, 6, 6);
-        // Dark energy between hands
+        ctx.fillRect(4, 16, 6, 5);
+        ctx.fillRect(54, 16, 6, 5);
+        // Bony fingers
+        ctx.fillStyle = '#4a3a4a';
+        ctx.fillRect(3, 15, 1, 4); ctx.fillRect(6, 14, 1, 4); ctx.fillRect(9, 15, 1, 4);
+        ctx.fillRect(53, 15, 1, 4); ctx.fillRect(56, 14, 1, 4); ctx.fillRect(59, 15, 1, 4);
+        // Dark energy between hands (void orb)
+        ctx.fillStyle = 'rgba(60,10,100,0.4)';
+        ctx.beginPath(); ctx.ellipse(32, 18, 18, 8, 0, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = 'rgba(120,40,180,0.3)';
-        ctx.beginPath(); ctx.ellipse(32, 24, 16, 6, 0, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = 'rgba(160,60,220,0.2)';
-        ctx.beginPath(); ctx.ellipse(32, 24, 10, 4, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(32, 18, 12, 5, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(160,60,220,0.25)';
+        ctx.beginPath(); ctx.ellipse(32, 18, 6, 3, 0, 0, Math.PI*2); ctx.fill();
+        // Void sparks in energy
+        ctx.fillStyle = '#bb66ff';
+        ctx.fillRect(24, 16, 1, 1); ctx.fillRect(38, 17, 1, 1);
+        ctx.fillRect(30, 14, 1, 1); ctx.fillRect(34, 20, 1, 1);
         // Head with deep hood
         ctx.fillStyle = '#2a1a3a';
         ctx.fillRect(20, 6, 24, 24);
         ctx.beginPath(); ctx.arc(32, 6, 12, Math.PI, 0); ctx.fill();
-        // Hood shadow
+        // Hood peak
+        ctx.fillStyle = '#2a1a3a';
+        ctx.beginPath(); ctx.moveTo(26, 6); ctx.lineTo(32, -2); ctx.lineTo(38, 6); ctx.fill();
+        // Hood shadow (deeper)
         ctx.fillStyle = '#1a0a2a';
         ctx.beginPath(); ctx.ellipse(32, 18, 8, 10, 0, 0, Math.PI*2); ctx.fill();
         // Empty eye sockets with void glow
+        ctx.fillStyle = '#000';
+        ctx.fillRect(26, 15, 4, 5);
+        ctx.fillRect(36, 15, 4, 5);
         ctx.fillStyle = '#6a2a8a';
         ctx.fillRect(26, 16, 4, 4);
         ctx.fillRect(36, 16, 4, 4);
         ctx.fillStyle = '#8a4aaa';
         ctx.fillRect(27, 17, 2, 2);
         ctx.fillRect(37, 17, 2, 2);
-        // Void tendrils from sockets
-        ctx.strokeStyle = 'rgba(120,40,180,0.4)';
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(28, 20); ctx.lineTo(26, 26); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(38, 20); ctx.lineTo(40, 26); ctx.stroke();
+        // Eye glow effect
+        ctx.fillStyle = 'rgba(120,40,180,0.2)';
+        ctx.beginPath(); ctx.arc(28, 18, 4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(38, 18, 4, 0, Math.PI*2); ctx.fill();
+        // Void tendrils from sockets (more visible)
+        ctx.strokeStyle = 'rgba(120,40,180,0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(28, 20); ctx.quadraticCurveTo(24, 24, 26, 28); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(38, 20); ctx.quadraticCurveTo(42, 24, 40, 28); ctx.stroke();
+        // Mouth (void chanting)
+        ctx.fillStyle = '#3a1a4a';
+        ctx.fillRect(28, 24, 8, 2);
+        // Floating void particles around figure
+        ctx.fillStyle = '#7a3a9a';
+        ctx.globalAlpha = 0.5;
+        ctx.fillRect(8, 44, 2, 2); ctx.fillRect(54, 38, 2, 2);
+        ctx.fillRect(12, 64, 1, 1); ctx.fillRect(50, 60, 1, 1);
+        ctx.fillRect(6, 54, 1, 1); ctx.fillRect(56, 50, 1, 1);
+        ctx.globalAlpha = 1;
         return c;
     },
 
     drawCombatRealityShard() {
         const W = 64, H = 80;
         const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
-        // Distortion glow
+        // Distortion glow (layered)
         ctx.fillStyle = 'rgba(100,150,255,0.08)';
         ctx.beginPath(); ctx.ellipse(32, 40, 30, 35, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(120,100,200,0.06)';
+        ctx.beginPath(); ctx.ellipse(32, 38, 24, 28, 0, 0, Math.PI*2); ctx.fill();
         // Floating shadow (small, it hovers)
         ctx.fillStyle = 'rgba(0,0,0,0.1)';
         ctx.beginPath(); ctx.ellipse(32, 74, 12, 3, 0, 0, Math.PI*2); ctx.fill();
-        // Crystal shards
+        // Distortion rings (reality bending)
+        ctx.strokeStyle = 'rgba(150,120,255,0.15)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 5; i++) {
+            const r = 20 + i * 5;
+            ctx.beginPath();
+            ctx.arc(32, 34, r, Math.PI * i * 0.3, Math.PI * i * 0.3 + 0.8);
+            ctx.stroke();
+        }
+        ctx.strokeStyle = 'rgba(180,150,255,0.1)';
+        for (let i = 0; i < 3; i++) {
+            const r = 12 + i * 8;
+            ctx.beginPath();
+            ctx.arc(32, 36, r, Math.PI * (1 + i * 0.4), Math.PI * (1 + i * 0.4) + 0.6);
+            ctx.stroke();
+        }
+        // Crystal shard helper with fracture lines
         const drawShard = (x, y, w, h, color, angle) => {
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(angle || 0);
+            // Shard body
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.moveTo(0, h/2); ctx.lineTo(w/2, -h/2); ctx.lineTo(-w/2, -h/2); ctx.closePath();
             ctx.fill();
-            // Highlight
+            // Edge highlight (left facet)
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            ctx.beginPath();
+            ctx.moveTo(-w/2, -h/2); ctx.lineTo(0, h/2); ctx.lineTo(-1, h/4); ctx.lineTo(-w/2+1, -h/2+2);
+            ctx.closePath(); ctx.fill();
+            // Inner highlight streak
             ctx.fillStyle = 'rgba(255,255,255,0.2)';
             ctx.fillRect(-1, -h/4, 2, h/3);
+            // Fracture lines
+            ctx.strokeStyle = 'rgba(200,180,255,0.25)';
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(-w/4, -h/4); ctx.lineTo(w/4, 0);
+            ctx.moveTo(0, -h/3); ctx.lineTo(-w/4, h/6);
+            ctx.stroke();
             ctx.restore();
         };
+        // Tiny debris shards (floating around)
+        ctx.fillStyle = '#5a4a9a';
+        ctx.globalAlpha = 0.4;
+        ctx.save(); ctx.translate(8, 30); ctx.rotate(0.5); ctx.fillRect(-2, -2, 4, 4); ctx.restore();
+        ctx.save(); ctx.translate(54, 26); ctx.rotate(-0.3); ctx.fillRect(-2, -1, 3, 3); ctx.restore();
+        ctx.save(); ctx.translate(12, 58); ctx.rotate(0.8); ctx.fillRect(-1, -1, 3, 3); ctx.restore();
+        ctx.save(); ctx.translate(52, 54); ctx.rotate(-0.6); ctx.fillRect(-2, -2, 3, 4); ctx.restore();
+        ctx.globalAlpha = 1;
         // Back shards
         drawShard(20, 38, 10, 30, '#4a3a8a', -0.2);
         drawShard(44, 36, 8, 26, '#3a2a7a', 0.3);
-        // Main shards
+        drawShard(16, 44, 6, 18, '#3a2a6a', -0.4);
+        // Main shards (central cluster)
         drawShard(28, 32, 12, 36, '#5a4aaa', -0.1);
         drawShard(36, 30, 14, 40, '#6a5abb', 0.1);
         drawShard(32, 28, 10, 42, '#7a6acc', 0);
         // Front shard
         drawShard(40, 40, 8, 24, '#5a4a9a', 0.25);
-        // Inner glow
+        drawShard(24, 42, 6, 20, '#4a3a8a', -0.15);
+        // Inner glow (energy core)
+        ctx.fillStyle = 'rgba(140,100,220,0.3)';
+        ctx.beginPath(); ctx.ellipse(32, 34, 10, 14, 0, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = 'rgba(180,150,255,0.3)';
         ctx.beginPath(); ctx.ellipse(32, 34, 8, 12, 0, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = 'rgba(220,200,255,0.2)';
-        ctx.beginPath(); ctx.ellipse(32, 32, 4, 6, 0, 0, Math.PI*2); ctx.fill();
-        // Sparkles
+        ctx.fillStyle = 'rgba(220,200,255,0.25)';
+        ctx.beginPath(); ctx.ellipse(32, 32, 5, 7, 0, 0, Math.PI*2); ctx.fill();
+        // Core bright point
+        ctx.fillStyle = 'rgba(240,230,255,0.4)';
+        ctx.beginPath(); ctx.ellipse(32, 30, 2, 3, 0, 0, Math.PI*2); ctx.fill();
+        // Sparkles (more)
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(30, 20, 2, 2);
         ctx.fillRect(36, 26, 2, 2);
         ctx.fillRect(26, 36, 1, 1);
         ctx.fillRect(42, 30, 1, 1);
-        // Distortion lines
-        ctx.strokeStyle = 'rgba(150,120,255,0.2)';
-        ctx.lineWidth = 1;
-        for (let i = 0; i < 4; i++) {
-            const r = 24 + i * 4;
-            ctx.beginPath();
-            ctx.arc(32, 34, r, Math.PI * i * 0.3, Math.PI * i * 0.3 + 0.5);
-            ctx.stroke();
-        }
+        ctx.fillRect(22, 28, 1, 1);
+        ctx.fillRect(40, 22, 1, 1);
+        ctx.fillRect(34, 44, 1, 1);
+        // Bright sparkle pulse at center
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = 0.8;
+        ctx.fillRect(31, 32, 2, 2);
+        ctx.globalAlpha = 0.5;
+        ctx.fillRect(30, 33, 1, 1); ctx.fillRect(33, 33, 1, 1);
+        ctx.fillRect(31, 31, 1, 1); ctx.fillRect(32, 34, 1, 1);
+        ctx.globalAlpha = 1;
         return c;
     },
 
     drawCombatShadowSentinel() {
         const W = 64, H = 80;
         const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
-        // Dark aura
-        ctx.fillStyle = 'rgba(0,0,0,0.15)';
-        ctx.beginPath(); ctx.ellipse(32, 40, 28, 36, 0, 0, Math.PI*2); ctx.fill();
+        // Dark aura (layered)
+        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 30, 38, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(10,10,20,0.1)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 24, 30, 0, 0, Math.PI*2); ctx.fill();
         // Shadow
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
         ctx.beginPath(); ctx.ellipse(32, 74, 20, 5, 0, 0, Math.PI*2); ctx.fill();
-        // Ghost/shadow duplicates (overlapping forms)
-        ctx.globalAlpha = 0.15;
+        // Ghost/shadow duplicates (afterimages, offset)
+        ctx.globalAlpha = 0.1;
         ctx.fillStyle = '#1a1a2a';
-        ctx.fillRect(10, 12, 28, 56); // left shadow form
-        ctx.fillRect(28, 10, 28, 58); // right shadow form
+        ctx.fillRect(8, 14, 28, 54);
+        ctx.globalAlpha = 0.08;
+        ctx.fillRect(30, 10, 28, 56);
+        ctx.globalAlpha = 0.06;
+        ctx.fillStyle = '#0a0a1a';
+        ctx.fillRect(6, 16, 24, 50);
+        ctx.fillRect(34, 12, 24, 52);
         ctx.globalAlpha = 1;
-        // Boots
+        // Shadow wisps rising from body
+        ctx.strokeStyle = 'rgba(20,20,40,0.3)';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(16, 30); ctx.quadraticCurveTo(10, 18, 12, 8); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(48, 28); ctx.quadraticCurveTo(54, 16, 52, 6); ctx.stroke();
+        ctx.strokeStyle = 'rgba(20,20,40,0.15)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(22, 34); ctx.quadraticCurveTo(18, 22, 20, 10); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(42, 32); ctx.quadraticCurveTo(46, 20, 44, 8); ctx.stroke();
+        // Boots (heavy, dark)
         ctx.fillStyle = '#1a1a2a';
         ctx.fillRect(18, 66, 10, 8); ctx.fillRect(36, 66, 10, 8);
+        ctx.fillStyle = '#0a0a1a';
+        ctx.fillRect(18, 72, 10, 2); ctx.fillRect(36, 72, 10, 2);
         // Legs
         ctx.fillStyle = '#2a2a3a';
         ctx.fillRect(20, 52, 8, 16); ctx.fillRect(36, 52, 8, 16);
+        // Knee plates
+        ctx.fillStyle = '#1a1a2a';
+        ctx.fillRect(20, 52, 8, 3); ctx.fillRect(36, 52, 8, 3);
         // Heavy armor torso
         ctx.fillStyle = '#1a1a2a';
         ctx.fillRect(12, 24, 40, 30);
         ctx.fillStyle = '#2a2a3a';
         ctx.fillRect(14, 26, 36, 26);
-        // Armor detail
+        // Armor plates with detail
         ctx.fillStyle = '#3a3a4a';
         ctx.fillRect(16, 30, 32, 3);
         ctx.fillRect(16, 40, 32, 3);
-        // Pauldrons (large)
+        // Void rune on chest plate
+        ctx.fillStyle = '#4a1a1a';
+        ctx.fillRect(28, 33, 8, 6);
+        ctx.fillStyle = '#ff2222';
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(29, 34, 6, 4);
+        ctx.globalAlpha = 0.7;
+        ctx.fillRect(31, 34, 2, 4);
+        ctx.fillRect(29, 35, 6, 1);
+        ctx.globalAlpha = 1;
+        // Armor edge highlights
+        ctx.fillStyle = '#3a3a4a';
+        ctx.fillRect(14, 26, 36, 1);
+        ctx.fillRect(14, 51, 36, 1);
+        // Pauldrons (large, spiked)
         ctx.fillStyle = '#1a1a2a';
         ctx.fillRect(2, 20, 14, 12);
         ctx.fillRect(48, 20, 14, 12);
         ctx.fillStyle = '#2a2a3a';
         ctx.fillRect(4, 22, 10, 8);
         ctx.fillRect(50, 22, 10, 8);
-        // Helmet
+        // Pauldron spikes
+        ctx.fillStyle = '#1a1a2a';
+        ctx.beginPath(); ctx.moveTo(4, 20); ctx.lineTo(2, 14); ctx.lineTo(8, 20); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(56, 20); ctx.lineTo(60, 14); ctx.lineTo(58, 20); ctx.fill();
+        // Arms
+        ctx.fillStyle = '#2a2a3a';
+        ctx.fillRect(4, 30, 10, 16);
+        ctx.fillRect(50, 30, 10, 16);
+        // Gauntlets
+        ctx.fillStyle = '#1a1a2a';
+        ctx.fillRect(4, 44, 10, 4);
+        ctx.fillRect(50, 44, 10, 4);
+        // Helmet (imposing)
         ctx.fillStyle = '#1a1a2a';
         ctx.fillRect(16, 4, 32, 22);
         ctx.fillStyle = '#2a2a3a';
         ctx.fillRect(18, 6, 28, 18);
-        // Visor (glowing red)
+        // Helmet face plate
+        ctx.fillStyle = '#1a1a2a';
+        ctx.fillRect(20, 18, 24, 6);
+        // Visor (glowing red, menacing)
         ctx.fillStyle = '#1a0a0a';
         ctx.fillRect(20, 12, 24, 5);
         ctx.fillStyle = '#ff2222';
@@ -2742,258 +3085,558 @@ const Sprites = {
         ctx.fillStyle = '#ff6666';
         ctx.fillRect(25, 13, 2, 1);
         ctx.fillRect(37, 13, 2, 1);
-        // Helmet horn
+        // Eye glow effect
+        ctx.fillStyle = 'rgba(255,30,30,0.2)';
+        ctx.beginPath(); ctx.arc(26, 14, 4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(38, 14, 4, 0, Math.PI*2); ctx.fill();
+        // Helmet horns (larger)
         ctx.fillStyle = '#1a1a2a';
-        ctx.beginPath(); ctx.moveTo(20, 6); ctx.lineTo(16, 0); ctx.lineTo(24, 6); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(40, 6); ctx.lineTo(48, 0); ctx.lineTo(44, 6); ctx.fill();
-        // Large weapon
+        ctx.beginPath(); ctx.moveTo(20, 6); ctx.lineTo(14, -2); ctx.lineTo(24, 6); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(40, 6); ctx.lineTo(50, -2); ctx.lineTo(44, 6); ctx.fill();
+        // Horn highlights
+        ctx.fillStyle = '#2a2a3a';
+        ctx.beginPath(); ctx.moveTo(21, 6); ctx.lineTo(16, 0); ctx.lineTo(22, 6); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(42, 6); ctx.lineTo(48, 0); ctx.lineTo(43, 6); ctx.fill();
+        // Large battle axe
         ctx.fillStyle = '#3a3a4a';
-        ctx.fillRect(58, 4, 4, 50);
+        ctx.fillRect(58, 2, 4, 52);
         ctx.fillStyle = '#4a4a5a';
-        ctx.fillRect(59, 6, 2, 46);
-        // Axe head
+        ctx.fillRect(59, 4, 2, 48);
+        // Axe head (double-bladed)
         ctx.fillStyle = '#3a3a4a';
         ctx.beginPath();
-        ctx.moveTo(58, 8); ctx.lineTo(52, 4); ctx.lineTo(52, 18); ctx.lineTo(58, 14);
+        ctx.moveTo(58, 6); ctx.lineTo(50, 2); ctx.lineTo(50, 18); ctx.lineTo(58, 14);
         ctx.closePath(); ctx.fill();
+        // Axe blade highlight
+        ctx.fillStyle = '#4a4a5a';
+        ctx.beginPath();
+        ctx.moveTo(58, 8); ctx.lineTo(52, 4); ctx.lineTo(52, 16); ctx.lineTo(58, 12);
+        ctx.closePath(); ctx.fill();
+        // Axe blade edge glow
+        ctx.fillStyle = 'rgba(255,30,30,0.15)';
+        ctx.beginPath();
+        ctx.moveTo(52, 4); ctx.lineTo(50, 4); ctx.lineTo(50, 16); ctx.lineTo(52, 16);
+        ctx.closePath(); ctx.fill();
+        // Shadow particles
+        ctx.fillStyle = 'rgba(10,10,20,0.4)';
+        ctx.fillRect(6, 50, 2, 2); ctx.fillRect(56, 44, 2, 2);
+        ctx.fillRect(10, 62, 1, 1); ctx.fillRect(52, 58, 1, 1);
         return c;
     },
 
-    // Boss sprites (larger)
+    // Boss sprites (larger, 96x120)
     drawCombatAshenKing() {
-        const W = 80, H = 100;
+        const W = 96, H = 120;
         const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
-        // Fire glow
-        ctx.fillStyle = 'rgba(200,80,20,0.12)';
-        ctx.beginPath(); ctx.ellipse(40, 50, 38, 45, 0, 0, Math.PI*2); ctx.fill();
+        // Fire glow (ambient)
+        ctx.fillStyle = 'rgba(200,80,20,0.1)';
+        ctx.beginPath(); ctx.ellipse(48, 60, 46, 56, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(220,100,30,0.06)';
+        ctx.beginPath(); ctx.ellipse(48, 60, 38, 44, 0, 0, Math.PI*2); ctx.fill();
         // Shadow
         ctx.fillStyle = 'rgba(0,0,0,0.3)';
-        ctx.beginPath(); ctx.ellipse(40, 92, 24, 6, 0, 0, Math.PI*2); ctx.fill();
-        // Cape
+        ctx.beginPath(); ctx.ellipse(48, 112, 30, 7, 0, 0, Math.PI*2); ctx.fill();
+        // Ember particles rising
+        ctx.fillStyle = '#ff6600';
+        ctx.globalAlpha = 0.5;
+        ctx.fillRect(20, 18, 2, 2); ctx.fillRect(72, 22, 2, 2);
+        ctx.fillRect(14, 40, 1, 1); ctx.fillRect(80, 36, 1, 1);
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(26, 8, 1, 1); ctx.fillRect(68, 12, 1, 1);
+        ctx.fillRect(34, 4, 1, 1); ctx.fillRect(60, 6, 1, 1);
+        ctx.globalAlpha = 1;
+        // Cape (tattered, charred edges)
         ctx.fillStyle = '#4a1a0a';
         ctx.beginPath();
-        ctx.moveTo(16, 36); ctx.lineTo(10, 90); ctx.lineTo(70, 90); ctx.lineTo(64, 36);
+        ctx.moveTo(20, 44); ctx.lineTo(12, 110); ctx.lineTo(84, 110); ctx.lineTo(76, 44);
         ctx.closePath(); ctx.fill();
         ctx.fillStyle = '#5a2a1a';
         ctx.beginPath();
-        ctx.moveTo(18, 38); ctx.lineTo(14, 88); ctx.lineTo(66, 88); ctx.lineTo(62, 38);
+        ctx.moveTo(22, 46); ctx.lineTo(16, 108); ctx.lineTo(80, 108); ctx.lineTo(74, 46);
         ctx.closePath(); ctx.fill();
-        // Boots
+        // Cape tattered edges
+        ctx.fillStyle = '#4a1a0a';
+        for (let i = 0; i < 8; i++) {
+            const x = 16 + i * 8;
+            ctx.beginPath();
+            ctx.moveTo(x, 108); ctx.lineTo(x - 1, 114); ctx.lineTo(x + 4, 108);
+            ctx.fill();
+        }
+        // Cape inner pattern
+        ctx.fillStyle = 'rgba(80,30,10,0.3)';
+        ctx.fillRect(30, 70, 36, 2);
+        ctx.fillRect(28, 86, 40, 2);
+        // Boots (armored)
         ctx.fillStyle = '#2a0a0a';
-        ctx.fillRect(22, 82, 14, 10); ctx.fillRect(44, 82, 14, 10);
-        // Legs
+        ctx.fillRect(28, 100, 16, 12); ctx.fillRect(52, 100, 16, 12);
+        ctx.fillStyle = '#3a1a0a';
+        ctx.fillRect(30, 102, 12, 8); ctx.fillRect(54, 102, 12, 8);
+        // Legs (armored greaves)
         ctx.fillStyle = '#3a1a1a';
-        ctx.fillRect(26, 64, 10, 20); ctx.fillRect(46, 64, 10, 20);
-        // Armor torso
+        ctx.fillRect(32, 78, 12, 24); ctx.fillRect(54, 78, 12, 24);
+        ctx.fillStyle = '#4a2a1a';
+        ctx.fillRect(34, 80, 8, 18); ctx.fillRect(56, 80, 8, 18);
+        // Knee guards
+        ctx.fillStyle = '#3a1a1a';
+        ctx.fillRect(31, 78, 14, 4); ctx.fillRect(53, 78, 14, 4);
+        // Armor torso (imposing)
         ctx.fillStyle = '#4a1a1a';
-        ctx.fillRect(18, 32, 44, 34);
+        ctx.fillRect(22, 38, 52, 42);
         ctx.fillStyle = '#5a2a2a';
-        ctx.fillRect(20, 34, 40, 30);
-        // Armor plates
+        ctx.fillRect(24, 40, 48, 38);
+        // Armor plate lines
         ctx.fillStyle = '#6a3a2a';
-        ctx.fillRect(22, 38, 36, 3);
-        ctx.fillRect(22, 48, 36, 3);
-        ctx.fillRect(22, 56, 36, 3);
-        // Gold trim
+        ctx.fillRect(26, 46, 44, 3);
+        ctx.fillRect(26, 56, 44, 3);
+        ctx.fillRect(26, 66, 44, 3);
+        // Armor rivet details
+        ctx.fillStyle = '#7a4a3a';
+        ctx.fillRect(28, 47, 2, 1); ctx.fillRect(40, 47, 2, 1); ctx.fillRect(54, 47, 2, 1); ctx.fillRect(66, 47, 2, 1);
+        // Gold trim (royal)
         ctx.fillStyle = '#aa8a2a';
-        ctx.fillRect(20, 34, 40, 2);
-        ctx.fillRect(20, 62, 40, 2);
-        // Pauldrons
-        ctx.fillStyle = '#4a1a1a';
-        ctx.fillRect(4, 28, 18, 14);
-        ctx.fillRect(58, 28, 18, 14);
-        ctx.fillStyle = '#6a3a2a';
-        ctx.fillRect(6, 30, 14, 10);
-        ctx.fillRect(60, 30, 14, 10);
-        // Fire on pauldrons
+        ctx.fillRect(24, 40, 48, 2);
+        ctx.fillRect(24, 76, 48, 2);
+        ctx.fillStyle = '#ccaa3a';
+        ctx.fillRect(26, 40, 44, 1);
+        ctx.fillRect(26, 77, 44, 1);
+        // Chest emblem (flame motif)
+        ctx.fillStyle = '#aa4422';
+        ctx.beginPath();
+        ctx.moveTo(48, 48); ctx.lineTo(44, 56); ctx.lineTo(48, 52); ctx.lineTo(52, 56);
+        ctx.closePath(); ctx.fill();
         ctx.fillStyle = '#ff6600';
         ctx.globalAlpha = 0.6;
-        ctx.beginPath(); ctx.moveTo(10, 28); ctx.quadraticCurveTo(12, 20, 16, 24); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(64, 28); ctx.quadraticCurveTo(66, 20, 70, 24); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(48, 49); ctx.lineTo(45, 54); ctx.lineTo(48, 52); ctx.lineTo(51, 54);
+        ctx.closePath(); ctx.fill();
         ctx.globalAlpha = 1;
-        // Helmet
-        ctx.fillStyle = '#3a0a0a';
-        ctx.fillRect(22, 6, 36, 28);
+        // Pauldrons (massive, spiked)
         ctx.fillStyle = '#4a1a1a';
-        ctx.fillRect(24, 8, 32, 24);
-        // Visor
-        ctx.fillStyle = '#1a0000';
-        ctx.fillRect(26, 16, 28, 6);
-        // Fiery eyes
-        ctx.fillStyle = '#ff4400';
-        ctx.fillRect(30, 17, 5, 4);
-        ctx.fillRect(46, 17, 5, 4);
+        ctx.fillRect(4, 34, 22, 16);
+        ctx.fillRect(70, 34, 22, 16);
+        ctx.fillStyle = '#6a3a2a';
+        ctx.fillRect(6, 36, 18, 12);
+        ctx.fillRect(72, 36, 18, 12);
+        // Pauldron spikes
+        ctx.fillStyle = '#4a1a1a';
+        ctx.beginPath(); ctx.moveTo(8, 34); ctx.lineTo(4, 24); ctx.lineTo(14, 34); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(82, 34); ctx.lineTo(90, 24); ctx.lineTo(86, 34); ctx.fill();
+        // Fire on pauldrons (larger)
+        ctx.fillStyle = '#ff6600';
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath(); ctx.moveTo(10, 34); ctx.quadraticCurveTo(8, 22, 14, 26); ctx.quadraticCurveTo(12, 18, 18, 30); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(82, 34); ctx.quadraticCurveTo(84, 22, 80, 26); ctx.quadraticCurveTo(86, 18, 78, 30); ctx.fill();
         ctx.fillStyle = '#ffaa00';
-        ctx.fillRect(31, 17, 3, 2);
-        ctx.fillRect(47, 17, 3, 2);
-        // Crown
-        ctx.fillStyle = '#aa8a2a';
-        ctx.fillRect(22, 4, 36, 4);
-        ctx.fillStyle = '#ccaa3a';
-        ctx.fillRect(24, 0, 4, 6);
-        ctx.fillRect(32, 0, 4, 8);
-        ctx.fillRect(40, 0, 4, 8);
-        ctx.fillRect(48, 0, 4, 6);
-        // Crown gems
-        ctx.fillStyle = '#ff4400';
-        ctx.fillRect(33, 2, 2, 2);
-        ctx.fillRect(41, 2, 2, 2);
-        // Mouth slit
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath(); ctx.moveTo(12, 34); ctx.quadraticCurveTo(10, 24, 16, 28); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(82, 34); ctx.quadraticCurveTo(84, 24, 80, 28); ctx.fill();
+        ctx.globalAlpha = 1;
+        // Arms
+        ctx.fillStyle = '#3a1a0a';
+        ctx.fillRect(6, 48, 12, 22); ctx.fillRect(78, 48, 12, 22);
+        // Gauntlets
+        ctx.fillStyle = '#4a1a1a';
+        ctx.fillRect(6, 66, 12, 6); ctx.fillRect(78, 66, 12, 6);
+        // Fiery scepter in right hand
+        ctx.fillStyle = '#3a2a1a';
+        ctx.fillRect(82, 22, 4, 48);
+        ctx.fillStyle = '#4a3a2a';
+        ctx.fillRect(83, 24, 2, 44);
+        // Scepter head (burning orb)
+        ctx.fillStyle = '#aa4422';
+        ctx.beginPath(); ctx.arc(84, 20, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#ff6600';
+        ctx.beginPath(); ctx.arc(84, 20, 4, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#ffcc00';
+        ctx.beginPath(); ctx.arc(84, 20, 2, 0, Math.PI*2); ctx.fill();
+        // Scepter glow
+        ctx.fillStyle = 'rgba(255,100,0,0.2)';
+        ctx.beginPath(); ctx.arc(84, 20, 10, 0, Math.PI*2); ctx.fill();
+        // Helmet (imposing great helm)
+        ctx.fillStyle = '#3a0a0a';
+        ctx.fillRect(28, 8, 40, 34);
+        ctx.fillStyle = '#4a1a1a';
+        ctx.fillRect(30, 10, 36, 30);
+        // Helmet face plate
+        ctx.fillStyle = '#3a0a0a';
+        ctx.fillRect(32, 28, 32, 10);
+        // Visor slit (wide)
         ctx.fillStyle = '#1a0000';
-        ctx.fillRect(30, 26, 20, 2);
+        ctx.fillRect(32, 20, 32, 7);
+        // Fiery eyes (larger, more glow)
+        ctx.fillStyle = '#ff4400';
+        ctx.fillRect(36, 21, 7, 5);
+        ctx.fillRect(54, 21, 7, 5);
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(37, 22, 5, 3);
+        ctx.fillRect(55, 22, 5, 3);
+        ctx.fillStyle = '#ffcc44';
+        ctx.fillRect(38, 22, 3, 2);
+        ctx.fillRect(56, 22, 3, 2);
+        // Eye glow
+        ctx.fillStyle = 'rgba(255,68,0,0.15)';
+        ctx.beginPath(); ctx.arc(39, 23, 5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(57, 23, 5, 0, Math.PI*2); ctx.fill();
+        // Crown (grand, multi-pointed)
+        ctx.fillStyle = '#aa8a2a';
+        ctx.fillRect(28, 6, 40, 5);
+        ctx.fillStyle = '#ccaa3a';
+        ctx.fillRect(30, 0, 5, 8);
+        ctx.fillRect(38, 0, 5, 10);
+        ctx.fillRect(48, 0, 5, 10);
+        ctx.fillRect(56, 0, 5, 8);
+        // Crown point tips
+        ctx.fillStyle = '#ddbb44';
+        ctx.fillRect(31, 0, 3, 2);
+        ctx.fillRect(39, 0, 3, 2);
+        ctx.fillRect(49, 0, 3, 2);
+        ctx.fillRect(57, 0, 3, 2);
+        // Crown gems (fire opals)
+        ctx.fillStyle = '#ff4400';
+        ctx.fillRect(39, 3, 3, 3);
+        ctx.fillRect(49, 3, 3, 3);
+        ctx.fillStyle = '#ff6600';
+        ctx.fillRect(40, 4, 1, 1);
+        ctx.fillRect(50, 4, 1, 1);
+        // Crown center gem
+        ctx.fillStyle = '#ff2200';
+        ctx.fillRect(44, 2, 4, 4);
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(45, 3, 2, 2);
+        // Mouth slit (breathing fire)
+        ctx.fillStyle = '#1a0000';
+        ctx.fillRect(36, 32, 24, 3);
+        ctx.fillStyle = 'rgba(255,100,0,0.3)';
+        ctx.fillRect(38, 32, 20, 2);
         return c;
     },
 
     drawCombatMotherFen() {
-        const W = 80, H = 100;
+        const W = 96, H = 120;
         const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
-        // Swamp glow
+        // Swamp miasma glow
         ctx.fillStyle = 'rgba(20,60,20,0.1)';
-        ctx.beginPath(); ctx.ellipse(40, 50, 38, 48, 0, 0, Math.PI*2); ctx.fill();
-        // Coiled body (snake)
+        ctx.beginPath(); ctx.ellipse(48, 60, 46, 58, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(30,80,20,0.06)';
+        ctx.beginPath(); ctx.ellipse(48, 60, 36, 44, 0, 0, Math.PI*2); ctx.fill();
+        // Swamp mist particles
+        ctx.fillStyle = 'rgba(80,120,60,0.15)';
+        ctx.beginPath(); ctx.ellipse(16, 96, 10, 4, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(78, 100, 8, 3, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(48, 114, 12, 3, 0, 0, Math.PI*2); ctx.fill();
+        // Coiled body (massive serpent)
         ctx.strokeStyle = '#3a5a2a';
-        ctx.lineWidth = 16;
+        ctx.lineWidth = 20;
         ctx.beginPath();
-        ctx.moveTo(20, 90); ctx.quadraticCurveTo(10, 70, 30, 60);
-        ctx.quadraticCurveTo(50, 50, 60, 65);
-        ctx.quadraticCurveTo(70, 80, 50, 85);
-        ctx.quadraticCurveTo(30, 90, 25, 80);
+        ctx.moveTo(24, 110); ctx.quadraticCurveTo(10, 86, 36, 74);
+        ctx.quadraticCurveTo(62, 62, 74, 80);
+        ctx.quadraticCurveTo(86, 98, 60, 104);
+        ctx.quadraticCurveTo(36, 110, 30, 96);
         ctx.stroke();
         // Scale overlay
         ctx.strokeStyle = '#4a6a3a';
-        ctx.lineWidth = 12;
+        ctx.lineWidth = 15;
         ctx.beginPath();
-        ctx.moveTo(20, 90); ctx.quadraticCurveTo(10, 70, 30, 60);
-        ctx.quadraticCurveTo(50, 50, 60, 65);
-        ctx.quadraticCurveTo(70, 80, 50, 85);
+        ctx.moveTo(24, 110); ctx.quadraticCurveTo(10, 86, 36, 74);
+        ctx.quadraticCurveTo(62, 62, 74, 80);
+        ctx.quadraticCurveTo(86, 98, 60, 104);
         ctx.stroke();
-        // Belly stripe
+        // Scale texture on coils
+        ctx.fillStyle = '#3a5a2a';
+        ctx.globalAlpha = 0.5;
+        for (let i = 0; i < 12; i++) {
+            const angle = i * 0.5;
+            const x = 36 + Math.cos(angle) * 20 + i * 2;
+            const y = 80 + Math.sin(angle) * 12;
+            ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        // Belly stripe (lighter underside)
         ctx.strokeStyle = '#6a8a5a';
-        ctx.lineWidth = 5;
+        ctx.lineWidth = 6;
         ctx.beginPath();
-        ctx.moveTo(20, 90); ctx.quadraticCurveTo(10, 70, 30, 60);
-        ctx.quadraticCurveTo(50, 50, 60, 65);
+        ctx.moveTo(24, 110); ctx.quadraticCurveTo(10, 86, 36, 74);
+        ctx.quadraticCurveTo(62, 62, 74, 80);
         ctx.stroke();
-        // Neck rising up
+        // Moss growing on coils
+        ctx.fillStyle = '#2a6a1a';
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(30, 72, 4, 3); ctx.fillRect(56, 78, 5, 2);
+        ctx.fillRect(66, 90, 4, 3); ctx.fillRect(42, 100, 3, 2);
+        ctx.globalAlpha = 1;
+        // Neck rising up (longer, more imposing)
         ctx.fillStyle = '#3a5a2a';
         ctx.beginPath();
-        ctx.moveTo(25, 55); ctx.quadraticCurveTo(20, 30, 30, 16);
-        ctx.lineTo(42, 16); ctx.quadraticCurveTo(45, 30, 40, 55);
+        ctx.moveTo(30, 68); ctx.quadraticCurveTo(24, 36, 36, 18);
+        ctx.lineTo(52, 18); ctx.quadraticCurveTo(56, 36, 50, 68);
         ctx.closePath(); ctx.fill();
         ctx.fillStyle = '#4a6a3a';
         ctx.beginPath();
-        ctx.moveTo(28, 52); ctx.quadraticCurveTo(24, 32, 32, 18);
-        ctx.lineTo(40, 18); ctx.quadraticCurveTo(42, 32, 38, 52);
+        ctx.moveTo(34, 64); ctx.quadraticCurveTo(28, 38, 38, 20);
+        ctx.lineTo(50, 20); ctx.quadraticCurveTo(52, 38, 48, 64);
         ctx.closePath(); ctx.fill();
-        // Head (serpent)
+        // Neck belly scales (lighter)
+        ctx.fillStyle = '#5a7a4a';
+        ctx.beginPath();
+        ctx.moveTo(38, 60); ctx.quadraticCurveTo(36, 40, 40, 24);
+        ctx.lineTo(48, 24); ctx.quadraticCurveTo(46, 40, 44, 60);
+        ctx.closePath(); ctx.fill();
+        // Neck scale pattern
         ctx.fillStyle = '#3a5a2a';
-        ctx.beginPath(); ctx.ellipse(36, 14, 14, 10, -0.1, 0, Math.PI*2); ctx.fill();
+        for (let i = 0; i < 6; i++) {
+            ctx.fillRect(38, 28 + i * 6, 12, 2);
+        }
+        // Head (large serpent)
+        ctx.fillStyle = '#3a5a2a';
+        ctx.beginPath(); ctx.ellipse(44, 16, 18, 12, -0.1, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#4a6a3a';
-        ctx.beginPath(); ctx.ellipse(36, 13, 11, 8, -0.1, 0, Math.PI*2); ctx.fill();
-        // Hood/frill
+        ctx.beginPath(); ctx.ellipse(44, 15, 14, 10, -0.1, 0, Math.PI*2); ctx.fill();
+        // Head top scales
+        ctx.fillStyle = '#3a5a2a';
+        ctx.fillRect(34, 8, 4, 3); ctx.fillRect(40, 6, 4, 3);
+        ctx.fillRect(46, 7, 4, 3); ctx.fillRect(52, 9, 4, 3);
+        // Hood/frill (cobra-like, expanded)
         ctx.fillStyle = '#3a5a2a';
         ctx.beginPath();
-        ctx.moveTo(22, 16); ctx.lineTo(18, 8); ctx.lineTo(26, 12); ctx.fill();
+        ctx.moveTo(26, 20); ctx.lineTo(18, 8); ctx.lineTo(16, 14); ctx.lineTo(26, 22);
+        ctx.closePath(); ctx.fill();
         ctx.beginPath();
-        ctx.moveTo(50, 16); ctx.lineTo(54, 8); ctx.lineTo(46, 12); ctx.fill();
-        // Eyes (yellow, slit pupils)
+        ctx.moveTo(62, 20); ctx.lineTo(70, 8); ctx.lineTo(72, 14); ctx.lineTo(62, 22);
+        ctx.closePath(); ctx.fill();
+        // Frill membrane
+        ctx.fillStyle = '#5a3a2a';
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.moveTo(26, 20); ctx.lineTo(20, 10); ctx.lineTo(28, 18);
+        ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(62, 20); ctx.lineTo(68, 10); ctx.lineTo(60, 18);
+        ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = 1;
+        // Eyes (large, yellow, slit pupils, menacing)
         ctx.fillStyle = '#ddcc22';
-        ctx.fillRect(28, 10, 5, 5);
-        ctx.fillRect(40, 10, 5, 5);
+        ctx.fillRect(34, 12, 6, 6);
+        ctx.fillRect(48, 12, 6, 6);
+        ctx.fillStyle = '#eedd44';
+        ctx.fillRect(35, 13, 4, 4);
+        ctx.fillRect(49, 13, 4, 4);
+        // Slit pupils
         ctx.fillStyle = '#111';
-        ctx.fillRect(30, 11, 2, 3);
-        ctx.fillRect(42, 11, 2, 3);
-        // Mouth
+        ctx.fillRect(36, 12, 2, 6);
+        ctx.fillRect(50, 12, 2, 6);
+        // Eye glow
+        ctx.fillStyle = 'rgba(200,180,30,0.15)';
+        ctx.beginPath(); ctx.arc(37, 15, 5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(51, 15, 5, 0, Math.PI*2); ctx.fill();
+        // Nostrils
+        ctx.fillStyle = '#2a3a1a';
+        ctx.fillRect(38, 20, 2, 2); ctx.fillRect(48, 20, 2, 2);
+        // Mouth (wide, dangerous)
         ctx.fillStyle = '#2a1a0a';
-        ctx.fillRect(26, 20, 20, 3);
-        // Fangs
+        ctx.fillRect(30, 24, 28, 4);
+        ctx.fillStyle = '#3a1a0a';
+        ctx.fillRect(32, 25, 24, 2);
+        // Fangs (large, dripping venom)
         ctx.fillStyle = '#ddd';
-        ctx.fillRect(28, 20, 2, 4);
-        ctx.fillRect(42, 20, 2, 4);
-        // Smaller snake heads (children)
-        for (const [sx, sy] of [[12, 46], [58, 52], [8, 72]]) {
+        ctx.fillRect(34, 24, 3, 6);
+        ctx.fillRect(52, 24, 3, 6);
+        // Smaller fangs
+        ctx.fillStyle = '#ccc';
+        ctx.fillRect(40, 24, 2, 3);
+        ctx.fillRect(48, 24, 2, 3);
+        // Venom drips from fangs
+        ctx.fillStyle = '#44aa22';
+        ctx.globalAlpha = 0.7;
+        ctx.fillRect(35, 30, 1, 3); ctx.fillRect(53, 30, 1, 4);
+        ctx.globalAlpha = 1;
+        // Forked tongue
+        ctx.fillStyle = '#8a3a3a';
+        ctx.fillRect(42, 26, 4, 1);
+        ctx.fillRect(41, 27, 2, 2); ctx.fillRect(45, 27, 2, 2);
+        // Smaller snake heads (children) - more of them
+        const children = [[14, 56], [76, 64], [10, 88], [82, 86], [22, 104]];
+        for (const [sx, sy] of children) {
+            // Mini snake body segment
             ctx.fillStyle = '#3a5a2a';
-            ctx.beginPath(); ctx.ellipse(sx, sy, 5, 4, 0, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#3a5a2a';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy + 8); ctx.quadraticCurveTo(sx - 4, sy + 4, sx, sy);
+            ctx.stroke();
+            // Mini head
+            ctx.fillStyle = '#3a5a2a';
+            ctx.beginPath(); ctx.ellipse(sx, sy, 6, 5, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#4a6a3a';
+            ctx.beginPath(); ctx.ellipse(sx, sy - 1, 4, 3, 0, 0, Math.PI*2); ctx.fill();
+            // Mini eyes
             ctx.fillStyle = '#ddcc22';
-            ctx.fillRect(sx-3, sy-1, 2, 2);
-            ctx.fillRect(sx+1, sy-1, 2, 2);
+            ctx.fillRect(sx - 3, sy - 1, 2, 2);
+            ctx.fillRect(sx + 1, sy - 1, 2, 2);
+            // Mini pupils
+            ctx.fillStyle = '#111';
+            ctx.fillRect(sx - 2, sy - 1, 1, 2);
+            ctx.fillRect(sx + 2, sy - 1, 1, 2);
         }
         return c;
     },
 
     drawCombatRuun() {
-        const W = 80, H = 100;
+        const W = 96, H = 120;
         const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
-        // Void distortion aura
-        ctx.fillStyle = 'rgba(60,20,80,0.15)';
-        ctx.beginPath(); ctx.ellipse(40, 50, 38, 48, 0, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = 'rgba(80,30,100,0.1)';
-        ctx.beginPath(); ctx.ellipse(40, 50, 28, 36, 0, 0, Math.PI*2); ctx.fill();
-        // Floating reality fragments (orbit around)
-        const drawFragment = (x, y, size, color) => {
+        // Void distortion aura (layered)
+        ctx.fillStyle = 'rgba(60,20,80,0.12)';
+        ctx.beginPath(); ctx.ellipse(48, 60, 46, 58, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(80,30,100,0.08)';
+        ctx.beginPath(); ctx.ellipse(48, 60, 36, 44, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(100,40,120,0.05)';
+        ctx.beginPath(); ctx.ellipse(48, 60, 28, 34, 0, 0, Math.PI*2); ctx.fill();
+        // Distortion rings
+        ctx.strokeStyle = 'rgba(120,60,180,0.12)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 6; i++) {
+            const r = 20 + i * 6;
+            ctx.beginPath();
+            ctx.arc(48, 56, r, Math.PI * i * 0.25, Math.PI * i * 0.25 + 0.7);
+            ctx.stroke();
+        }
+        // Floating reality fragments (orbit around, more varied)
+        const drawFragment = (x, y, size, color, rot) => {
             ctx.fillStyle = color;
             ctx.save();
             ctx.translate(x, y);
-            ctx.rotate(Math.random() * Math.PI);
+            ctx.rotate(rot || 0);
             ctx.fillRect(-size/2, -size/2, size, size);
+            // Fragment highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            ctx.fillRect(-size/2, -size/2, size/2, size/2);
             ctx.restore();
         };
         ctx.globalAlpha = 0.5;
-        drawFragment(10, 20, 8, '#5a7a3a');
-        drawFragment(68, 24, 6, '#3a5a8a');
-        drawFragment(8, 60, 7, '#8a6a4a');
-        drawFragment(72, 56, 5, '#4a4a6a');
-        drawFragment(14, 82, 6, '#6a5a3a');
-        drawFragment(66, 78, 7, '#3a6a5a');
+        drawFragment(12, 24, 10, '#5a7a3a', 0.3);
+        drawFragment(82, 28, 8, '#3a5a8a', 0.7);
+        drawFragment(8, 74, 9, '#8a6a4a', 1.2);
+        drawFragment(88, 68, 7, '#4a4a6a', 0.5);
+        drawFragment(16, 102, 8, '#6a5a3a', 0.9);
+        drawFragment(80, 96, 9, '#3a6a5a', 1.4);
+        drawFragment(6, 48, 6, '#7a5a3a', 0.2);
+        drawFragment(90, 44, 5, '#3a4a7a', 1.1);
+        // Smaller debris particles
+        drawFragment(24, 10, 4, '#5a5a7a', 0.6);
+        drawFragment(72, 14, 3, '#6a4a5a', 1.0);
+        drawFragment(4, 90, 4, '#4a6a4a', 0.4);
+        drawFragment(92, 84, 3, '#5a4a6a', 0.8);
         ctx.globalAlpha = 1;
-        // Central dark void core
-        const grd = ctx.createRadialGradient(40, 46, 4, 40, 46, 24);
+        // Central dark void core (radial gradient)
+        const grd = ctx.createRadialGradient(48, 56, 6, 48, 56, 32);
         grd.addColorStop(0, '#0a0010');
-        grd.addColorStop(0.5, '#1a0a2a');
+        grd.addColorStop(0.4, '#1a0a2a');
+        grd.addColorStop(0.7, 'rgba(40,15,60,0.5)');
         grd.addColorStop(1, 'rgba(40,15,60,0)');
         ctx.fillStyle = grd;
-        ctx.beginPath(); ctx.ellipse(40, 46, 24, 28, 0, 0, Math.PI*2); ctx.fill();
-        // Inner void
+        ctx.beginPath(); ctx.ellipse(48, 56, 32, 36, 0, 0, Math.PI*2); ctx.fill();
+        // Inner void (deeper darkness)
         ctx.fillStyle = '#050008';
-        ctx.beginPath(); ctx.ellipse(40, 46, 14, 16, 0, 0, Math.PI*2); ctx.fill();
-        // Eye/face in the void
-        ctx.fillStyle = '#3a1a4a';
-        ctx.beginPath(); ctx.ellipse(40, 40, 10, 12, 0, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#1a0a2a';
-        ctx.beginPath(); ctx.ellipse(40, 40, 8, 10, 0, 0, Math.PI*2); ctx.fill();
-        // Eyes (bright purple-white)
-        ctx.fillStyle = '#cc88ff';
-        ctx.fillRect(34, 38, 4, 3);
-        ctx.fillRect(42, 38, 4, 3);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(35, 38, 2, 2);
-        ctx.fillRect(43, 38, 2, 2);
-        // Mouth (void gash)
-        ctx.fillStyle = '#6a2a8a';
-        ctx.fillRect(34, 46, 12, 2);
-        // Energy tendrils radiating outward
-        ctx.strokeStyle = '#8a3aaa';
-        ctx.lineWidth = 2;
-        ctx.globalAlpha = 0.6;
-        ctx.beginPath(); ctx.moveTo(40, 20); ctx.quadraticCurveTo(35, 10, 28, 4); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(40, 20); ctx.quadraticCurveTo(45, 8, 54, 2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(18, 46); ctx.quadraticCurveTo(8, 42, 2, 36); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(62, 46); ctx.quadraticCurveTo(72, 40, 78, 34); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(30, 68); ctx.quadraticCurveTo(20, 80, 14, 92); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(50, 68); ctx.quadraticCurveTo(60, 78, 68, 90); ctx.stroke();
-        ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = '#bb66dd';
+        ctx.beginPath(); ctx.ellipse(48, 56, 18, 22, 0, 0, Math.PI*2); ctx.fill();
+        // Void ripple rings inside core
+        ctx.strokeStyle = 'rgba(80,30,100,0.2)';
         ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(40, 20); ctx.quadraticCurveTo(42, 6, 40, 0); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(16, 46); ctx.quadraticCurveTo(6, 50, 0, 55); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(64, 46); ctx.quadraticCurveTo(74, 50, 80, 55); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(48, 56, 14, 17, 0, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(48, 56, 10, 12, 0, 0, Math.PI*2); ctx.stroke();
+        // Rune symbols orbiting the void
+        ctx.fillStyle = '#8a4aaa';
+        ctx.globalAlpha = 0.4;
+        // Rune 1
+        ctx.fillRect(24, 50, 4, 1); ctx.fillRect(25, 48, 1, 5);
+        ctx.fillRect(24, 52, 3, 1);
+        // Rune 2
+        ctx.fillRect(68, 54, 4, 1); ctx.fillRect(70, 52, 1, 5);
+        ctx.fillRect(69, 56, 3, 1);
+        // Rune 3
+        ctx.fillRect(44, 82, 1, 4); ctx.fillRect(42, 84, 5, 1);
+        // Rune 4
+        ctx.fillRect(50, 28, 4, 1); ctx.fillRect(52, 26, 1, 5);
         ctx.globalAlpha = 1;
-        // Central sparkle
+        // Face/visage in the void
+        ctx.fillStyle = '#3a1a4a';
+        ctx.beginPath(); ctx.ellipse(48, 48, 12, 16, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#2a0a3a';
+        ctx.beginPath(); ctx.ellipse(48, 48, 10, 13, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#1a0a2a';
+        ctx.beginPath(); ctx.ellipse(48, 48, 8, 10, 0, 0, Math.PI*2); ctx.fill();
+        // Brow ridge
+        ctx.fillStyle = '#3a1a4a';
+        ctx.fillRect(38, 42, 6, 2); ctx.fillRect(50, 42, 6, 2);
+        // Eyes (bright purple-white, piercing)
+        ctx.fillStyle = '#aa55ee';
+        ctx.fillRect(40, 44, 5, 4);
+        ctx.fillRect(52, 44, 5, 4);
+        ctx.fillStyle = '#cc88ff';
+        ctx.fillRect(41, 45, 3, 2);
+        ctx.fillRect(53, 45, 3, 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(42, 45, 2, 2);
+        ctx.fillRect(54, 45, 2, 2);
+        // Eye glow effect
+        ctx.fillStyle = 'rgba(180,100,255,0.2)';
+        ctx.beginPath(); ctx.arc(42, 46, 5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(54, 46, 5, 0, Math.PI*2); ctx.fill();
+        // Nose
+        ctx.fillStyle = '#2a0a3a';
+        ctx.fillRect(47, 50, 2, 3);
+        // Mouth (void gash, wider)
+        ctx.fillStyle = '#0a0010';
+        ctx.fillRect(40, 56, 16, 3);
+        ctx.fillStyle = '#6a2a8a';
+        ctx.fillRect(42, 56, 12, 2);
+        // Teeth-like void fragments in mouth
+        ctx.fillStyle = '#8a5aaa';
+        ctx.fillRect(43, 56, 1, 2); ctx.fillRect(46, 56, 1, 2);
+        ctx.fillRect(49, 56, 1, 2); ctx.fillRect(52, 56, 1, 2);
+        // Energy tendrils radiating outward (more, thicker)
+        ctx.strokeStyle = '#8a3aaa';
+        ctx.lineWidth = 2.5;
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath(); ctx.moveTo(48, 24); ctx.quadraticCurveTo(42, 12, 32, 4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(48, 24); ctx.quadraticCurveTo(54, 10, 66, 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(20, 56); ctx.quadraticCurveTo(8, 50, 0, 42); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(76, 56); ctx.quadraticCurveTo(88, 48, 96, 40); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(36, 84); ctx.quadraticCurveTo(24, 98, 16, 114); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(60, 84); ctx.quadraticCurveTo(72, 96, 82, 112); ctx.stroke();
+        // Secondary tendrils (thinner)
+        ctx.globalAlpha = 0.35;
+        ctx.strokeStyle = '#bb66dd';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(48, 24); ctx.quadraticCurveTo(48, 8, 48, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(18, 56); ctx.quadraticCurveTo(6, 62, 0, 70); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(78, 56); ctx.quadraticCurveTo(90, 62, 96, 70); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(30, 78); ctx.quadraticCurveTo(14, 86, 4, 100); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(66, 78); ctx.quadraticCurveTo(82, 86, 92, 100); ctx.stroke();
+        // Tertiary wisps
+        ctx.globalAlpha = 0.2;
+        ctx.strokeStyle = '#cc88ee';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(36, 30); ctx.quadraticCurveTo(24, 18, 18, 8); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(60, 30); ctx.quadraticCurveTo(72, 18, 78, 8); ctx.stroke();
+        ctx.globalAlpha = 1;
+        // Tendril tips (bright sparks)
+        ctx.fillStyle = '#cc88ff';
+        ctx.globalAlpha = 0.7;
+        ctx.fillRect(31, 3, 2, 2); ctx.fillRect(65, 1, 2, 2);
+        ctx.fillRect(0, 41, 2, 2); ctx.fillRect(94, 39, 2, 2);
+        ctx.fillRect(15, 113, 2, 2); ctx.fillRect(81, 111, 2, 2);
+        ctx.globalAlpha = 1;
+        // Central sparkles (reality breaking)
         ctx.fillStyle = '#ffffff';
         ctx.globalAlpha = 0.8;
-        ctx.fillRect(39, 34, 2, 2);
-        ctx.fillRect(44, 42, 1, 1);
-        ctx.fillRect(34, 44, 1, 1);
+        ctx.fillRect(47, 40, 2, 2);
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(54, 50, 1, 1);
+        ctx.fillRect(40, 52, 1, 1);
+        ctx.fillRect(50, 38, 1, 1);
+        ctx.fillRect(44, 54, 1, 1);
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(36, 44, 1, 1); ctx.fillRect(58, 48, 1, 1);
+        ctx.fillRect(46, 62, 1, 1); ctx.fillRect(50, 34, 1, 1);
         ctx.globalAlpha = 1;
         return c;
     },

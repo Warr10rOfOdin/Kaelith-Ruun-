@@ -39,7 +39,8 @@
                 <button id="btn-continue" class="menu-btn" disabled>Continue</button>
                 <button id="btn-lore" class="menu-btn">World Lore</button>
             </div>
-            <p class="version-info">v0.3.0 — Canvas World</p>
+            <div id="save-info" class="save-info hidden"></div>
+            <p class="version-info">v0.4.0 — Achievements & Quests</p>
             <p id="install-prompt" class="install-hint hidden">Tap to install as app</p>
         </div>
 
@@ -112,7 +113,9 @@
                 <div class="hud-row-location">
                     <span id="hud-location" class="hud-item"></span>
                 </div>
+                <div id="hud-status-icons" class="hud-row-status"></div>
             </div>
+            <canvas id="hud-minimap" width="80" height="80"></canvas>
 
             <!-- Floating Narrative Messages (over the world) -->
             <div id="floating-narrative"></div>
@@ -139,6 +142,9 @@
                     <div class="dpad-spacer"></div>
                 </div>
             </div>
+
+            <!-- Auto-save indicator -->
+            <div id="autosave-indicator" class="autosave-indicator hidden">Saved</div>
 
             <!-- Action Bar (overlay) -->
             <div id="action-bar">
@@ -170,6 +176,10 @@
                 <button class="nav-tab" data-tab="journal">
                     <span class="tab-icon">&#x1F4DC;</span>
                     <span class="tab-label">Quests</span>
+                </button>
+                <button class="nav-tab" data-tab="achievements">
+                    <span class="tab-icon">&#x2B50;</span>
+                    <span class="tab-label">Feats</span>
                 </button>
                 <button class="nav-tab" data-tab="settings">
                     <span class="tab-icon">&#x2699;&#xFE0F;</span>
@@ -239,6 +249,7 @@
     <script src="js/data/maps.js"></script>
     <script src="js/data/tech.js"></script>
     <script src="js/engine/state.js"></script>
+    <script src="js/engine/audio.js"></script>
     <script src="js/engine/narrative.js"></script>
     <script src="js/engine/combat.js"></script>
     <script src="js/engine/inventory.js"></script>

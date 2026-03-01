@@ -77,6 +77,12 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 - [x] Elemental resistances and weaknesses — per-enemy 4-element resistance maps with Weak!/Resist! labels
 - [x] Weakness discovery tooltip — persists across encounters, shows discovered elements as icons
 
+### Panel Visual Overhaul (v0.9.0)
+- [x] Character Sheet: visual stat bars, stat icons, ability cards, skill tree styling
+- [x] Journal: quest badges, objective checkboxes, progress bars, section dividers
+- [x] Achievements: badge layout, progress bar header, sorted display, stat icons
+- [x] Inventory: labeled equipment grid, rarity glow borders, item detail panel overhaul
+
 ---
 
 ## In Progress

@@ -4,6 +4,36 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v0.9.0] — 2026-03-01 — Panel Visual Overhaul
+
+### Changed
+- **Character Sheet** completely redesigned:
+  - Visual HP/MP/XP bars with colored gradient fills replacing plain number display
+  - Stat icons on all attributes (Strength, Dexterity, etc.) and combat stats
+  - Card-based ability display with header (name + cost), description, and damage range
+  - Styled skill tree with bordered tier cards and locked/unlocked visual states
+  - All stat groups wrapped in bordered card containers with fade-in animation
+- **Journal/Quests** completely redesigned:
+  - Quest type badges: gold "MAIN" and blue "SIDE" pill labels on each quest
+  - Styled objective checkboxes with green border/fill on completion
+  - Per-quest progress bars showing completion percentage
+  - Section dividers with horizontal rule accents
+  - Empty state placeholder for undiscovered side quests
+- **Achievements** completely redesigned:
+  - Badge-style layout with circular icons (gold starred for unlocked, dim for locked)
+  - Overall achievement progress bar in header
+  - Unlocked achievements sorted to top of list
+  - Statistics section with per-stat icons (sword, skull, star, etc.)
+- **Inventory** completely redesigned:
+  - 3-column equipment grid with labeled slots (Weapon, Helmet, Armor, etc.)
+  - Rarity glow borders on equipment slots: green (uncommon) through gold (legendary)
+  - Legendary equipment gets pulsing gold animation
+  - Rarity-tinted borders on inventory grid slots
+  - Item detail panel redesigned with large icon, rarity tag, and stat comparison
+  - Empty inventory slots visually dimmed
+
+---
+
 ## [v0.8.3] — 2026-03-01 — Combat Phase 3: Gameplay Depth
 
 ### Added

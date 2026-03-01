@@ -38,6 +38,10 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ## Recently Completed
 
+- [x] Character Sheet visual overhaul (stat bars, icons, ability cards, skill tree) — `progression.js` + `style.css`
+- [x] Journal visual overhaul (quest badges, checkboxes, progress bars) — `progression.js` + `style.css`
+- [x] Achievements visual overhaul (badges, progress bar, sorted display) — `progression.js` + `style.css`
+- [x] Inventory visual overhaul (equipment grid, rarity glow, item detail) — `inventory.js` + `style.css`
 - [x] Enemy behavior AI (aggro/defensive/support weighted selection) — `combat.js` + `enemies.js`
 - [x] Elemental resistance/weakness system with Weak!/Resist! labels — `combat.js` + `enemies.js` + `combat.css`
 - [x] Weakness discovery tooltip (persists across encounters) — `combat.js` + `combat.css`

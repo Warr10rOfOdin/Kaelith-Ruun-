@@ -130,6 +130,26 @@ const Settings = {
             <button onclick="Settings.cycleParticles()" class="action-btn" style="padding:0.2rem 0.6rem;font-size:0.8rem">${this.values.particleDensity.toUpperCase()}</button>
         </div>`;
 
+        // Audio controls
+        const audioEnabled = typeof Audio !== 'undefined' ? Audio.enabled : false;
+        const sfxVol = typeof Audio !== 'undefined' ? Math.round(Audio.sfxVolume * 100) : 50;
+        const musicVol = typeof Audio !== 'undefined' ? Math.round(Audio.musicVolume * 100) : 30;
+
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0">
+            <span style="font-size:0.85rem">Sound</span>
+            <button onclick="Settings.toggleAudio()" class="action-btn" style="padding:0.2rem 0.6rem;font-size:0.8rem">${audioEnabled ? 'ON' : 'OFF'}</button>
+        </div>`;
+
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0">
+            <span style="font-size:0.85rem">SFX Volume</span>
+            <input type="range" min="0" max="100" value="${sfxVol}" oninput="Settings.setSfxVol(this.value)" style="width:100px;accent-color:var(--accent-gold)">
+        </div>`;
+
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0">
+            <span style="font-size:0.85rem">Music Volume</span>
+            <input type="range" min="0" max="100" value="${musicVol}" oninput="Settings.setMusicVol(this.value)" style="width:100px;accent-color:var(--accent-gold)">
+        </div>`;
+
         html += '</div>';
 
         // Keybindings
@@ -173,6 +193,21 @@ const Settings = {
         this.values.particleDensity = order[(idx + 1) % order.length];
         this.save();
         this.render();
+    },
+
+    toggleAudio() {
+        if (typeof Audio !== 'undefined') {
+            Audio.toggleAudio();
+        }
+        this.render();
+    },
+
+    setSfxVol(val) {
+        if (typeof Audio !== 'undefined') Audio.setSfxVolume(val / 100);
+    },
+
+    setMusicVol(val) {
+        if (typeof Audio !== 'undefined') Audio.setMusicVolume(val / 100);
     },
 
     startRebind(action) {

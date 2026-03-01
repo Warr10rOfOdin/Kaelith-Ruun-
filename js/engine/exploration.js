@@ -151,6 +151,7 @@ const Exploration = {
             const gold = 5 + Math.floor(Math.random() * 20);
             GameState.player.gold += gold;
             Narrative.addLoot(`You find ${gold} gold coins scattered among the debris.`);
+            if (typeof Audio !== 'undefined') Audio.playLoot();
             found = true;
         } else if (roll < 0.7) {
             // Health/mana vial
@@ -183,6 +184,7 @@ const Exploration = {
                         const item = ITEMS[itemKey];
                         Narrative.addLoot(`Amazing find! You discover: ${item.icon} ${item.name}!`);
                         Notifications.show(`Found ${item.name}!`, 'gold');
+                        if (typeof Audio !== 'undefined') Audio.playLootRare();
                         found = true;
                     }
                 }
@@ -339,6 +341,7 @@ const Exploration = {
         Narrative.addAction(`You journey to ${region.name}...`);
         Narrative.addStory(region.description);
 
+        if (typeof Audio !== 'undefined') Audio.startAmbient(regionKey);
         this.showCurrentLocation();
         HUD.update();
         GameState.save();

@@ -236,6 +236,15 @@ const WorldMap = {
 
         this.isMoving = dx !== 0 || dy !== 0;
 
+        // Cancel fishing if player moves
+        if (this.isMoving && this._fishingState === 'casting') {
+            clearTimeout(this._fishingTimer);
+            this._fishingState = null;
+            this._fishingData = null;
+            this.interactCooldown = 0;
+            Narrative.addFlavor('You reel in your line.');
+        }
+
         // Sprint / Stamina management
         this.isSprinting = this.keys.sprint && this.isMoving && this.stamina > 0;
         if (this.isSprinting) {
@@ -750,6 +759,13 @@ const WorldMap = {
     interact() {
         if (GameState.currentScreen !== 'game') return;
         if (GameState.combatState) return;
+
+        // Fishing reel-in check — bypass cooldown
+        if (this._fishingState === 'bite') {
+            this.reelIn();
+            return;
+        }
+
         if (this.interactCooldown > 0) return;
         this.interactCooldown = 0.3;
 
@@ -940,6 +956,7 @@ const WorldMap = {
 
         GameState.addToInventory(resourceKey, qty);
         Narrative.addLoot(`${tile.gatherText} (+${qty} ${ITEMS[resourceKey].name})`);
+        if (typeof Audio !== 'undefined') Audio.playGather();
 
         // Particles at the gathered tile
         const worldX = x * this.TS + this.TS / 2;
@@ -981,9 +998,59 @@ const WorldMap = {
     },
 
     // ---- FISHING ----
+    _fishingState: null, // null | 'casting' | 'waiting' | 'bite' | 'reeling'
+    _fishingTimer: null,
+    _fishingData: null,
+
     fish(x, y, rod) {
+        // If already fishing, ignore
+        if (this._fishingState) return;
+
         const tier = rod.toolTier || 1;
         const region = GameState.currentRegion || 'ashen_wastes';
+
+        this._fishingData = { x, y, rod, tier, region };
+        this._fishingState = 'casting';
+
+        Narrative.addFlavor('You cast your line into the water...');
+        if (typeof Audio !== 'undefined') Audio.playFishCast();
+
+        // Splash particles
+        const worldX = x * this.TS + this.TS / 2;
+        const worldY = y * this.TS + this.TS / 2;
+        Sprites.addParticles(worldX, worldY, '#4488cc', 4);
+
+        // Wait 1.5-4 seconds for a bite
+        const waitTime = 1500 + Math.random() * 2500;
+        this._fishingTimer = setTimeout(() => {
+            if (this._fishingState !== 'casting') return;
+            this._fishingState = 'bite';
+            Narrative.addSystem('Something tugs at your line! Press interact to reel in!');
+            if (typeof Audio !== 'undefined') Audio.playFishBite();
+            if (typeof Notifications !== 'undefined') Notifications.show('A bite! Reel in!', 'gold');
+
+            // If player doesn't reel within 2s, the fish escapes
+            this._fishingTimer = setTimeout(() => {
+                if (this._fishingState === 'bite') {
+                    this._fishingState = null;
+                    this._fishingData = null;
+                    Narrative.addFlavor('The fish got away...');
+                    this.interactCooldown = 0.5;
+                }
+            }, 2000);
+        }, waitTime);
+
+        // Block movement/interaction while casting
+        this.interactCooldown = waitTime / 1000 + 3;
+    },
+
+    reelIn() {
+        if (this._fishingState !== 'bite' || !this._fishingData) return;
+        clearTimeout(this._fishingTimer);
+        this._fishingState = null;
+
+        const { x, y, rod, tier, region } = this._fishingData;
+        this._fishingData = null;
 
         // Check angler's hat for quality boost
         let qualityMult = 1.0;
@@ -1029,8 +1096,10 @@ const WorldMap = {
             Narrative.addLoot('Your hook snags something heavy... a sunken treasure chest!');
             GameState.player.gold += 15 + Math.floor(Math.random() * 20);
         } else {
-            Narrative.addLoot(`You cast your line and catch ${catchQty > 1 ? catchQty + 'x ' : ''}${item.name}!`);
+            Narrative.addLoot(`You reel in ${catchQty > 1 ? catchQty + 'x ' : ''}${item.name}!`);
         }
+
+        if (typeof Audio !== 'undefined') Audio.playFishCatch();
 
         if (typeof Notifications !== 'undefined') {
             Notifications.show(`Caught ${item.name}!`, catchItem === 'old_boot' ? 'red' : 'gold');

@@ -65,6 +65,7 @@ const Game = {
 
         if (newGameBtn) {
             newGameBtn.onclick = () => {
+                if (typeof Audio !== 'undefined') Audio.ensure();
                 ScreenManager.showScreen('creation');
                 this.startCreation();
             };
@@ -72,11 +73,13 @@ const Game = {
 
         if (continueBtn) {
             continueBtn.onclick = () => {
+                if (typeof Audio !== 'undefined') Audio.ensure();
                 if (GameState.load()) {
                     ScreenManager.showScreen('game');
                     HUD.update();
                     Narrative.addSystem('Your journey continues...');
                     this.startWorldMap();
+                    if (typeof Audio !== 'undefined') Audio.startAmbient(GameState.currentRegion);
                 }
             };
         }
@@ -334,6 +337,7 @@ const Game = {
 
             // Initialize the world map
             this.startWorldMap();
+            if (typeof Audio !== 'undefined') Audio.startAmbient(GameState.currentRegion);
         }, 1500);
     },
 

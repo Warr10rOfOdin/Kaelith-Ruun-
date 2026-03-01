@@ -51,20 +51,25 @@ const WorldGen = {
         // 1) Generate base terrain from noise
         this.generateBiomeTerrain(grid, w, h, seed, biome);
 
-        // 2) Place natural borders (soft edges, not hard walls)
+        // 2) Generate dense forest clusters for visual variety
+        if (biome !== 'boss_arena' && biome !== 'village' && biome !== 'camp') {
+            this.generateForestClusters(grid, w, h, seed, biome);
+        }
+
+        // 3) Place natural borders (soft edges, not hard walls)
         this.generateBorders(grid, w, h, biome);
 
-        // 3) Stamp structures (buildings, ruins, etc.)
+        // 4) Stamp structures (buildings, ruins, etc.)
         if (mapDef.structures) {
             mapDef.structures.forEach(s => this.stampStructure(grid, s, w, h));
         }
 
-        // 4) Draw paths between key points
+        // 5) Draw paths between key points
         if (mapDef.paths) {
             mapDef.paths.forEach(p => this.drawPath(grid, p.from, p.to, w, h));
         }
 
-        // 5) Ensure player start and entity positions are clear
+        // 6) Ensure player start and entity positions are clear
         if (mapDef.playerStart) {
             this.clearArea(grid, mapDef.playerStart.x, mapDef.playerStart.y, 2);
         }
@@ -76,7 +81,7 @@ const WorldGen = {
             });
         }
 
-        // 6) Stamp narrative props (hand-placed tiles)
+        // 7) Stamp narrative props (hand-placed tiles)
         if (mapDef.stamps) {
             mapDef.stamps.forEach(s => {
                 if (s.x >= 0 && s.x < w && s.y >= 0 && s.y < h) {
@@ -87,7 +92,7 @@ const WorldGen = {
             });
         }
 
-        // 7) Place building spots for camps
+        // 8) Place building spots for camps
         if (mapDef.buildingSpots) {
             mapDef.buildingSpots.forEach(bs => {
                 if (bs.x < w && bs.y < h) {
@@ -254,11 +259,68 @@ const WorldGen = {
         return '.';
     },
 
+    // ── Dense forest cluster generation ──────
+    // Places tight groups of trees to create natural "walls" and clearings
+    // instead of evenly scattered individual trees
+
+    generateForestClusters(grid, w, h, seed, biome) {
+        const treeTypes = biome.includes('fen') ? ['T', 'K', 'K'] :
+                          biome.includes('void') ? ['K', '#'] :
+                          ['T', 'P', 'T'];
+        const grassSet = new Set(['.', 'g', 'w', 'h']);
+
+        // Use noise to find natural cluster centers (different frequency than terrain)
+        const clusterScale = 0.04;
+        const numClusters = Math.floor(w * h / 400);  // ~1 cluster per 400 tiles
+
+        for (let c = 0; c < numClusters; c++) {
+            // Deterministic cluster position from noise
+            const nx = this.fbm(c * 7.3, seed * 0.1, seed + 500, 2);
+            const ny = this.fbm(c * 11.7, seed * 0.1, seed + 600, 2);
+            const cx = Math.floor(nx * (w - 8)) + 4;
+            const cy = Math.floor(ny * (h - 8)) + 4;
+
+            // Cluster size (radius 3-7)
+            const rn = this.fbm(cx * clusterScale, cy * clusterScale, seed + 700, 2);
+            const radius = 3 + Math.floor(rn * 4);
+
+            // Density (0.3 - 0.7)
+            const density = 0.3 + rn * 0.4;
+
+            // Stamp trees in a rough circular area
+            for (let dy = -radius; dy <= radius; dy++) {
+                for (let dx = -radius; dx <= radius; dx++) {
+                    const tx = cx + dx;
+                    const ty = cy + dy;
+                    if (tx < 2 || tx >= w - 2 || ty < 2 || ty >= h - 2) continue;
+
+                    // Circular distance check with noise for organic shape
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const noisyRadius = radius * (0.7 + this._noise(tx, ty, seed + 800) * 0.5);
+                    if (dist > noisyRadius) continue;
+
+                    // Only fill grass tiles
+                    if (!grassSet.has(grid[ty][tx])) continue;
+
+                    // Inner tiles are denser
+                    const fillChance = (1 - dist / noisyRadius) * density + density * 0.3;
+                    if (this._noise(tx * 3, ty * 3, seed + 900) < fillChance) {
+                        const treeIdx = Math.floor(this._noise(tx, ty, seed + 1000) * treeTypes.length);
+                        grid[ty][tx] = treeTypes[treeIdx];
+                    }
+                }
+            }
+        }
+    },
+
     // ── Border generation ────────────────────
 
     generateBorders(grid, w, h, biome) {
         const borderTile = biome.includes('fen') ? '~' : (biome.includes('void') ? '#' : 'T');
+        const secondaryTile = biome.includes('fen') ? 'O' : (biome.includes('void') ? 'R' : 'P');
+        const grassSet = new Set(['.', 'g', 'w', 'h']);
 
+        // Hard outer border
         for (let x = 0; x < w; x++) {
             grid[0][x] = borderTile;
             grid[h - 1][x] = borderTile;
@@ -268,14 +330,28 @@ const WorldGen = {
             grid[y][w - 1] = borderTile;
         }
 
-        // Softer inner border — random trees/rocks along edges
-        for (let x = 1; x < w - 1; x++) {
-            if (Math.random() < 0.5) grid[1][x] = borderTile;
-            if (Math.random() < 0.5) grid[h - 2][x] = borderTile;
-        }
-        for (let y = 1; y < h - 1; y++) {
-            if (Math.random() < 0.5) grid[y][1] = borderTile;
-            if (Math.random() < 0.5) grid[y][w - 2] = borderTile;
+        // Gradient border — probability decreases toward interior (3 rows deep)
+        const borderDepth = 4;
+        for (let depth = 1; depth < borderDepth; depth++) {
+            const chance = 0.7 - depth * 0.15;  // 0.55, 0.40, 0.25
+            const tile = depth === 1 ? borderTile : (this._noise(depth, 0, 42) > 0.5 ? borderTile : secondaryTile);
+
+            for (let x = 1; x < w - 1; x++) {
+                if (grassSet.has(grid[depth][x]) && this._noise(x, depth, 77) < chance) {
+                    grid[depth][x] = tile;
+                }
+                if (grassSet.has(grid[h - 1 - depth][x]) && this._noise(x, h - depth, 78) < chance) {
+                    grid[h - 1 - depth][x] = tile;
+                }
+            }
+            for (let y = 1; y < h - 1; y++) {
+                if (grassSet.has(grid[y][depth]) && this._noise(depth, y, 79) < chance) {
+                    grid[y][depth] = tile;
+                }
+                if (grassSet.has(grid[y][w - 1 - depth]) && this._noise(w - depth, y, 80) < chance) {
+                    grid[y][w - 1 - depth] = tile;
+                }
+            }
         }
     },
 
@@ -349,38 +425,127 @@ const WorldGen = {
         }
     },
 
-    // ── Path drawing ─────────────────────────
+    // ── Path drawing — natural curves with Bresenham + midpoint displacement ──
 
     drawPath(grid, from, to, mapW, mapH) {
-        let x = from.x, y = from.y;
-        const tx = to.x, ty = to.y;
-        // Tiles that paths can overwrite (anything except water, campfire, chest, building spot, doors)
-        const canReplace = new Set(['.', 'T', 'R', '#', 'f', 'E', 'H', 'S', 'X', 'M', 'V', 'I']);
+        // Tiles that paths can overwrite
+        const canReplace = new Set(['.', 'T', 'R', '#', 'f', 'E', 'H', 'S', 'X', 'M', 'V', 'I',
+                                    'g', 'w', 'h', 'K', 'P', 'O', 'N', 'J', 'Q', 'U', 'Y', 'Z', 'A']);
 
-        // L-shaped path: horizontal first, then vertical
-        while (x !== tx) {
-            if (x >= 0 && x < mapW && y >= 0 && y < mapH) {
-                if (canReplace.has(grid[y][x])) {
-                    grid[y][x] = 'p';
+        // Generate a curved path using midpoint displacement
+        const points = this._curvePath(from.x, from.y, to.x, to.y, mapW, mapH);
+
+        // Walk the point list and stamp path tiles
+        for (let i = 0; i < points.length; i++) {
+            const [px, py] = points[i];
+
+            // Draw path tile + width variation
+            // Main path is 2 tiles wide; occasionally 3 at "wide" spots
+            const hash = ((px * 73856093) ^ (py * 19349663)) & 0x7FFFFFFF;
+            const isWide = (hash % 7) === 0;  // ~14% chance of being wider
+
+            this._stampPathTile(grid, px, py, mapW, mapH, canReplace);
+
+            // Second width tile — perpendicular to path direction
+            if (i > 0 && i < points.length - 1) {
+                const [prevX, prevY] = points[i - 1];
+                const dx = px - prevX;
+                const dy = py - prevY;
+
+                // Perpendicular direction for width
+                if (Math.abs(dx) >= Math.abs(dy)) {
+                    // Moving mostly horizontal — widen vertically
+                    this._stampPathTile(grid, px, py + 1, mapW, mapH, canReplace);
+                    if (isWide) this._stampPathTile(grid, px, py - 1, mapW, mapH, canReplace);
+                } else {
+                    // Moving mostly vertical — widen horizontally
+                    this._stampPathTile(grid, px + 1, py, mapW, mapH, canReplace);
+                    if (isWide) this._stampPathTile(grid, px - 1, py, mapW, mapH, canReplace);
                 }
-                // Widen the path
-                if (y + 1 < mapH && canReplace.has(grid[y + 1][x])) {
-                    grid[y + 1][x] = 'p';
+            } else {
+                // Start/end: default horizontal widen
+                this._stampPathTile(grid, px, py + 1, mapW, mapH, canReplace);
+            }
+        }
+    },
+
+    _stampPathTile(grid, x, y, mapW, mapH, canReplace) {
+        if (x >= 0 && x < mapW && y >= 0 && y < mapH) {
+            if (canReplace.has(grid[y][x])) {
+                grid[y][x] = 'p';
+            }
+        }
+    },
+
+    // Generate a naturally curved path between two points
+    // Uses midpoint displacement with constraints to avoid sharp turns
+    _curvePath(x1, y1, x2, y2, mapW, mapH) {
+        // Seed for deterministic displacement
+        const seed = ((x1 * 73856093) ^ (y1 * 19349663) ^ (x2 * 83492791) ^ (y2 * 47695691)) & 0x7FFFFFFF;
+
+        // Start with straight line, apply midpoint displacement
+        const controlPoints = this._displaceMidpoints(
+            [{ x: x1, y: y1 }, { x: x2, y: y2 }],
+            seed, mapW, mapH, 3  // 3 levels of subdivision
+        );
+
+        // Walk a smooth path through control points using linear interpolation
+        const result = [];
+        for (let i = 0; i < controlPoints.length - 1; i++) {
+            const p0 = controlPoints[i];
+            const p1 = controlPoints[i + 1];
+            const steps = Math.max(Math.abs(p1.x - p0.x), Math.abs(p1.y - p0.y));
+
+            for (let s = 0; s <= steps; s++) {
+                const t = steps === 0 ? 0 : s / steps;
+                const px = Math.round(p0.x + (p1.x - p0.x) * t);
+                const py = Math.round(p0.y + (p1.y - p0.y) * t);
+
+                // Avoid duplicates
+                if (result.length === 0 || result[result.length - 1][0] !== px || result[result.length - 1][1] !== py) {
+                    result.push([px, py]);
                 }
             }
-            x += x < tx ? 1 : -1;
         }
-        while (y !== ty) {
-            if (x >= 0 && x < mapW && y >= 0 && y < mapH) {
-                if (canReplace.has(grid[y][x])) {
-                    grid[y][x] = 'p';
-                }
-                if (x + 1 < mapW && canReplace.has(grid[y][x + 1])) {
-                    grid[y][x + 1] = 'p';
-                }
-            }
-            y += y < ty ? 1 : -1;
+
+        return result;
+    },
+
+    _displaceMidpoints(points, seed, mapW, mapH, depth) {
+        if (depth <= 0 || points.length < 2) return points;
+
+        const newPoints = [points[0]];
+        for (let i = 0; i < points.length - 1; i++) {
+            const a = points[i];
+            const b = points[i + 1];
+            const mx = (a.x + b.x) / 2;
+            const my = (a.y + b.y) / 2;
+            const dist = Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
+
+            // Displacement proportional to segment length, capped for short segments
+            const maxDisp = Math.min(dist * 0.3, 12);
+
+            // Deterministic pseudo-random displacement
+            const n = Math.sin((mx + seed * 0.1) * 12.9898 + (my + seed * 0.1) * 78.233) * 43758.5453;
+            const rng = n - Math.floor(n);  // 0..1
+            const disp = (rng - 0.5) * 2 * maxDisp;
+
+            // Displace perpendicular to the segment direction
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const len = Math.sqrt(dx * dx + dy * dy) || 1;
+            const perpX = -dy / len;
+            const perpY = dx / len;
+
+            const cx = Math.round(Math.max(2, Math.min(mapW - 3, mx + perpX * disp)));
+            const cy = Math.round(Math.max(2, Math.min(mapH - 3, my + perpY * disp)));
+
+            newPoints.push({ x: cx, y: cy });
+            newPoints.push(b);
         }
+
+        // Recurse with increased seed
+        return this._displaceMidpoints(newPoints, seed + 97, mapW, mapH, depth - 1);
     },
 
     // ── Exit corridors ───────────────────────

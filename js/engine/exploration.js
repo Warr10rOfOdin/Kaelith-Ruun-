@@ -73,8 +73,35 @@ const Exploration = {
         this.explorationCount++;
         GameState.turnCount++;
 
+        // Tick survival and buffs each exploration turn
+        if (GameState.survival) {
+            GameState.survival.fatigue = Math.min(100, GameState.survival.fatigue + 3);
+            GameState.updateSurvival();
+        }
+        GameState.tickBuffs();
+
+        // Advance day every 10 exploration actions
+        if (GameState.turnCount % 10 === 0) {
+            GameState.advanceDay();
+        }
+
+        // Advance crops
+        this.advanceCrops();
+
+        // NPC production
+        if (typeof Base !== 'undefined') Base.processNPCProduction();
+
+        // Update threat level
+        GameState.updateThreatLevel();
+
         const location = WORLD.locations[GameState.currentLocation];
         if (!location) return;
+
+        // Check for base raid
+        if (GameState.shouldTriggerRaid()) {
+            this.triggerRaid();
+            return;
+        }
 
         // Random event selection
         const roll = Math.random();
@@ -195,6 +222,17 @@ const Exploration = {
             Narrative.addFlavor('You search thoroughly but the area has already been picked clean.');
         }
 
+        // Chance to discover a recipe from exploration (ruins, caches)
+        if (Math.random() < 0.08 && typeof RECIPES !== 'undefined') {
+            const allRecipes = Object.keys(RECIPES);
+            const undiscovered = allRecipes.filter(k => !GameState.isRecipeDiscovered(k));
+            if (undiscovered.length > 0) {
+                const recipeKey = undiscovered[Math.floor(Math.random() * undiscovered.length)];
+                GameState.discoverRecipe(recipeKey);
+                Narrative.addLoot('You find weathered blueprints among the debris!');
+            }
+        }
+
         HUD.update();
     },
 
@@ -204,16 +242,38 @@ const Exploration = {
         GameState.healPlayer(healAmount, mpHeal);
 
         Narrative.addSeparator();
-        Narrative.addFlavor('You find a sheltered spot and rest for a while. The world is still dangerous, but for this moment, you are safe.');
+
+        // Survival effects of resting
+        if (GameState.survival) {
+            const s = GameState.survival;
+            const atCamp = GameState.currentLocation === 'player_camp';
+            const hasShelter = GameState.base && GameState.base.buildings && GameState.base.buildings.shelter;
+
+            if (atCamp && hasShelter) {
+                s.fatigue = Math.max(0, s.fatigue - 40);
+                s.morale = Math.min(100, s.morale + 10);
+                Narrative.addFlavor('You rest in your shelter. Warm walls keep the darkness at bay. You feel renewed.');
+            } else {
+                s.fatigue = Math.max(0, s.fatigue - 20);
+                s.morale = Math.min(100, s.morale + 3);
+                Narrative.addFlavor('You find a sheltered spot and rest for a while. The world is still dangerous, but for this moment, you are safe.');
+            }
+            GameState.updateSurvival();
+        } else {
+            Narrative.addFlavor('You find a sheltered spot and rest for a while. The world is still dangerous, but for this moment, you are safe.');
+        }
+
         Narrative.addHeal(`Restored ${healAmount} HP and ${mpHeal} MP.`);
 
-        // Small chance of ambush
-        if (Math.random() < 0.15) {
+        // Small chance of ambush (lower at camp)
+        const ambushChance = GameState.currentLocation === 'player_camp' ? 0.05 : 0.15;
+        if (Math.random() < ambushChance) {
             Narrative.addFlavor('Your rest is interrupted by the sound of approaching footsteps...');
             setTimeout(() => this.triggerRandomCombat(), 1000);
         }
 
         GameState.turnCount++;
+        GameState.tickBuffs();
         HUD.update();
         GameState.save();
     },
@@ -341,9 +401,81 @@ const Exploration = {
         Narrative.addAction(`You journey to ${region.name}...`);
         Narrative.addStory(region.description);
 
+        // Travel is tiring
+        if (GameState.survival) {
+            GameState.survival.fatigue = Math.min(100, GameState.survival.fatigue + 8);
+        }
+
         if (typeof Audio !== 'undefined') Audio.startAmbient(regionKey);
         this.showCurrentLocation();
         HUD.update();
         GameState.save();
+    },
+
+    // ── Crop Advancement ──
+    advanceCrops() {
+        if (!GameState.base || !GameState.base.crops) return;
+        const season = GameState.survival ? GameState.survival.season : 'summer';
+        const seasonGrowth = { spring: 1.3, summer: 1.0, autumn: 0.7, winter: 0.3 };
+        const mult = seasonGrowth[season] || 1.0;
+
+        // Garden/farm upgrade growth bonuses
+        let gardenBonus = 1.0;
+        if (GameState.base.buildingLevels) {
+            const gl = GameState.base.buildingLevels.garden || 1;
+            if (gl >= 3) gardenBonus = 1.5;
+            else if (gl >= 2) gardenBonus = 1.25;
+        }
+
+        GameState.base.crops.forEach(crop => {
+            if (crop.growth < (typeof CROPS !== 'undefined' && CROPS[crop.type] ? CROPS[crop.type].growthTime : 10)) {
+                crop.growth += 1 * mult * gardenBonus;
+            }
+        });
+    },
+
+    // ── Base Threat: Raids ──
+    triggerRaid() {
+        GameState.lastRaidDay = GameState.survival ? GameState.survival.dayCount : 0;
+
+        const region = WORLD.regions[GameState.currentRegion];
+        if (!region || !region.enemies || !region.enemies.length) return;
+
+        // Determine raid difficulty based on threat level
+        const threatScale = Math.min(2.0, 1 + GameState.threatLevel / 100);
+
+        Narrative.addSeparator();
+        Narrative.addStory('A commotion breaks the silence — your camp is under attack!');
+
+        // Raid flavor based on region
+        const raidText = {
+            ashen_wastes: 'Scorched bandits have tracked the smoke from your forge!',
+            hollowfen: 'Bog creatures crawl from the murk, drawn by your presence!',
+            void_sanctum: 'Void acolytes phase through reality, drawn by your growing power!'
+        };
+        Narrative.addFlavor(raidText[GameState.currentRegion] || 'Raiders attack your camp!');
+
+        // Pick a raider from the region
+        const raidEnemy = region.enemies[Math.floor(Math.random() * region.enemies.length)];
+
+        setTimeout(() => {
+            if (typeof Combat !== 'undefined') {
+                Combat.start(raidEnemy, (result) => {
+                    if (result === 'victory') {
+                        Narrative.addStory('You drive off the attackers! Your camp is safe... for now.');
+                        if (GameState.survival) GameState.survival.morale = Math.min(100, GameState.survival.morale + 8);
+                        // Bonus loot from raids
+                        const gold = 10 + Math.floor(Math.random() * 30);
+                        GameState.player.gold += gold;
+                        Narrative.addLoot(`You recover ${gold} gold from the raiders.`);
+                    } else {
+                        Narrative.addSystem('The raiders ransack your supplies before retreating.');
+                        if (GameState.survival) GameState.survival.morale = Math.max(0, GameState.survival.morale - 15);
+                    }
+                    GameState.updateThreatLevel();
+                    HUD.update();
+                });
+            }
+        }, 1200);
     }
 };

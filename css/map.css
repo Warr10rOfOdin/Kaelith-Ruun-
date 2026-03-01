@@ -547,6 +547,15 @@
     flex-wrap: wrap;
 }
 
+.hud-row-survival {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 0.5rem 0.3rem;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    align-items: center;
+}
+
 .status-icon {
     display: inline-flex;
     align-items: center;

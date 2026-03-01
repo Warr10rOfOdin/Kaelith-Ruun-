@@ -699,67 +699,85 @@ const BUILDINGS = {
         name: 'Shelter', icon: '🏠', description: 'A sturdy shelter. Rest here to fully recover.',
         cost: { wood: 8, stone: 5 },
         size: { w: 3, h: 3 },
-        provides: 'rest'
+        provides: 'rest',
+        roomBonus: { type: 'rest_quality', amount: 1.0 },
+        adjacency: { house: { bonus: 'comfort', desc: '+morale from resting', amount: 5 } }
     },
     forge: {
         name: 'Forge', icon: '🔨', description: 'A blacksmith forge. Craft weapons and armor.',
         cost: { iron_ore: 10, stone: 8, wood: 5 },
         size: { w: 3, h: 3 },
-        provides: 'crafting_weapons'
+        provides: 'crafting_weapons',
+        roomBonus: { type: 'weapon_craft', amount: 1.0 },
+        adjacency: { storage: { bonus: 'efficiency', desc: '10% less materials', amount: 0.9 }, workshop: { bonus: 'synergy', desc: '+5% double craft', amount: 0.05 } }
     },
     workshop: {
         name: 'Workshop', icon: '🔧', description: 'A crafting workshop. Smelt ore and craft tools.',
         cost: { wood: 10, stone: 5, iron_ore: 3 },
         size: { w: 3, h: 3 },
-        provides: 'crafting_tools'
+        provides: 'crafting_tools',
+        roomBonus: { type: 'tool_craft', amount: 1.0 },
+        adjacency: { forge: { bonus: 'synergy', desc: '+1 smelt yield', amount: 1 }, storage: { bonus: 'efficiency', desc: '10% less materials', amount: 0.9 } }
     },
     garden: {
         name: 'Garden', icon: '🌱', description: 'A garden plot. Plant and grow food crops.',
         cost: { wood: 6, ember_root: 4, stone: 2 },
         size: { w: 3, h: 3 },
-        provides: 'farming'
+        provides: 'farming',
+        roomBonus: { type: 'farming', amount: 1.0 },
+        adjacency: { shelter: { bonus: 'irrigation', desc: '+15% growth speed', amount: 0.15 }, farm: { bonus: 'synergy', desc: '+1 crop slot', amount: 1 } }
     },
     storage: {
         name: 'Storage', icon: '📦', description: 'A storage vault. Increases inventory by 20 slots.',
         cost: { wood: 12, stone: 8, iron_ore: 4 },
         size: { w: 3, h: 3 },
-        provides: 'extra_storage'
+        provides: 'extra_storage',
+        roomBonus: { type: 'storage', amount: 20 }
     },
     ward_stones: {
-        name: 'Ward Stones', icon: '🪨', description: 'Protective ward stones. Passive HP regen at camp.',
+        name: 'Ward Stones', icon: '🪨', description: 'Protective ward stones. Passive HP regen at camp. Reduces raid threat.',
         cost: { stone: 10, veil_crystal: 3, flame_essence: 2 },
         size: { w: 3, h: 3 },
-        provides: 'ward_regen'
+        provides: 'ward_regen',
+        roomBonus: { type: 'protection', amount: 15 }
     },
     farm: {
         name: 'Farm Plot', icon: '🌾', description: 'A larger farm. Grow more crops at once.',
         cost: { wood: 8, stone: 4, ember_root: 6, bog_fiber: 4 },
         size: { w: 3, h: 3 },
-        provides: 'farming_large'
+        provides: 'farming_large',
+        roomBonus: { type: 'farming_large', amount: 1.0 },
+        adjacency: { garden: { bonus: 'synergy', desc: '+1 crop slot', amount: 1 } }
     },
     herbalist_bench: {
         name: 'Herb Bench', icon: '🧪', description: 'An alchemy bench. Brew potions from ingredients.',
         cost: { wood: 6, ember_root: 5, bog_fiber: 3 },
         size: { w: 3, h: 3 },
-        provides: 'brewing'
+        provides: 'brewing',
+        roomBonus: { type: 'brewing', amount: 1.0 },
+        adjacency: { garden: { bonus: 'herb_boost', desc: '+15% potion potency', amount: 0.15 } }
     },
     house: {
-        name: 'House', icon: '🏡', description: 'Your home. A proper dwelling with a warm hearth.',
+        name: 'House', icon: '🏡', description: 'Your home. A proper dwelling with a warm hearth. Boosts morale.',
         cost: { wood: 20, stone: 15, iron_ingot: 5 },
         size: { w: 3, h: 3 },
-        provides: 'home'
+        provides: 'home',
+        roomBonus: { type: 'morale', amount: 10 },
+        adjacency: { shelter: { bonus: 'comfort', desc: '+morale from resting', amount: 5 } }
     },
     training_dummy: {
         name: 'Training Grounds', icon: '🎯', description: 'Practice combat. Gain XP without danger.',
         cost: { wood: 10, hide: 5, iron_ore: 3 },
         size: { w: 3, h: 3 },
-        provides: 'training'
+        provides: 'training',
+        roomBonus: { type: 'xp_bonus', amount: 0.05 }
     },
     lookout: {
-        name: 'Lookout Tower', icon: '🗼', description: 'A watchtower. See the world map from above.',
+        name: 'Lookout Tower', icon: '🗼', description: 'A watchtower. See the world map. Warns of raids.',
         cost: { wood: 15, stone: 10, iron_ingot: 3 },
         size: { w: 3, h: 3 },
-        provides: 'map_reveal'
+        provides: 'map_reveal',
+        roomBonus: { type: 'warning', amount: 1 }
     }
 };
 

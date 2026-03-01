@@ -18,6 +18,12 @@ const Combat = {
     comboCount: 0,
     maxCombo: 0,
     totalDamageDealt: 0,
+    _counterWindowActive: false,
+    _counterSuccess: false,
+    _lastAbilityElement: null,
+    _comboChain: [],
+    _comboChainBonus: 0,
+    _discoveredWeaknesses: {},
 
     start(enemyKey, onEnd) {
         const template = ENEMIES[enemyKey];
@@ -50,7 +56,10 @@ const Combat = {
             currentPhase: 0,
             lootTable: template.lootTable,
             xpReward: template.xpReward,
-            goldReward: template.goldReward
+            goldReward: template.goldReward,
+            behavior: template.behavior || 'aggro',
+            resistances: template.resistances ? { ...template.resistances } : { fire: 0, ice: 0, lightning: 0, shadow: 0 },
+            area: template.area || ''
         };
 
         this.enemyMaxHp = this.enemy.maxHp;
@@ -61,6 +70,11 @@ const Combat = {
         this.comboCount = 0;
         this.maxCombo = 0;
         this.totalDamageDealt = 0;
+        this._counterWindowActive = false;
+        this._counterSuccess = false;
+        this._lastAbilityElement = null;
+        this._comboChain = [];
+        this._comboChainBonus = 0;
 
         // Ensure player statusEffects array exists
         if (!GameState.player.statusEffects) GameState.player.statusEffects = [];
@@ -196,6 +210,9 @@ const Combat = {
 
         // Combat actions
         this.renderActions();
+
+        // Show weakness tooltip if this enemy was encountered before
+        this.showWeaknessTooltip();
 
         // Clear combat log
         this.log = document.getElementById('combat-log');
@@ -352,23 +369,59 @@ const Combat = {
     telegraphEnemyTurn() {
         if (!this.active || !this.enemy || this.enemy.hp <= 0) return;
 
-        // Pick the ability the enemy will use (same logic as enemyTurn)
-        const validAbilities = (this.enemy.abilities || []).filter(a => {
+        const behavior = this.enemy.behavior || 'aggro';
+        const abilities = this.enemy.abilities || [];
+        const hpRatio = this.enemy.maxHp > 0 ? this.enemy.hp / this.enemy.maxHp : 1;
+
+        // Filter abilities by threshold
+        const available = abilities.filter(a => {
             if (!a) return false;
-            if (a.threshold && this.enemy.maxHp > 0 && (this.enemy.hp / this.enemy.maxHp) > a.threshold) return false;
-            if (a.type === 'buff' || a.type === 'debuff') return Math.random() < 0.3;
+            if (a.threshold && this.enemy.maxHp > 0 && hpRatio > a.threshold) return false;
             return true;
         });
-        const healAbility = (this.enemy.abilities || []).find(a => a && a.type === 'heal');
-        const willHeal = healAbility && this.enemy.hp < this.enemy.maxHp * 0.5 && Math.random() < 0.3;
+
+        // Heal check — all behaviors may heal when low
+        const healAbility = available.find(a => a.type === 'heal');
+        const healChance = behavior === 'support' ? 0.5 : (behavior === 'defensive' ? 0.4 : 0.25);
+        const willHeal = healAbility && hpRatio < 0.5 && Math.random() < healChance;
 
         let telegraphed = null;
+
         if (willHeal) {
             telegraphed = healAbility;
-        } else if (validAbilities.length > 0) {
-            telegraphed = validAbilities[Math.floor(Math.random() * validAbilities.length)];
-        } else if (this.enemy.abilities && this.enemy.abilities.length > 0) {
-            telegraphed = this.enemy.abilities[0];
+        } else {
+            // Behavior-driven selection with weighted categories
+            const damageAbilities = available.filter(a => a.type === 'physical' || a.type === 'magical');
+            const buffAbilities = available.filter(a => a.type === 'buff');
+            const debuffAbilities = available.filter(a => a.type === 'debuff');
+
+            // Build weighted pool based on behavior
+            let pool = [];
+            if (behavior === 'aggro') {
+                // Aggro: strongly prefer damage, occasional debuff
+                damageAbilities.forEach(a => { pool.push(a, a, a); }); // 3x weight
+                debuffAbilities.forEach(a => { pool.push(a); }); // 1x weight
+                // Buff only if low HP
+                if (hpRatio < 0.3) buffAbilities.forEach(a => { pool.push(a); });
+            } else if (behavior === 'defensive') {
+                // Defensive: prefer buffs/shields, moderate damage
+                buffAbilities.forEach(a => { pool.push(a, a, a); }); // 3x weight
+                damageAbilities.forEach(a => { pool.push(a, a); }); // 2x weight
+                debuffAbilities.forEach(a => { pool.push(a); }); // 1x weight
+            } else if (behavior === 'support') {
+                // Support: prefer debuffs and heals, moderate damage
+                debuffAbilities.forEach(a => { pool.push(a, a, a); }); // 3x weight
+                buffAbilities.forEach(a => { pool.push(a, a); }); // 2x weight
+                damageAbilities.forEach(a => { pool.push(a, a); }); // 2x weight
+            }
+
+            if (pool.length > 0) {
+                telegraphed = pool[Math.floor(Math.random() * pool.length)];
+            } else if (available.length > 0) {
+                telegraphed = available[Math.floor(Math.random() * available.length)];
+            } else if (abilities.length > 0) {
+                telegraphed = abilities[0];
+            }
         }
 
         // Store the telegraphed ability so enemyTurn uses the same one
@@ -380,10 +433,17 @@ const Combat = {
             this.triggerEnemyWindUp(telegraphed);
         }
 
+        // Show counter window for damage abilities
+        const isDamageAbility = telegraphed && (telegraphed.type === 'physical' || telegraphed.type === 'magical');
+        if (isDamageAbility) {
+            this.showCounterWindow();
+        }
+
         // Execute after telegraph delay (600ms for normal, 900ms for boss specials)
         const telegraphDelay = (this.enemy.isBoss && telegraphed && telegraphed.damage && telegraphed.damage[1] >= 20) ? 900 : 600;
         this._setTimeout(() => {
             this.clearEnemyIntent();
+            this.hideCounterWindow();
             if (this.active) this.enemyTurn();
         }, telegraphDelay);
     },
@@ -497,6 +557,42 @@ const Combat = {
                 damage = this.calculateDamage(baseDamage + Math.floor(p.magicAttack * 0.5), this.enemy.magicDefense);
             }
 
+            // Elemental resistance/weakness
+            const element = this.getAbilityElement(ability);
+            let resistResult = 'normal';
+            if (element) {
+                const res = this.applyElementalResistance(damage, element);
+                damage = res.damage;
+                resistResult = res.result;
+            }
+
+            // Combo chain bonus
+            this._comboChainBonus = 0;
+            if (element) {
+                this._comboChain.push(element);
+                if (this._comboChain.length >= 2) {
+                    const last = this._comboChain[this._comboChain.length - 2];
+                    if (last === element) {
+                        // Same-element chain: +10% per chain length (max +30%)
+                        const chainLen = this._getElementChainLength(element);
+                        this._comboChainBonus = Math.min(30, chainLen * 10);
+                        damage = Math.floor(damage * (1 + this._comboChainBonus / 100));
+                    } else {
+                        // Element switch combo: specific combos grant bonus
+                        const switchBonus = this._getElementSwitchBonus(last, element);
+                        if (switchBonus > 0) {
+                            this._comboChainBonus = switchBonus;
+                            damage = Math.floor(damage * (1 + switchBonus / 100));
+                        }
+                    }
+                }
+                this._lastAbilityElement = element;
+            } else {
+                this._lastAbilityElement = null;
+            }
+            // Keep chain at reasonable length
+            if (this._comboChain.length > 6) this._comboChain = this._comboChain.slice(-4);
+
             // Weaken debuff
             const isWeakened = this.playerBuffs.some(b => b.type === 'weaken');
             if (isWeakened) {
@@ -528,6 +624,20 @@ const Combat = {
                 this.showDamageNumber(damage, 'damage');
             }
 
+            // Show elemental result label
+            if (resistResult === 'weak') {
+                this.showElementalLabel('WEAK!', 'weak');
+                this.logCombat(`It's weak to ${element}!`, 'critical');
+            } else if (resistResult === 'resist') {
+                this.showElementalLabel('RESIST', 'resist');
+                this.logCombat(`It resists ${element}...`, 'miss');
+            }
+
+            // Show combo chain bonus
+            if (this._comboChainBonus > 0) {
+                this.showElementalLabel(`CHAIN +${this._comboChainBonus}%`, 'chain');
+            }
+
             this.applyDamageToEnemy(damage);
             this.comboCount++;
             this.totalDamageDealt += damage;
@@ -536,6 +646,11 @@ const Combat = {
             this.shakeElement('enemy-display', damage);
             this.triggerEnemyHitRecoil();
             this.triggerBarDrain();
+
+            // Update weakness tooltip after elemental hit
+            if (element && resistResult !== 'normal') {
+                this.showWeaknessTooltip();
+            }
 
             // Ability-specific VFX dispatch
             const vfx = this.getAbilityVFX(ability);
@@ -748,6 +863,19 @@ const Combat = {
                 damage = Math.floor(damage * 0.5);
             }
 
+            // Counter success: 40% damage reduction + reflect 20% back
+            if (this._counterSuccess) {
+                const reflected = Math.floor(damage * 0.2);
+                damage = Math.floor(damage * 0.6);
+                if (reflected > 0) {
+                    this.enemy.hp = Math.max(0, this.enemy.hp - reflected);
+                    this.logCombat(`Counter reflects ${reflected} damage back!`, 'player-attack');
+                    this.showDamageNumber(reflected, 'damage');
+                    this.triggerEnemyHitRecoil();
+                }
+                this._counterSuccess = false;
+            }
+
             // Apply damage reduction buffs
             const dmgReduce = this.playerBuffs.find(b => b.type === 'damageReduce');
             if (dmgReduce) {
@@ -896,6 +1024,41 @@ const Combat = {
         const base = Math.max(1, attackPower - Math.floor(defense * 0.5));
         const variance = Math.floor(base * 0.2);
         return Math.max(1, base + Math.floor(Math.random() * (variance + 1)) - Math.floor(variance / 2));
+    },
+
+    // Apply elemental resistance/weakness to damage
+    applyElementalResistance(damage, element) {
+        if (!element || !this.enemy || !this.enemy.resistances) return { damage, result: 'normal' };
+        const resistance = this.enemy.resistances[element] || 0;
+        if (resistance === 0) return { damage, result: 'normal' };
+
+        const modified = Math.max(1, Math.floor(damage * (1 - resistance)));
+
+        // Track discovered weaknesses
+        if (!this._discoveredWeaknesses[this.enemy.key]) {
+            this._discoveredWeaknesses[this.enemy.key] = {};
+        }
+        if (resistance < 0) {
+            this._discoveredWeaknesses[this.enemy.key][element] = 'weak';
+        } else if (resistance > 0) {
+            this._discoveredWeaknesses[this.enemy.key][element] = 'resist';
+        }
+
+        if (resistance < -0.15) return { damage: modified, result: 'weak' };
+        if (resistance > 0.15) return { damage: modified, result: 'resist' };
+        return { damage: modified, result: 'normal' };
+    },
+
+    // Get element from ability name/properties
+    getAbilityElement(ability) {
+        if (!ability) return null;
+        if (ability.element) return ability.element;
+        const name = (ability.name || '').toLowerCase();
+        if (name.includes('fire') || name.includes('flame') || name.includes('ember') || name.includes('meteor') || name.includes('crown of flame')) return 'fire';
+        if (name.includes('frost') || name.includes('ice') || name.includes('cold') || name.includes('blizzard')) return 'ice';
+        if (name.includes('lightning') || name.includes('shock') || name.includes('chain') || name.includes('thunder')) return 'lightning';
+        if (name.includes('void') || name.includes('shadow') || name.includes('dark') || name.includes('umbral') || name.includes('null') || name.includes('rift') || name.includes('unravel') || name.includes('annihilate')) return 'shadow';
+        return null;
     },
 
     applyDamageToEnemy(damage) {
@@ -1518,6 +1681,44 @@ const Combat = {
         }
     },
 
+    // ---- ELEMENTAL LABELS (Weak! / Resist! / Chain) ----
+    showElementalLabel(text, type) {
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+        const label = document.createElement('div');
+        label.className = `elemental-label ${type}`;
+        label.textContent = text;
+        display.appendChild(label);
+        this._setTimeout(() => { if (label.parentNode) label.remove(); }, 1200);
+    },
+
+    // ---- COMBO CHAIN HELPERS ----
+    _getElementChainLength(element) {
+        let count = 0;
+        for (let i = this._comboChain.length - 1; i >= 0; i--) {
+            if (this._comboChain[i] === element) count++;
+            else break;
+        }
+        return count;
+    },
+
+    _getElementSwitchBonus(prevElement, currentElement) {
+        // Specific element combos that grant bonus damage
+        const combos = {
+            'fire_ice': 15,    // Thermal shock
+            'ice_fire': 15,
+            'fire_lightning': 20, // Storm of flame
+            'lightning_fire': 20,
+            'ice_lightning': 15,  // Frozen conductor
+            'lightning_ice': 15,
+            'shadow_fire': 10,   // Dark flame
+            'fire_shadow': 10,
+            'shadow_lightning': 15, // Void spark
+            'lightning_shadow': 15
+        };
+        return combos[`${prevElement}_${currentElement}`] || 0;
+    },
+
     // ---- ABILITY-SPECIFIC VFX MAPPING ----
     getAbilityVFX(ability) {
         if (!ability) return { spell: 'physical', flash: 'rgba(255,255,255,0.5)', slash: 'physical', particleColor: '#aabbff' };
@@ -1708,5 +1909,75 @@ const Combat = {
         if (stage) {
             stage.querySelectorAll('.combat-ambient-particle').forEach(el => el.remove());
         }
+    },
+
+    // ---- COUNTER / REACTION WINDOW ----
+    showCounterWindow() {
+        this._counterWindowActive = true;
+        this._counterSuccess = false;
+
+        const stage = document.getElementById('combat-stage');
+        if (!stage) return;
+
+        const counterBtn = document.createElement('button');
+        counterBtn.id = 'counter-btn';
+        counterBtn.className = 'counter-window-btn';
+        counterBtn.innerHTML = '<span class="counter-icon">⚡</span><span class="counter-text">COUNTER</span>';
+        counterBtn.addEventListener('click', () => {
+            if (this._counterWindowActive) {
+                this._counterSuccess = true;
+                this._counterWindowActive = false;
+                counterBtn.classList.add('counter-success');
+                this.logCombat('Counter! You brace at the perfect moment!', 'buff');
+                if (typeof Audio !== 'undefined') Audio.playDefend();
+                NativeBridge.hapticMedium();
+            }
+        });
+
+        // Add shrinking timer bar
+        const timerBar = document.createElement('div');
+        timerBar.className = 'counter-timer-bar';
+        counterBtn.appendChild(timerBar);
+
+        stage.appendChild(counterBtn);
+
+        // Force reflow then animate in
+        void counterBtn.offsetWidth;
+        counterBtn.classList.add('active');
+    },
+
+    hideCounterWindow() {
+        this._counterWindowActive = false;
+        const btn = document.getElementById('counter-btn');
+        if (btn) {
+            btn.classList.remove('active');
+            btn.classList.add('fading');
+            setTimeout(() => { if (btn.parentNode) btn.remove(); }, 300);
+        }
+    },
+
+    // ---- ENEMY WEAKNESS TOOLTIP ----
+    showWeaknessTooltip() {
+        if (!this.enemy) return;
+        const discovered = this._discoveredWeaknesses[this.enemy.key];
+        if (!discovered || Object.keys(discovered).length === 0) return;
+
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+
+        // Remove existing tooltip
+        const existing = display.querySelector('.weakness-tooltip');
+        if (existing) existing.remove();
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'weakness-tooltip';
+        let html = '';
+        const icons = { fire: '🔥', ice: '❄️', lightning: '⚡', shadow: '🌑' };
+        for (const [elem, result] of Object.entries(discovered)) {
+            const icon = icons[elem] || elem;
+            html += `<span class="weakness-entry ${result}">${icon}</span>`;
+        }
+        tooltip.innerHTML = html;
+        display.appendChild(tooltip);
     }
 };

@@ -4,33 +4,19 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ---
 
-## Current Priority: Combat Phase 3 — Gameplay Depth
-
-### Enemy Behavior Patterns
-- [ ] Aggro types: rush attacks, close-range focus
-- [ ] Defensive types: buff/shield-heavy, punish overcommit
-- [ ] Support types: heal/debuff-focused enemies
-- [ ] Boss-specific environmental mechanics
-
-### Reaction/Counter Window
-- [ ] Brief window to tap "Counter" when enemy telegraphs
-- [ ] Successful counter reduces damage or reflects partial
-
-### Combo Chain Bonuses
-- [ ] Ability combos: using specific abilities in sequence grants bonus
-- [ ] Combo UI indicator showing chain progress
-
-### Elemental Resistances
-- [ ] Enemies have elemental weaknesses/resistances
-- [ ] Damage multipliers shown on hit (Weak! / Resist!)
-- [ ] UI tooltip showing enemy weaknesses after first encounter
+## Current Priority: Audio & Sound Design
 
 ### Sound Integration
 - [ ] Map Web Audio API sounds to combat actions
 - [ ] Hit impact sounds (light, heavy, critical)
 - [ ] Spell cast sounds per element
 - [ ] Enemy telegraph warning sound
+- [ ] Counter success/fail sounds
 - [ ] Victory/defeat stingers
+
+### Combat Refinement
+- [ ] Boss-specific environmental mechanics
+- [ ] Combat stance system (aggressive/defensive)
 
 ---
 
@@ -52,6 +38,11 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ## Recently Completed
 
+- [x] Enemy behavior AI (aggro/defensive/support weighted selection) — `combat.js` + `enemies.js`
+- [x] Elemental resistance/weakness system with Weak!/Resist! labels — `combat.js` + `enemies.js` + `combat.css`
+- [x] Weakness discovery tooltip (persists across encounters) — `combat.js` + `combat.css`
+- [x] Counter/reaction window during enemy telegraph — `combat.js` + `combat.css`
+- [x] Combo chain bonus system (same-element + element-switch) — `combat.js` + `combat.css`
 - [x] Per-skill VFX system (fire/ice/lightning/blood/void/heal/buff/multi) — `combat.js` + `combat.css`
 - [x] Enemy wind-up animations (physical/magical/heavy) — `combat.css` + `combat.js`
 - [x] Status effect overlays (poison/blind/slow/weaken) — `combat.css` + `combat.js`

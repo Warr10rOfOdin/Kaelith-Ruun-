@@ -70,6 +70,15 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 - [x] Enemy attack animations — visible wind-up before strike lands (physical/magical/heavy)
 - [x] Status effect visuals — poison drip, blind vignette, slow frost, weaken overlay
 
+### Immersive Combat — Phase 3: Gameplay Depth (v0.8.3)
+- [x] Enemy behavior differentiation — aggro/defensive/support AI with weighted ability selection
+- [x] Timing/reaction window — counter button during telegraph with timer bar, 40% reduction + 20% reflect
+- [x] Combo system expansion — same-element chains (+10% per, max +30%) and element-switch combos (10-20%)
+- [x] Elemental resistances and weaknesses — per-enemy 4-element resistance maps with Weak!/Resist! labels
+- [x] Weakness discovery tooltip — persists across encounters, shows discovered elements as icons
+
+---
+
 ## In Progress
 
 ### Audio & Sound Design
@@ -79,11 +88,7 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 
 ## Planned
 
-### Immersive Combat — Phase 3: Gameplay Depth
-- [ ] Enemy behavior differentiation — each enemy type has distinct attack patterns and tells
-- [ ] Timing/reaction window — brief window to counter or dodge telegraphed attacks
-- [ ] Combo system expansion — chain abilities for bonus damage/effects
-- [ ] Elemental resistances and weaknesses
+### Combat Refinement
 - [ ] Boss-specific mechanics — unique per-boss phases with environmental effects
 - [ ] Combat stance system — aggressive/defensive stances that modify stats
 

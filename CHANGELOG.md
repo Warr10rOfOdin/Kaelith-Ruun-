@@ -4,6 +4,33 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v0.8.3] — 2026-03-01 — Combat Phase 3: Gameplay Depth
+
+### Added
+- **Enemy behavior system** — each enemy has an AI behavior pattern (aggro/defensive/support) that drives ability selection
+  - Aggro: strongly prefers high-damage abilities (3x weight), rare buff use
+  - Defensive: prefers shields/buffs (3x weight), moderate damage output
+  - Support: prefers debuffs (3x weight) and heals, mixed damage
+  - All 13 enemies + 3 bosses assigned thematic behavior patterns
+- **Elemental resistance/weakness system** — enemies have per-element resistance values
+  - Damage modified by `(1 - resistance)`: negative = weakness (amplified), positive = resistance (reduced)
+  - Floating "WEAK!" label (orange) on exploiting weakness, "RESIST" label (gray) on resisted elements
+  - Discovered weaknesses persist and display as tooltip icons under enemy name
+  - `getAbilityElement()` auto-detects element from ability name/properties
+- **Counter/reaction window** — tappable counter button appears during enemy telegraph phase
+  - Shrinking timer bar shows remaining window (~600ms)
+  - Successful counter: 40% damage reduction + 20% damage reflected back
+  - Visual feedback: gold pulse on active, green flash on success
+- **Combo chain bonus system** — elemental ability chains grant bonus damage
+  - Same-element chain: +10% per consecutive use (max +30%)
+  - Element-switch combos: fire↔ice (15%), fire↔lightning (20%), ice↔lightning (15%), shadow↔fire/lightning (10-15%)
+  - Floating "CHAIN +X%" label shows bonus on hit
+- **Resistance data for all enemies** — thematic 4-element resistance maps
+  - e.g., Ember Hound: fire +50%, ice -50%; Drowned Knight: fire -30%, lightning -40%, ice +40%
+  - Bosses have signature resistances (Ruun: shadow +75%)
+
+---
+
 ## [v0.8.2] — 2026-03-01 — Combat Phase 2: Real Immersion
 
 ### Added

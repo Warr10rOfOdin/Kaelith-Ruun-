@@ -198,8 +198,52 @@ const GameState = {
                 this.player.stats[cls.secondaryStat] += 1;
             this.recalculateStats();
             leveled = true;
+
+            // Check for skill tree unlocks
+            this.checkSkillTreeUnlocks();
         }
         return leveled;
+    },
+
+    // Skill tree: track chosen abilities and pending choices
+    pendingSkillChoice: null,
+
+    checkSkillTreeUnlocks() {
+        if (!this.player) return;
+        const cls = CLASSES[this.player.class];
+        if (!cls || !cls.skillTree) return;
+
+        // Initialize skill choices tracking if needed
+        if (!this.player.skillChoices) this.player.skillChoices = {};
+
+        for (const tier of cls.skillTree) {
+            if (this.player.level >= tier.level && !this.player.skillChoices[tier.level]) {
+                // New tier unlocked — queue the choice
+                this.pendingSkillChoice = tier;
+                break;
+            }
+        }
+    },
+
+    selectSkillChoice(tierLevel, choiceIndex) {
+        if (!this.player) return;
+        const cls = CLASSES[this.player.class];
+        if (!cls || !cls.skillTree) return;
+
+        const tier = cls.skillTree.find(t => t.level === tierLevel);
+        if (!tier || !tier.choices || !tier.choices[choiceIndex]) return;
+
+        if (!this.player.skillChoices) this.player.skillChoices = {};
+        if (this.player.skillChoices[tierLevel]) return; // already chosen
+
+        const ability = tier.choices[choiceIndex];
+        this.player.abilities.push(ability);
+        this.player.skillChoices[tierLevel] = choiceIndex;
+        this.pendingSkillChoice = null;
+
+        // Check if there are more pending unlocks
+        this.checkSkillTreeUnlocks();
+        this.save();
     },
 
     healPlayer(hp, mp = 0) {

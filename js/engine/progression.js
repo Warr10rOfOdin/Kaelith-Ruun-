@@ -127,6 +127,38 @@ const Progression = {
         });
         html += '</div>';
 
+        // Skill Tree
+        if (cls.skillTree && cls.skillTree.length > 0) {
+            html += '<div class="stat-group"><h4>Skill Tree</h4>';
+            const choices = p.skillChoices || {};
+            for (const tier of cls.skillTree) {
+                const unlocked = p.level >= tier.level;
+                const chosen = choices[tier.level] !== undefined;
+                const chosenIdx = choices[tier.level];
+
+                html += `<div style="padding:0.4rem 0;border-bottom:1px solid var(--bg-light);opacity:${unlocked ? '1' : '0.4'}">`;
+                html += `<div style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-dim);letter-spacing:0.08em;margin-bottom:0.2rem">Level ${tier.level}</div>`;
+
+                if (chosen) {
+                    const ability = tier.choices[chosenIdx];
+                    html += `<div style="color:var(--accent-gold);font-size:0.9rem">${ability.name} <span style="color:var(--accent-green-bright)">✓</span></div>`;
+                    html += `<div style="color:var(--text-secondary);font-size:0.8rem">${ability.desc}</div>`;
+                } else if (unlocked) {
+                    html += `<div style="color:var(--accent-gold);font-size:0.85rem">⚡ Choice available!</div>`;
+                    tier.choices.forEach((ability, idx) => {
+                        html += `<button onclick="GameState.selectSkillChoice(${tier.level},${idx});Progression.renderCharacterSheet()" style="display:block;width:100%;text-align:left;padding:0.4rem 0.6rem;margin:0.3rem 0;background:var(--bg-light);border:1px solid var(--border-color);border-radius:4px;color:var(--text-primary);cursor:pointer;font-family:inherit;font-size:inherit">`;
+                        html += `<div style="color:var(--accent-gold);font-size:0.85rem">${ability.name} <span style="color:var(--accent-blue-bright);font-size:0.7rem">${ability.mpCost}MP${ability.damage && ability.damage[1] > 0 ? ' · ' + ability.damage[0] + '-' + ability.damage[1] : ''}</span></div>`;
+                        html += `<div style="color:var(--text-secondary);font-size:0.78rem">${ability.desc}</div>`;
+                        html += '</button>';
+                    });
+                } else {
+                    html += `<div style="color:var(--text-dim);font-size:0.8rem;font-style:italic">Locked — reach level ${tier.level}</div>`;
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+        }
+
         html += '</div>';
 
         panel.innerHTML = html;

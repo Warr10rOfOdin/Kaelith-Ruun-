@@ -157,8 +157,10 @@ const ENEMIES = {
         ],
         phases: [
             { hpPercent: 1.0, message: '"You trespass in MY domain, insect."' },
-            { hpPercent: 0.5, message: '"Enough! I shall burn you to cinders!"', buff: { attack: 5 } },
-            { hpPercent: 0.2, message: '"NO! I will NOT fall! Not to the likes of you!"', buff: { speed: 4 } }
+            { hpPercent: 0.5, message: '"Enough! I shall burn you to cinders!"', buff: { attack: 5 },
+              environmental: { type: 'fire_rain', damage: 5, duration: 99, message: 'Embers rain from the sky!' } },
+            { hpPercent: 0.2, message: '"NO! I will NOT fall! Not to the likes of you!"', buff: { speed: 4 },
+              environmental: { type: 'ash_storm', effect: 'blind_chance', chance: 0.2, message: 'A choking ash storm engulfs the battlefield!' } }
         ],
         lootTable: { emberforged_axe: 0.25, ancient_key_fragment: 1.0, greater_health_potion: 0.5 },
         description: 'Once the ruler of a great kingdom, now a mad specter clinging to a throne of ash.'
@@ -178,8 +180,10 @@ const ENEMIES = {
         ],
         phases: [
             { hpPercent: 1.0, message: '"The fen feeds... and I am the fen."' },
-            { hpPercent: 0.6, message: '"My children! Come to Mother!"', summon: 'bog_crawler' },
-            { hpPercent: 0.25, message: '"The swamp will swallow you WHOLE!"', buff: { attack: 8 } }
+            { hpPercent: 0.6, message: '"My children! Come to Mother!"', summon: 'bog_crawler',
+              environmental: { type: 'poison_fog', damage: 3, duration: 99, message: 'Poisonous fog seeps across the bog!' } },
+            { hpPercent: 0.25, message: '"The swamp will swallow you WHOLE!"', buff: { attack: 8 },
+              environmental: { type: 'quagmire', effect: 'slow_persistent', message: 'The ground turns to sucking mire beneath your feet!' } }
         ],
         lootTable: { mantle_of_the_hollow: 0.15, ancient_key_fragment: 1.0, elixir_of_power: 0.4 },
         description: 'A colossal serpentine entity that IS the Hollowfen. Every creature in the swamp is her child.'
@@ -199,9 +203,12 @@ const ENEMIES = {
         ],
         phases: [
             { hpPercent: 1.0, message: '"You have come to the end of all things. How... predictable."' },
-            { hpPercent: 0.7, message: '"I have unraveled worlds older than your species."', buff: { magicDefense: 5 } },
-            { hpPercent: 0.4, message: '"Interesting. You resist. Let me show you TRUE oblivion."', buff: { attack: 10 } },
-            { hpPercent: 0.15, message: '"IMPOSSIBLE! I am the void itself! I AM RUUN!"', buff: { attack: 8, speed: 5 } }
+            { hpPercent: 0.7, message: '"I have unraveled worlds older than your species."', buff: { magicDefense: 5 },
+              environmental: { type: 'void_fissures', damage: 4, duration: 99, message: 'Reality cracks open — void energy leaks through fissures in the ground!' } },
+            { hpPercent: 0.4, message: '"Interesting. You resist. Let me show you TRUE oblivion."', buff: { attack: 10 },
+              environmental: { type: 'reality_warp', effect: 'mp_drain', amount: 5, message: 'The air shimmers — your mana bleeds into the void!' } },
+            { hpPercent: 0.15, message: '"IMPOSSIBLE! I am the void itself! I AM RUUN!"', buff: { attack: 8, speed: 5 },
+              environmental: { type: 'oblivion_field', damage: 8, duration: 99, message: 'Oblivion itself presses against you from all sides!' } }
         ],
         lootTable: { whisper_of_ruun: 0.5, ancient_key_fragment: 1.0 },
         description: 'The entity that shattered the world. Neither god nor mortal — Ruun is the space between, given hunger and will.'

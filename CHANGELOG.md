@@ -4,6 +4,26 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v0.10.0] — 2026-03-01 — Combat Refinement
+
+### Added
+- **Combat stance system** — 3 toggleable stances that modify combat stats in real-time:
+  - **Aggressive**: +25% damage dealt, +15% crit chance, but +20% damage taken
+  - **Balanced**: No modifiers — steady and reliable (default)
+  - **Defensive**: -30% damage taken, -20% damage dealt, -15% MP cost on abilities
+  - Stance selector strip above action buttons with icon and label for each stance
+  - Stance modifiers apply to basic attacks, abilities, crits, incoming enemy damage, and MP costs
+  - Can switch stances freely each turn without spending an action
+- **Boss environmental mechanics** — boss-specific hazards that activate at phase transitions:
+  - **The Ashen King**: Fire Rain (5 dmg/turn at 50% HP), Ash Storm (20% blind chance at 20% HP)
+  - **Mother of the Fen**: Poison Fog (3 dmg/turn at 60% HP), Quagmire (persistent slow at 25% HP)
+  - **Ruun, the Unraveler**: Void Fissures (4 dmg/turn at 70% HP), Reality Warp (5 MP drain/turn at 40% HP), Oblivion Field (8 dmg/turn at 15% HP)
+  - Environmental damage is reduced by Defensive stance
+  - Dramatic environmental label appears on battlefield with colored screen flash
+  - Hazards persist for the remainder of the fight
+
+---
+
 ## [v0.9.1] — 2026-03-01 — Creation & Dialogue Polish
 
 ### Changed

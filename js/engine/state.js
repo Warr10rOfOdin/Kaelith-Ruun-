@@ -20,6 +20,71 @@ const GameState = {
 
     MAX_INVENTORY_SIZE: 40,
 
+    // Statistics and achievements
+    stats: {
+        enemiesKilled: 0,
+        bossesKilled: 0,
+        totalDamageDealt: 0,
+        totalDamageReceived: 0,
+        goldEarned: 0,
+        goldSpent: 0,
+        itemsCrafted: 0,
+        fishCaught: 0,
+        resourcesGathered: 0,
+        deathCount: 0,
+        maxCombo: 0,
+        criticalHits: 0,
+        regionsDiscovered: 0,
+        questsCompleted: 0,
+        buildingsBuilt: 0,
+        highestLevel: 1,
+        playTime: 0,
+        _lastTick: 0
+    },
+    achievements: {},
+    _achievementDefs: {
+        first_blood:      { name: 'First Blood',        desc: 'Defeat your first enemy',           check: s => s.enemiesKilled >= 1 },
+        slayer_10:        { name: 'Slayer',              desc: 'Defeat 10 enemies',                 check: s => s.enemiesKilled >= 10 },
+        slayer_50:        { name: 'Veteran Slayer',      desc: 'Defeat 50 enemies',                 check: s => s.enemiesKilled >= 50 },
+        slayer_100:       { name: 'Legendary Slayer',    desc: 'Defeat 100 enemies',                check: s => s.enemiesKilled >= 100 },
+        boss_1:           { name: 'Kingslayer',          desc: 'Defeat the Ashen King',             check: (s,g) => g.bossesDefeated.includes('the_ashen_king') },
+        boss_2:           { name: 'Mother\'s Bane',      desc: 'Defeat the Mother of the Fen',      check: (s,g) => g.bossesDefeated.includes('mother_of_the_fen') },
+        boss_3:           { name: 'Unraveled',           desc: 'Defeat Ruun, the Unraveler',        check: (s,g) => g.bossesDefeated.includes('ruun_the_unraveler') },
+        all_bosses:       { name: 'Champion of Kaelith', desc: 'Defeat all three bosses',           check: (s,g) => g.bossesDefeated.length >= 3 },
+        level_5:          { name: 'Seasoned',            desc: 'Reach level 5',                     check: s => s.highestLevel >= 5 },
+        level_10:         { name: 'Master',              desc: 'Reach level 10',                    check: s => s.highestLevel >= 10 },
+        gold_100:         { name: 'Coin Collector',      desc: 'Earn 100 gold total',               check: s => s.goldEarned >= 100 },
+        gold_1000:        { name: 'Wealthy',             desc: 'Earn 1000 gold total',              check: s => s.goldEarned >= 1000 },
+        combo_5:          { name: 'Combo Master',        desc: 'Achieve a 5x combo',                check: s => s.maxCombo >= 5 },
+        combo_10:         { name: 'Relentless',          desc: 'Achieve a 10x combo',               check: s => s.maxCombo >= 10 },
+        fish_10:          { name: 'Angler',              desc: 'Catch 10 fish',                     check: s => s.fishCaught >= 10 },
+        crafter:          { name: 'Artisan',             desc: 'Craft 5 items',                     check: s => s.itemsCrafted >= 5 },
+        builder:          { name: 'Architect',           desc: 'Build 3 structures',                check: s => s.buildingsBuilt >= 3 },
+        explorer:         { name: 'Wanderer',            desc: 'Discover all 3 regions',            check: s => s.regionsDiscovered >= 3 },
+        survivor:         { name: 'Survivor',            desc: 'Die and return 3 times',            check: s => s.deathCount >= 3 },
+        crit_50:          { name: 'Precision',           desc: 'Land 50 critical hits',             check: s => s.criticalHits >= 50 },
+    },
+
+    trackStat(key, amount) {
+        if (!this.stats) this.stats = {};
+        this.stats[key] = (this.stats[key] || 0) + (amount || 1);
+        this.checkAchievements();
+    },
+
+    checkAchievements() {
+        if (!this.achievements) this.achievements = {};
+        for (const [id, def] of Object.entries(this._achievementDefs)) {
+            if (this.achievements[id]) continue;
+            if (def.check(this.stats, this)) {
+                this.achievements[id] = { unlocked: true, time: Date.now() };
+                if (typeof Notifications !== 'undefined') {
+                    Notifications.show(`Achievement: ${def.name}!`, 'gold');
+                }
+                if (typeof Audio !== 'undefined') Audio.playLevelUp();
+            }
+        }
+    },
+
     initialize(name, raceKey, classKey) {
         const race = RACES[raceKey];
         const cls = CLASSES[classKey];
@@ -210,6 +275,11 @@ const GameState = {
             this.recalculateStats();
             leveled = true;
 
+            // Track highest level
+            if (this.player.level > (this.stats.highestLevel || 1)) {
+                this.stats.highestLevel = this.player.level;
+            }
+
             // Check for skill tree unlocks
             this.checkSkillTreeUnlocks();
         }
@@ -273,7 +343,10 @@ const GameState = {
     isPlayerDead() { return this.player && this.player.hp <= 0; },
 
     unlockRegion(regionKey) {
-        if (WORLD.regions[regionKey]) WORLD.regions[regionKey].unlocked = true;
+        if (WORLD.regions[regionKey]) {
+            WORLD.regions[regionKey].unlocked = true;
+            this.trackStat('regionsDiscovered');
+        }
     },
 
     completeObjective(questType, questId, objectiveId) {
@@ -287,6 +360,8 @@ const GameState = {
             if (!this.questProgress.side[questId]) this.questProgress.side[questId] = {};
             this.questProgress.side[questId][objectiveId] = true;
         }
+        // Check if completing this objective finishes a quest/stage
+        if (typeof Progression !== 'undefined') Progression.checkQuestCompletion();
     },
 
     isObjectiveComplete(questType, questId, objectiveId) {
@@ -314,9 +389,12 @@ const GameState = {
                 unlockedRegions: Object.keys(WORLD.regions).filter(k => WORLD.regions[k].unlocked),
                 base: this.base,
                 maxInventorySize: this.MAX_INVENTORY_SIZE,
-                worldMap: typeof WorldMap !== 'undefined' ? WorldMap.getSaveData() : null
+                worldMap: typeof WorldMap !== 'undefined' ? WorldMap.getSaveData() : null,
+                stats: this.stats,
+                achievements: this.achievements
             };
             localStorage.setItem('kaelith_ruun_save', JSON.stringify(saveData));
+            if (typeof Game !== 'undefined' && Game.showAutoSaveIndicator) Game.showAutoSaveIndicator();
         } catch (e) { console.warn('Failed to save:', e); }
     },
 
@@ -365,6 +443,14 @@ const GameState = {
             if (!this.base.buildingLevels) this.base.buildingLevels = {};
             if (!this.player.enchantments) this.player.enchantments = {};
             this.MAX_INVENTORY_SIZE = s.maxInventorySize || 40;
+
+            // Load stats and achievements
+            if (s.stats) {
+                this.stats = Object.assign({}, this.stats, s.stats);
+            }
+            if (s.achievements) {
+                this.achievements = s.achievements;
+            }
 
             if (s.unlockedRegions) {
                 s.unlockedRegions.forEach(k => { if (WORLD.regions[k]) WORLD.regions[k].unlocked = true; });

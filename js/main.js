@@ -31,6 +31,7 @@ const Game = {
             if (GameState.hasSave()) {
                 const continueBtn = document.getElementById('btn-continue');
                 if (continueBtn) continueBtn.disabled = false;
+                this.showSaveInfo();
             }
 
             // Title ASCII art
@@ -53,6 +54,51 @@ const Game = {
         ╚═══════════════════════════════════════╝`;
         const el = document.getElementById('title-ascii');
         if (el) el.textContent = art;
+    },
+
+    showSaveInfo() {
+        try {
+            const data = JSON.parse(localStorage.getItem('kaelith_ruun_save'));
+            if (!data || !data.player) return;
+            const p = data.player;
+            const race = RACES[p.race];
+            const cls = CLASSES[p.class];
+            const region = data.currentRegion ? data.currentRegion.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : '—';
+            const mins = Math.floor((data.stats && data.stats.playTime || 0) / 60);
+            const hrs = Math.floor(mins / 60);
+            const remMins = mins % 60;
+            const el = document.getElementById('save-info');
+            if (el) {
+                el.innerHTML = `<span>${race ? race.icon : ''} ${p.name} — Lv.${p.level} ${cls ? cls.name : ''}</span><span>${region} · ${hrs > 0 ? hrs + 'h ' : ''}${remMins}m</span>`;
+                el.classList.remove('hidden');
+            }
+        } catch (e) { /* ignore */ }
+    },
+
+    // Play time tracking
+    _playTimeInterval: null,
+    startPlayTimeTracking() {
+        if (this._playTimeInterval) clearInterval(this._playTimeInterval);
+        GameState.stats._lastTick = Date.now();
+        this._playTimeInterval = setInterval(() => {
+            if (!GameState.player || GameState.currentScreen === 'title') return;
+            const now = Date.now();
+            const elapsed = Math.floor((now - (GameState.stats._lastTick || now)) / 1000);
+            GameState.stats._lastTick = now;
+            if (elapsed > 0 && elapsed < 30) GameState.stats.playTime += elapsed;
+        }, 10000);
+    },
+
+    // Auto-save visual indicator
+    showAutoSaveIndicator() {
+        const el = document.getElementById('autosave-indicator');
+        if (!el) return;
+        el.classList.remove('hidden');
+        el.style.opacity = '1';
+        setTimeout(() => {
+            el.style.opacity = '0';
+            setTimeout(() => el.classList.add('hidden'), 500);
+        }, 1200);
     },
 
     // =========================================
@@ -79,6 +125,7 @@ const Game = {
                     HUD.update();
                     Narrative.addSystem('Your journey continues...');
                     this.startWorldMap();
+                    this.startPlayTimeTracking();
                     if (typeof Audio !== 'undefined') Audio.startAmbient(GameState.currentRegion);
                 }
             };
@@ -337,6 +384,7 @@ const Game = {
 
             // Initialize the world map
             this.startWorldMap();
+            this.startPlayTimeTracking();
             if (typeof Audio !== 'undefined') Audio.startAmbient(GameState.currentRegion);
         }, 1500);
     },
@@ -442,6 +490,11 @@ const Game = {
             case 'journal':
                 sidePanel.classList.remove('hidden');
                 Progression.renderJournal();
+                break;
+
+            case 'achievements':
+                sidePanel.classList.remove('hidden');
+                Progression.renderAchievements();
                 break;
 
             case 'base':

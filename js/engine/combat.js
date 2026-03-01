@@ -317,21 +317,52 @@ const Combat = {
             return;
         }
 
+        // Slow debuff: enemy attacks first (faster) — reduced player reaction
+        const isSlowed = this.playerBuffs.some(b => b.type === 'slow');
+        const enemyDelay = isSlowed ? 300 : 600;
+
         // Enemy turn after a delay
         this._setTimeout(() => {
             if (this.active) this.enemyTurn();
-        }, 600);
+        }, enemyDelay);
     },
 
     performAttack() {
         const p = GameState.player;
+
+        // Blind check: 40% miss chance while blinded
+        const isBlinded = this.playerBuffs.some(b => b.type === 'blind');
+        if (isBlinded && Math.random() < 0.4) {
+            this.logCombat('Your attack misses through the blinding haze!', 'miss');
+            if (typeof Audio !== 'undefined') Audio.playMiss();
+            this.animatePlayerSprite('attacking');
+            return;
+        }
+
         let damage = this.calculateDamage(p.attack, this.enemy.defense);
+
+        // Weaken debuff: 30% damage reduction
+        const isWeakened = this.playerBuffs.some(b => b.type === 'weaken');
+        if (isWeakened) {
+            damage = Math.floor(damage * 0.7);
+        }
+
         const isCrit = Math.random() * 100 < p.critChance;
+
+        // Reflect check
+        const hasReflect = this.enemyBuffs.some(b => b.type === 'reflect');
+        if (hasReflect) {
+            const reflected = Math.floor(damage * 0.3);
+            GameState.player.hp = Math.max(1, GameState.player.hp - reflected);
+            this.logCombat(`Reflected ${reflected} damage back at you!`, 'enemy-attack');
+            this.showPlayerDamageNumber(reflected);
+        }
 
         if (isCrit) {
             damage = Math.floor(damage * 1.8);
             this.logCombat(`CRITICAL HIT! You strike the ${this.enemy.name} for ${damage} damage!`, 'critical');
             this.showDamageNumber(damage, 'crit');
+            GameState.trackStat('criticalHits');
             if (typeof Audio !== 'undefined') Audio.playCritical();
         } else {
             this.logCombat(`You attack the ${this.enemy.name} for ${damage} damage.`, 'player-attack');
@@ -380,6 +411,17 @@ const Combat = {
                 return;
             }
 
+            // Blind miss chance (reduced for magic — 20% vs 40% for physical)
+            const isBlinded = this.playerBuffs.some(b => b.type === 'blind');
+            const missChance = ability.type === 'physical' ? 0.4 : 0.2;
+            if (isBlinded && Math.random() < missChance) {
+                this.logCombat(`${ability.name} misses through the blinding haze!`, 'miss');
+                if (typeof Audio !== 'undefined') Audio.playMiss();
+                this.animatePlayerSprite('attacking');
+                this.updateBars();
+                return;
+            }
+
             const baseDamage = ability.damage[0] + Math.floor(Math.random() * (ability.damage[1] - ability.damage[0] + 1));
             let damage;
 
@@ -389,10 +431,25 @@ const Combat = {
                 damage = this.calculateDamage(baseDamage + Math.floor(p.magicAttack * 0.5), this.enemy.magicDefense);
             }
 
+            // Weaken debuff
+            const isWeakened = this.playerBuffs.some(b => b.type === 'weaken');
+            if (isWeakened) {
+                damage = Math.floor(damage * 0.7);
+            }
+
             // Apply damage boost buffs
             const damageBoost = this.playerBuffs.find(b => b.type === 'damageBoost');
             if (damageBoost) {
                 damage = Math.floor(damage * (1 + damageBoost.percent / 100));
+            }
+
+            // Reflect check
+            const hasReflect = this.enemyBuffs.some(b => b.type === 'reflect');
+            if (hasReflect) {
+                const reflected = Math.floor(damage * 0.3);
+                GameState.player.hp = Math.max(1, GameState.player.hp - reflected);
+                this.logCombat(`Reflected ${reflected} damage back at you!`, 'enemy-attack');
+                this.showPlayerDamageNumber(reflected);
             }
 
             const isCrit = Math.random() * 100 < p.critChance;
@@ -471,18 +528,30 @@ const Combat = {
     enemyTurn() {
         if (!this.active || !this.enemy || this.enemy.hp <= 0) return;
 
-        // Process enemy debuffs (poison etc.)
+        // Process enemy buffs/debuffs (poison, defense, reflect, etc.)
         let enemyDied = false;
         this.enemyBuffs = this.enemyBuffs.filter(b => {
             if (b.type === 'poison' && b.duration > 0) {
                 this.enemy.hp = Math.max(0, this.enemy.hp - b.damage);
                 this.logCombat(`${this.enemy.name} takes ${b.damage} poison damage!`, 'player-attack');
-                b.duration--;
                 if (this.enemy.hp <= 0) {
                     enemyDied = true;
                 }
             }
-            return b.duration > 0;
+            b.duration--;
+            if (b.duration <= 0) {
+                // Remove stat buffs on expiry
+                if (b.type === 'defense' && b.amount) {
+                    this.enemy.defense = Math.max(0, this.enemy.defense - b.amount);
+                } else if (b.type === 'magicDefense' && b.amount) {
+                    this.enemy.magicDefense = Math.max(0, this.enemy.magicDefense - b.amount);
+                } else if (b.type === 'allBuff') {
+                    this.enemy.attack = Math.max(0, this.enemy.attack - (b.atkAmount || 0));
+                    this.enemy.defense = Math.max(0, this.enemy.defense - (b.defAmount || 0));
+                }
+                return false;
+            }
+            return true;
         });
 
         if (enemyDied) {
@@ -541,11 +610,41 @@ const Combat = {
 
         if (ability.type === 'buff') {
             this.logCombat(`${this.enemy.name} uses ${ability.name}!`, 'info');
+            if (ability.buff === 'defense') {
+                this.enemyBuffs.push({ type: 'defense', amount: 5, duration: 2 });
+                this.enemy.defense += 5;
+                this.logCombat(`${this.enemy.name}'s defense increases!`, 'info');
+            } else if (ability.buff === 'magicDefense') {
+                this.enemyBuffs.push({ type: 'magicDefense', amount: 5, duration: 2 });
+                this.enemy.magicDefense += 5;
+                this.logCombat(`${this.enemy.name}'s magic defense increases!`, 'info');
+            } else if (ability.buff === 'reflect') {
+                this.enemyBuffs.push({ type: 'reflect', duration: 2 });
+                this.logCombat(`${this.enemy.name} is surrounded by a reflective barrier!`, 'info');
+            } else if (ability.buff === 'all') {
+                this.enemy.attack += 3;
+                this.enemy.defense += 2;
+                this.enemyBuffs.push({ type: 'allBuff', atkAmount: 3, defAmount: 2, duration: 3 });
+                this.logCombat(`${this.enemy.name} grows stronger!`, 'info');
+            }
         } else if (ability.type === 'debuff') {
             this.logCombat(`${this.enemy.name} uses ${ability.name}!`, 'enemy-attack');
             if (ability.debuff === 'weaken') {
                 this.playerBuffs.push({ type: 'weaken', duration: 2 });
+                this.logCombat('Your attacks are weakened!', 'enemy-attack');
+            } else if (ability.debuff === 'blind') {
+                this.playerBuffs.push({ type: 'blind', duration: 2 });
+                this.logCombat('You are blinded! Accuracy reduced!', 'enemy-attack');
+            } else if (ability.debuff === 'slow') {
+                this.playerBuffs.push({ type: 'slow', duration: 2 });
+                this.logCombat('You are slowed! Speed reduced!', 'enemy-attack');
             }
+        } else if (ability.type === 'heal') {
+            // Enemy heal
+            const healAmt = ability.amount || 20;
+            this.enemy.hp = Math.min(this.enemy.maxHp, this.enemy.hp + healAmt);
+            this.logCombat(`${this.enemy.name} regenerates ${healAmt} HP!`, 'heal');
+            this.showDamageNumber(healAmt, 'heal');
         } else {
             // Check for miss BEFORE applying damage
             const miss = Math.random() < 0.1;
@@ -632,12 +731,22 @@ const Combat = {
                 this.logCombat(`${this.enemy.name} drains ${steal} HP!`, 'heal');
             }
 
-            // Debuffs
+            // Debuffs from damage abilities
             if (ability.debuff) {
                 if (ability.debuff === 'poison') {
                     if (!GameState.player.statusEffects) GameState.player.statusEffects = [];
                     GameState.player.statusEffects.push({ type: 'poison', damage: 3, duration: 3 });
                     this.logCombat('You have been poisoned!', 'enemy-attack');
+                    if (typeof Audio !== 'undefined') Audio.playPoison();
+                } else if (ability.debuff === 'blind') {
+                    this.playerBuffs.push({ type: 'blind', duration: 2 });
+                    this.logCombat('You are blinded!', 'enemy-attack');
+                } else if (ability.debuff === 'slow') {
+                    this.playerBuffs.push({ type: 'slow', duration: 2 });
+                    this.logCombat('You are slowed!', 'enemy-attack');
+                } else if (ability.debuff === 'weaken') {
+                    this.playerBuffs.push({ type: 'weaken', duration: 2 });
+                    this.logCombat('Your attacks are weakened!', 'enemy-attack');
                 }
             }
         }
@@ -987,6 +1096,10 @@ const Combat = {
                 html += `<span class="combat-status-icon player-buff">⚔️ +${buff.percent}% dmg (${buff.duration})</span>`;
             } else if (buff.type === 'weaken') {
                 html += `<span class="combat-status-icon player-debuff">💔 Weakened (${buff.duration})</span>`;
+            } else if (buff.type === 'blind') {
+                html += `<span class="combat-status-icon player-debuff">🌑 Blinded (${buff.duration})</span>`;
+            } else if (buff.type === 'slow') {
+                html += `<span class="combat-status-icon player-debuff">🐌 Slowed (${buff.duration})</span>`;
             } else if (buff.stat) {
                 html += `<span class="combat-status-icon player-buff">✨ +${buff.percent}% ${buff.stat} (${buff.duration})</span>`;
             }
@@ -1001,10 +1114,16 @@ const Combat = {
             }
         }
 
-        // Enemy debuffs
+        // Enemy buffs/debuffs
         for (const debuff of this.enemyBuffs) {
             if (debuff.type === 'poison') {
                 html += `<span class="combat-status-icon enemy-debuff">☠️ Enemy Poison (${debuff.duration})</span>`;
+            } else if (debuff.type === 'reflect') {
+                html += `<span class="combat-status-icon enemy-debuff">🔄 Reflecting (${debuff.duration})</span>`;
+            } else if (debuff.type === 'defense') {
+                html += `<span class="combat-status-icon enemy-debuff">🛡️ Defense Up (${debuff.duration})</span>`;
+            } else if (debuff.type === 'allBuff') {
+                html += `<span class="combat-status-icon enemy-debuff">⬆️ Empowered (${debuff.duration})</span>`;
             }
         }
 
@@ -1047,6 +1166,14 @@ const Combat = {
         NativeBridge.hapticNotification('success');
         if (typeof Audio !== 'undefined') Audio.playVictory();
 
+        // Track stats
+        GameState.trackStat('enemiesKilled');
+        GameState.trackStat('totalDamageDealt', this.totalDamageDealt);
+        if (enemy.isBoss) GameState.trackStat('bossesKilled');
+        if (this.maxCombo > (GameState.stats.maxCombo || 0)) {
+            GameState.stats.maxCombo = this.maxCombo;
+        }
+
         // XP
         let xp = enemy.xpReward || 0;
         if (RACES[GameState.player.race] && RACES[GameState.player.race].name === 'Human') {
@@ -1072,6 +1199,7 @@ const Combat = {
         const goldMax = goldReward[1] || goldMin;
         const gold = goldMin + Math.floor(Math.random() * (goldMax - goldMin + 1));
         GameState.player.gold += gold;
+        GameState.trackStat('goldEarned', gold);
         this.logCombat(`Found ${gold} gold!`, 'info');
 
         // Loot
@@ -1141,6 +1269,7 @@ const Combat = {
         NativeBridge.hapticNotification('error');
         if (typeof Audio !== 'undefined') Audio.playDefeat();
         this.logCombat('Darkness takes you...', 'info');
+        GameState.trackStat('deathCount');
 
         // Show game over overlay after a short delay
         this._setTimeout(() => this.showGameOverScreen(), 1500);

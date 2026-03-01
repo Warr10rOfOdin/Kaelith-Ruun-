@@ -39,7 +39,8 @@
                 <button id="btn-continue" class="menu-btn" disabled>Continue</button>
                 <button id="btn-lore" class="menu-btn">World Lore</button>
             </div>
-            <p class="version-info">v0.3.0 — Canvas World</p>
+            <div id="save-info" class="save-info hidden"></div>
+            <p class="version-info">v0.4.0 — Achievements & Quests</p>
             <p id="install-prompt" class="install-hint hidden">Tap to install as app</p>
         </div>
 
@@ -142,6 +143,9 @@
                 </div>
             </div>
 
+            <!-- Auto-save indicator -->
+            <div id="autosave-indicator" class="autosave-indicator hidden">Saved</div>
+
             <!-- Action Bar (overlay) -->
             <div id="action-bar">
                 <div id="action-buttons"></div>
@@ -172,6 +176,10 @@
                 <button class="nav-tab" data-tab="journal">
                     <span class="tab-icon">&#x1F4DC;</span>
                     <span class="tab-label">Quests</span>
+                </button>
+                <button class="nav-tab" data-tab="achievements">
+                    <span class="tab-icon">&#x2B50;</span>
+                    <span class="tab-label">Feats</span>
                 </button>
                 <button class="nav-tab" data-tab="settings">
                     <span class="tab-icon">&#x2699;&#xFE0F;</span>

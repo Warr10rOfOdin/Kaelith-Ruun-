@@ -955,6 +955,7 @@ const WorldMap = {
         }
 
         GameState.addToInventory(resourceKey, qty);
+        GameState.trackStat('resourcesGathered', qty);
         Narrative.addLoot(`${tile.gatherText} (+${qty} ${ITEMS[resourceKey].name})`);
         if (typeof Audio !== 'undefined') Audio.playGather();
 
@@ -1084,6 +1085,7 @@ const WorldMap = {
         if (!item) return;
 
         GameState.addToInventory(catchItem, catchQty);
+        if (catchItem !== 'old_boot') GameState.trackStat('fishCaught', catchQty);
 
         // Flavor text
         if (catchItem === 'old_boot') {

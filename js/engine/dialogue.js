@@ -148,6 +148,7 @@ const Dialogue = {
             const handler = () => {
                 if (GameState.player.gold >= shopItem.cost) {
                     GameState.player.gold -= shopItem.cost;
+                    GameState.trackStat('goldSpent', shopItem.cost);
                     GameState.addToInventory(shopItem.item);
                     Notifications.show(`Purchased ${item.name}!`, 'gold');
                     HUD.update();
@@ -252,6 +253,7 @@ const Dialogue = {
         if (choice.cost && choice.next === 'rest') {
             if (GameState.player.gold >= choice.cost) {
                 GameState.player.gold -= choice.cost;
+                GameState.trackStat('goldSpent', choice.cost);
                 HUD.update();
             } else {
                 Notifications.show('Not enough gold!', 'red');
@@ -263,6 +265,7 @@ const Dialogue = {
         if (choice.cost && choice.item) {
             if (GameState.player.gold >= choice.cost) {
                 GameState.player.gold -= choice.cost;
+                GameState.trackStat('goldSpent', choice.cost);
                 GameState.addToInventory(choice.item);
                 const item = ITEMS[choice.item];
                 if (item) Notifications.show(`Purchased ${item.name}!`, 'gold');

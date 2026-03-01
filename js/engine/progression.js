@@ -27,48 +27,73 @@ const Progression = {
         const quest = QUESTS.main_quest;
         const currentStage = this.getMainQuestStage();
 
-        let html = '<h3>Journal</h3>';
+        let html = '<div class="journal-header"><h3>Journal</h3></div>';
 
         // Main quest
         html += '<div class="journal-entry active">';
-        html += `<h4>${quest.name}</h4>`;
+        html += `<h4><span class="quest-badge main">Main</span> ${quest.name}</h4>`;
         html += `<p>${quest.description}</p>`;
         html += '</div>';
 
-        // Current stage
+        // Current stage with objectives
         if (quest.stages[currentStage]) {
             const stage = quest.stages[currentStage];
-            html += '<div class="journal-entry active" style="margin-top:0.5rem">';
-            html += `<h4>${stage.name}</h4>`;
-            html += `<p style="margin-bottom:0.5rem">${stage.description}</p>`;
+            const totalObj = stage.objectives.length;
+            const completeObj = stage.objectives.filter(obj => GameState.isObjectiveComplete('main', null, obj.id)).length;
+            const progressPct = totalObj > 0 ? (completeObj / totalObj) * 100 : 0;
 
+            html += '<div class="journal-entry active">';
+            html += `<h4>${stage.name}</h4>`;
+            html += `<p>${stage.description}</p>`;
+
+            html += '<div class="quest-progress">';
             stage.objectives.forEach(obj => {
                 const complete = GameState.isObjectiveComplete('main', null, obj.id);
-                html += `<div style="padding:0.2rem 0;color:${complete ? 'var(--accent-green-bright)' : 'var(--text-secondary)'}">`;
-                html += `${complete ? '✓' : '○'} ${obj.text}`;
+                html += `<div class="objective ${complete ? 'complete' : 'incomplete'}">`;
+                html += `<span class="obj-check">${complete ? '&#10003;' : ''}</span>`;
+                html += `<span class="obj-text">${obj.text}</span>`;
                 html += '</div>';
             });
+            html += '</div>';
 
+            html += `<div class="quest-progress-bar"><div class="quest-progress-fill" style="width:${progressPct}%"></div></div>`;
             html += '</div>';
         }
 
         // Side quests
-        html += '<p style="color:var(--text-dim);margin-top:1.5rem;margin-bottom:0.5rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.1em">Side Quests</p>';
+        html += '<div class="journal-section-label">Side Quests</div>';
 
-        for (const [questId, quest] of Object.entries(QUESTS.side_quests)) {
+        let hasSideQuests = false;
+        for (const [questId, sideQuest] of Object.entries(QUESTS.side_quests)) {
             const hasProgress = GameState.questProgress.side[questId];
             if (hasProgress || questId === 'codex_collector') {
-                html += '<div class="journal-entry">';
-                html += `<h4>${quest.name}</h4>`;
-                html += `<p>${quest.description}</p>`;
-                quest.objectives.forEach(obj => {
+                hasSideQuests = true;
+                const totalObj = sideQuest.objectives.length;
+                const completeObj = sideQuest.objectives.filter(obj => GameState.isObjectiveComplete('side', questId, obj.id)).length;
+                const allDone = completeObj === totalObj;
+                const progressPct = totalObj > 0 ? (completeObj / totalObj) * 100 : 0;
+
+                html += `<div class="journal-entry ${allDone ? 'completed' : ''}">`;
+                html += `<h4><span class="quest-badge side">Side</span> ${sideQuest.name}</h4>`;
+                html += `<p>${sideQuest.description}</p>`;
+
+                html += '<div class="quest-progress">';
+                sideQuest.objectives.forEach(obj => {
                     const complete = GameState.isObjectiveComplete('side', questId, obj.id);
-                    html += `<div style="padding:0.2rem 0;color:${complete ? 'var(--accent-green-bright)' : 'var(--text-secondary)'}">`;
-                    html += `${complete ? '✓' : '○'} ${obj.text}`;
+                    html += `<div class="objective ${complete ? 'complete' : 'incomplete'}">`;
+                    html += `<span class="obj-check">${complete ? '&#10003;' : ''}</span>`;
+                    html += `<span class="obj-text">${obj.text}</span>`;
                     html += '</div>';
                 });
                 html += '</div>';
+
+                html += `<div class="quest-progress-bar"><div class="quest-progress-fill" style="width:${progressPct}%"></div></div>`;
+                html += '</div>';
             }
+        }
+
+        if (!hasSideQuests) {
+            html += '<div style="color:var(--text-dim);font-size:0.8rem;font-style:italic;padding:0.5rem 0">No side quests discovered yet.</div>';
         }
 
         panel.innerHTML = html;
@@ -81,78 +106,106 @@ const Progression = {
         const cls = CLASSES[p.class];
 
         let html = '<div class="char-sheet">';
-        html += `<h3>${p.name}</h3>`;
-        html += `<p style="color:var(--text-secondary);margin-bottom:1rem">${race.name} ${cls.name} — Level ${p.level}</p>`;
 
-        // Vitals
-        html += '<div class="stat-group"><h4>Vitals</h4>';
-        html += `<div class="stat-row"><span class="stat-name">HP</span><span class="stat-value">${p.hp} / ${p.maxHp}</span></div>`;
-        html += `<div class="stat-row"><span class="stat-name">MP</span><span class="stat-value">${p.mp} / ${p.maxMp}</span></div>`;
-        html += `<div class="stat-row"><span class="stat-name">XP</span><span class="stat-value">${p.xp} / ${p.xpToNext}</span></div>`;
-        html += `<div class="stat-row"><span class="stat-name">Gold</span><span class="stat-value">${p.gold}</span></div>`;
+        // Header
+        html += '<div class="char-sheet-header">';
+        html += `<h3>${p.name}</h3>`;
+        html += `<div class="char-subtitle">${race.icon || ''} ${race.name} ${cls.name} — Level ${p.level}</div>`;
         html += '</div>';
 
-        // Base stats
-        html += '<div class="stat-group"><h4>Attributes</h4>';
-        const statNames = { str: 'Strength', dex: 'Dexterity', int: 'Intelligence', wis: 'Wisdom', con: 'Constitution', cha: 'Charisma' };
-        for (const [key, name] of Object.entries(statNames)) {
-            html += `<div class="stat-row"><span class="stat-name">${name}</span><span class="stat-value">${p.stats[key]}</span></div>`;
+        // Vitals with visual bars
+        html += '<div class="stat-group"><h4><span class="group-icon">&#9829;</span> Vitals</h4>';
+        const hpPct = p.maxHp > 0 ? Math.min(100, (p.hp / p.maxHp) * 100) : 0;
+        const mpPct = p.maxMp > 0 ? Math.min(100, (p.mp / p.maxMp) * 100) : 0;
+        const xpPct = p.xpToNext > 0 ? Math.min(100, (p.xp / p.xpToNext) * 100) : 0;
+        html += `<div class="stat-bar-row"><div class="stat-bar-label"><span class="bar-name"><span class="stat-icon">&#10084;</span> HP</span><span class="bar-value">${p.hp} / ${p.maxHp}</span></div><div class="stat-bar-track"><div class="stat-bar-fill hp" style="width:${hpPct}%"></div></div></div>`;
+        html += `<div class="stat-bar-row"><div class="stat-bar-label"><span class="bar-name"><span class="stat-icon">&#9670;</span> MP</span><span class="bar-value">${p.mp} / ${p.maxMp}</span></div><div class="stat-bar-track"><div class="stat-bar-fill mp" style="width:${mpPct}%"></div></div></div>`;
+        html += `<div class="stat-bar-row"><div class="stat-bar-label"><span class="bar-name"><span class="stat-icon">&#9733;</span> XP</span><span class="bar-value">${p.xp} / ${p.xpToNext}</span></div><div class="stat-bar-track"><div class="stat-bar-fill xp" style="width:${xpPct}%"></div></div></div>`;
+        html += `<div class="stat-row"><span class="stat-name"><span class="stat-icon">&#9679;</span> Gold</span><span class="stat-value" style="color:var(--accent-gold)">${p.gold}</span></div>`;
+        html += '</div>';
+
+        // Attributes with icons
+        html += '<div class="stat-group"><h4><span class="group-icon">&#9876;</span> Attributes</h4>';
+        const statConfig = [
+            ['str', 'Strength', '&#9876;'],
+            ['dex', 'Dexterity', '&#10148;'],
+            ['int', 'Intelligence', '&#9733;'],
+            ['wis', 'Wisdom', '&#9775;'],
+            ['con', 'Constitution', '&#9829;'],
+            ['cha', 'Charisma', '&#9830;']
+        ];
+        for (const [key, name, icon] of statConfig) {
+            html += `<div class="stat-row"><span class="stat-name"><span class="stat-icon">${icon}</span> ${name}</span><span class="stat-value">${p.stats[key]}</span></div>`;
         }
         html += '</div>';
 
-        // Combat stats
-        html += '<div class="stat-group"><h4>Combat</h4>';
-        html += `<div class="stat-row"><span class="stat-name">Attack</span><span class="stat-value">${p.attack}</span></div>`;
-        html += `<div class="stat-row"><span class="stat-name">Defense</span><span class="stat-value">${p.defense}</span></div>`;
-        html += `<div class="stat-row"><span class="stat-name">Magic ATK</span><span class="stat-value">${p.magicAttack}</span></div>`;
-        html += `<div class="stat-row"><span class="stat-name">Magic DEF</span><span class="stat-value">${p.magicDefense}</span></div>`;
-        html += `<div class="stat-row"><span class="stat-name">Speed</span><span class="stat-value">${p.speed}</span></div>`;
-        html += `<div class="stat-row"><span class="stat-name">Crit Chance</span><span class="stat-value">${p.critChance}%</span></div>`;
+        // Combat stats with icons
+        html += '<div class="stat-group"><h4><span class="group-icon">&#9876;</span> Combat</h4>';
+        const combatStats = [
+            ['Attack', p.attack, '&#9876;'],
+            ['Defense', p.defense, '&#9917;'],
+            ['Magic ATK', p.magicAttack, '&#10040;'],
+            ['Magic DEF', p.magicDefense, '&#10041;'],
+            ['Speed', p.speed, '&#10148;'],
+            ['Crit Chance', p.critChance + '%', '&#10038;']
+        ];
+        for (const [name, val, icon] of combatStats) {
+            html += `<div class="stat-row"><span class="stat-name"><span class="stat-icon">${icon}</span> ${name}</span><span class="stat-value">${val}</span></div>`;
+        }
         html += '</div>';
 
-        // Abilities
-        html += '<div class="stat-group"><h4>Abilities</h4>';
+        // Abilities as styled cards
+        html += '<div class="stat-group"><h4><span class="group-icon">&#9889;</span> Abilities</h4>';
         p.abilities.forEach(a => {
-            html += `<div style="padding:0.3rem 0;border-bottom:1px solid var(--bg-light)">`;
-            html += `<div style="color:var(--accent-gold);font-size:0.9rem">${a.name} <span style="color:var(--text-dim)">(${a.mpCost} MP)</span></div>`;
-            html += `<div style="color:var(--text-secondary);font-size:0.8rem">${a.desc}</div>`;
+            html += '<div class="ability-card">';
+            html += '<div class="ability-header">';
+            html += `<span class="ability-name">${a.name}</span>`;
+            html += `<span class="ability-cost">${a.mpCost} MP</span>`;
+            html += '</div>';
+            html += `<div class="ability-desc">${a.desc}</div>`;
+            if (a.damage && a.damage[1] > 0) {
+                html += `<div class="ability-damage">${a.damage[0]}-${a.damage[1]} damage</div>`;
+            }
             html += '</div>';
         });
         html += '</div>';
 
-        // Racial abilities
-        html += '<div class="stat-group"><h4>Racial Traits</h4>';
+        // Racial traits
+        html += '<div class="stat-group"><h4><span class="group-icon">&#9874;</span> Racial Traits</h4>';
         race.abilities.forEach(a => {
-            html += `<div style="padding:0.2rem 0;color:var(--text-secondary);font-size:0.85rem">${a}</div>`;
+            html += `<div class="ability-card"><div class="ability-desc">${a}</div></div>`;
         });
         html += '</div>';
 
         // Skill Tree
         if (cls.skillTree && cls.skillTree.length > 0) {
-            html += '<div class="stat-group"><h4>Skill Tree</h4>';
+            html += '<div class="stat-group"><h4><span class="group-icon">&#9878;</span> Skill Tree</h4>';
             const choices = p.skillChoices || {};
             for (const tier of cls.skillTree) {
                 const unlocked = p.level >= tier.level;
                 const chosen = choices[tier.level] !== undefined;
                 const chosenIdx = choices[tier.level];
 
-                html += `<div style="padding:0.4rem 0;border-bottom:1px solid var(--bg-light);opacity:${unlocked ? '1' : '0.4'}">`;
-                html += `<div style="font-family:var(--font-heading);font-size:0.75rem;color:var(--text-dim);letter-spacing:0.08em;margin-bottom:0.2rem">Level ${tier.level}</div>`;
+                html += `<div class="skill-tier ${unlocked ? '' : 'locked'}">`;
+                html += `<div class="tier-label">Level ${tier.level}</div>`;
 
                 if (chosen) {
                     const ability = tier.choices[chosenIdx];
-                    html += `<div style="color:var(--accent-gold);font-size:0.9rem">${ability.name} <span style="color:var(--accent-green-bright)">✓</span></div>`;
-                    html += `<div style="color:var(--text-secondary);font-size:0.8rem">${ability.desc}</div>`;
+                    html += '<div class="tier-chosen">';
+                    html += `<span class="check-mark">&#10003;</span>`;
+                    html += `<span class="ability-name" style="color:var(--accent-gold);font-size:0.85rem">${ability.name}</span>`;
+                    html += '</div>';
+                    html += `<div style="color:var(--text-secondary);font-size:0.78rem;margin-top:0.1rem">${ability.desc}</div>`;
                 } else if (unlocked) {
-                    html += `<div style="color:var(--accent-gold);font-size:0.85rem">⚡ Choice available!</div>`;
+                    html += `<div style="color:var(--accent-gold);font-size:0.8rem;margin-bottom:0.2rem">Choose an ability:</div>`;
                     tier.choices.forEach((ability, idx) => {
-                        html += `<button onclick="GameState.selectSkillChoice(${tier.level},${idx});Progression.renderCharacterSheet()" style="display:block;width:100%;text-align:left;padding:0.4rem 0.6rem;margin:0.3rem 0;background:var(--bg-light);border:1px solid var(--border-color);border-radius:4px;color:var(--text-primary);cursor:pointer;font-family:inherit;font-size:inherit">`;
-                        html += `<div style="color:var(--accent-gold);font-size:0.85rem">${ability.name} <span style="color:var(--accent-blue-bright);font-size:0.7rem">${ability.mpCost}MP${ability.damage && ability.damage[1] > 0 ? ' · ' + ability.damage[0] + '-' + ability.damage[1] : ''}</span></div>`;
+                        html += `<button class="skill-choice-btn" onclick="GameState.selectSkillChoice(${tier.level},${idx});Progression.renderCharacterSheet()">`;
+                        html += `<div style="color:var(--accent-gold);font-size:0.85rem">${ability.name} <span style="color:var(--accent-blue-bright);font-size:0.7rem">${ability.mpCost}MP${ability.damage && ability.damage[1] > 0 ? ' &middot; ' + ability.damage[0] + '-' + ability.damage[1] : ''}</span></div>`;
                         html += `<div style="color:var(--text-secondary);font-size:0.78rem">${ability.desc}</div>`;
                         html += '</button>';
                     });
                 } else {
-                    html += `<div style="color:var(--text-dim);font-size:0.8rem;font-style:italic">Locked — reach level ${tier.level}</div>`;
+                    html += `<div style="color:var(--text-dim);font-size:0.78rem;font-style:italic">Reach level ${tier.level} to unlock</div>`;
                 }
                 html += '</div>';
             }
@@ -160,7 +213,6 @@ const Progression = {
         }
 
         html += '</div>';
-
         panel.innerHTML = html;
     },
 
@@ -171,54 +223,63 @@ const Progression = {
         const a = GameState.achievements || {};
         const defs = GameState._achievementDefs || {};
 
-        let html = '<h3>Achievements</h3>';
-
-        // Achievement count
         const total = Object.keys(defs).length;
-        const unlocked = Object.keys(a).length;
-        html += `<p style="color:var(--accent-gold);margin-bottom:1rem;font-size:0.9rem">${unlocked} / ${total} unlocked</p>`;
+        const unlockedCount = Object.keys(a).length;
+        const progressPct = total > 0 ? (unlockedCount / total) * 100 : 0;
 
-        // Unlocked achievements
-        for (const [id, def] of Object.entries(defs)) {
+        let html = '<div class="achievements-header">';
+        html += '<h3>Achievements</h3>';
+        html += `<div class="achievements-counter">${unlockedCount} / ${total} <div class="ach-progress-bar"><div class="ach-progress-fill" style="width:${progressPct}%"></div></div></div>`;
+        html += '</div>';
+
+        // Unlocked first, then locked
+        const entries = Object.entries(defs);
+        const unlockedEntries = entries.filter(([id]) => a[id]);
+        const lockedEntries = entries.filter(([id]) => !a[id]);
+
+        for (const [id, def] of [...unlockedEntries, ...lockedEntries]) {
             const isUnlocked = a[id];
-            html += `<div style="padding:0.4rem 0;border-bottom:1px solid var(--bg-light);opacity:${isUnlocked ? '1' : '0.35'}">`;
-            html += `<div style="color:${isUnlocked ? 'var(--accent-gold)' : 'var(--text-dim)'};font-size:0.9rem">${isUnlocked ? '★' : '☆'} ${def.name}</div>`;
-            html += `<div style="color:var(--text-secondary);font-size:0.78rem">${def.desc}</div>`;
-            html += '</div>';
+            html += `<div class="achievement-item ${isUnlocked ? 'unlocked' : 'locked'}">`;
+            html += `<div class="ach-badge">${isUnlocked ? '&#9733;' : '&#9734;'}</div>`;
+            html += '<div class="ach-info">';
+            html += `<div class="ach-name">${def.name}</div>`;
+            html += `<div class="ach-desc">${def.desc}</div>`;
+            html += '</div></div>';
         }
 
         // Statistics section
-        html += '<h3 style="margin-top:1.5rem">Statistics</h3>';
+        html += '<div class="stats-section-label">Statistics</div>';
         html += '<div class="char-sheet"><div class="stat-group">';
 
         const statDisplay = [
-            ['enemiesKilled', 'Enemies Defeated'],
-            ['bossesKilled', 'Bosses Defeated'],
-            ['totalDamageDealt', 'Total Damage Dealt'],
-            ['totalDamageReceived', 'Damage Received'],
-            ['criticalHits', 'Critical Hits'],
-            ['maxCombo', 'Best Combo'],
-            ['deathCount', 'Deaths'],
-            ['goldEarned', 'Gold Earned'],
-            ['goldSpent', 'Gold Spent'],
-            ['fishCaught', 'Fish Caught'],
-            ['resourcesGathered', 'Resources Gathered'],
-            ['itemsCrafted', 'Items Crafted'],
-            ['buildingsBuilt', 'Buildings Built'],
-            ['questsCompleted', 'Quests Completed'],
-            ['regionsDiscovered', 'Regions Discovered'],
-            ['highestLevel', 'Highest Level'],
+            ['enemiesKilled', 'Enemies Defeated', '&#9876;'],
+            ['bossesKilled', 'Bosses Defeated', '&#9760;'],
+            ['totalDamageDealt', 'Total Damage Dealt', '&#10038;'],
+            ['totalDamageReceived', 'Damage Received', '&#10006;'],
+            ['criticalHits', 'Critical Hits', '&#10040;'],
+            ['maxCombo', 'Best Combo', '&#10039;'],
+            ['deathCount', 'Deaths', '&#9760;'],
+            ['goldEarned', 'Gold Earned', '&#9679;'],
+            ['goldSpent', 'Gold Spent', '&#9679;'],
+            ['fishCaught', 'Fish Caught', '&#9831;'],
+            ['resourcesGathered', 'Resources Gathered', '&#9830;'],
+            ['itemsCrafted', 'Items Crafted', '&#9874;'],
+            ['buildingsBuilt', 'Buildings Built', '&#9962;'],
+            ['questsCompleted', 'Quests Completed', '&#10003;'],
+            ['regionsDiscovered', 'Regions Discovered', '&#9775;'],
+            ['highestLevel', 'Highest Level', '&#9733;'],
         ];
 
-        statDisplay.forEach(([key, label]) => {
-            html += `<div class="stat-row"><span class="stat-name">${label}</span><span class="stat-value">${s[key] || 0}</span></div>`;
+        statDisplay.forEach(([key, label, icon]) => {
+            const val = s[key] || 0;
+            html += `<div class="stat-row"><span class="stat-name"><span class="stat-icon">${icon}</span> ${label}</span><span class="stat-value">${val}</span></div>`;
         });
 
         // Play time
         const mins = Math.floor((s.playTime || 0) / 60);
         const hrs = Math.floor(mins / 60);
         const remMins = mins % 60;
-        html += `<div class="stat-row"><span class="stat-name">Play Time</span><span class="stat-value">${hrs > 0 ? hrs + 'h ' : ''}${remMins}m</span></div>`;
+        html += `<div class="stat-row"><span class="stat-name"><span class="stat-icon">&#9201;</span> Play Time</span><span class="stat-value">${hrs > 0 ? hrs + 'h ' : ''}${remMins}m</span></div>`;
 
         html += '</div></div>';
         panel.innerHTML = html;

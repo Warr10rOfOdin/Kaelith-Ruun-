@@ -8,30 +8,43 @@ const Inventory = {
         if (!panel || !GameState.player) return;
         const p = GameState.player;
 
-        let html = '<h3>Equipment</h3>';
+        let html = '<div class="inv-panel-header"><h3>Equipment &amp; Inventory</h3></div>';
+
+        // Equipment with slot labels and rarity glow
+        html += '<div class="equipment-section-label">Equipped</div>';
         html += '<div class="equipment-slots">';
 
-        const slots = ['weapon', 'helmet', 'armor', 'boots', 'offhand', 'accessory'];
-        slots.forEach(slot => {
+        const slotConfig = [
+            ['weapon', 'Weapon', '&#9876;'],
+            ['helmet', 'Helmet', '&#9898;'],
+            ['armor', 'Armor', '&#9899;'],
+            ['boots', 'Boots', '&#9898;'],
+            ['offhand', 'Offhand', '&#9917;'],
+            ['accessory', 'Accessory', '&#9830;']
+        ];
+
+        slotConfig.forEach(([slot, label, fallbackIcon]) => {
             const itemKey = p.equipment[slot];
             const item = itemKey ? ITEMS[itemKey] : null;
-            const rarity = item ? item.rarity : 'common';
+            const rarity = item ? (item.rarity || 'common') : '';
 
-            html += `<div class="inv-slot equipped" title="${item ? item.name : 'Empty ' + slot}" onclick="Inventory.showEquipmentDetail('${slot}')">`;
+            html += `<div class="equip-slot ${item ? 'has-item' : ''} ${item ? 'rarity-' + rarity : ''}" onclick="Inventory.showEquipmentDetail('${slot}')">`;
+            html += `<span class="slot-label">${label}</span>`;
             if (item) {
-                html += `<span class="item-rarity-${rarity}">${item.icon}</span>`;
+                html += `<span class="slot-icon item-rarity-${rarity}">${item.icon}</span>`;
+                html += `<span class="slot-name">${item.name}</span>`;
             } else {
-                html += `<span style="color:var(--text-dim);font-size:0.8rem">${slot}</span>`;
+                html += `<span class="slot-empty">${fallbackIcon}</span>`;
             }
             html += '</div>';
         });
 
         html += '</div>';
 
-        // Dynamic inventory display
+        // Inventory grid with capacity indicator
         const maxSlots = GameState.MAX_INVENTORY_SIZE || 40;
         const displaySlots = Math.max(20, Math.min(maxSlots, p.inventory.length + 5));
-        html += `<h3 style="margin-top:1rem">Inventory (${p.inventory.length}/${maxSlots})</h3>`;
+        html += `<div class="inv-section-label">Inventory ${p.inventory.length}/${maxSlots}</div>`;
         html += '<div class="inventory-grid">';
 
         for (let i = 0; i < displaySlots; i++) {
@@ -39,17 +52,18 @@ const Inventory = {
             if (invItem) {
                 const item = ITEMS[invItem.key];
                 if (item) {
-                    html += `<div class="inv-slot" onclick="Inventory.showItemDetail('${invItem.key}')">`;
-                    html += `<span class="item-rarity-${item.rarity || 'common'}">${item.icon}</span>`;
+                    const rarity = item.rarity || 'common';
+                    html += `<div class="inv-slot rarity-${rarity}" onclick="Inventory.showItemDetail('${invItem.key}')">`;
+                    html += `<span class="item-rarity-${rarity}">${item.icon}</span>`;
                     if (invItem.quantity > 1) {
                         html += `<span class="item-count">${invItem.quantity}</span>`;
                     }
                     html += '</div>';
                 } else {
-                    html += '<div class="inv-slot"></div>';
+                    html += '<div class="inv-slot empty"></div>';
                 }
             } else {
-                html += '<div class="inv-slot"></div>';
+                html += '<div class="inv-slot empty"></div>';
             }
         }
 
@@ -65,19 +79,20 @@ const Inventory = {
         const invEntry = GameState.player.inventory.find(i => i.key === itemKey);
         if (!invEntry) return;
 
-        let html = `<h3>${item.icon} ${item.name}</h3>`;
-        html += `<p class="item-rarity-${item.rarity || 'common'}" style="text-transform:capitalize;margin-bottom:0.5rem">${item.rarity || 'common'}</p>`;
-        html += `<p style="color:var(--text-secondary);font-style:italic;margin-bottom:1rem">${item.description}</p>`;
+        const rarity = item.rarity || 'common';
+
+        let html = '<div class="item-detail-panel">';
+        html += `<div class="item-title"><span class="item-icon-lg">${item.icon}</span><h3>${item.name}</h3></div>`;
+        html += `<span class="item-rarity-tag ${rarity}">${rarity}</span>`;
+        html += `<p style="color:var(--text-secondary);font-style:italic;margin-bottom:0.8rem;font-size:0.85rem;line-height:1.4">${item.description}</p>`;
 
         if (item.stats) {
-            // Compare against currently equipped item
             const slot = item.slot || this.guessSlot(item);
             const equippedKey = slot && GameState.player.equipment[slot] ? GameState.player.equipment[slot] : null;
             const equippedItem = equippedKey ? ITEMS[equippedKey] : null;
             const equippedStats = equippedItem && equippedItem.stats ? equippedItem.stats : {};
 
             html += '<div class="char-sheet"><div class="stat-group"><h4>Stats</h4>';
-            // Collect all stat keys from both items
             const allStats = new Set([...Object.keys(item.stats), ...Object.keys(equippedStats)]);
             for (const stat of allStats) {
                 const newVal = item.stats[stat] || 0;
@@ -87,27 +102,26 @@ const Inventory = {
                 if (equippedItem && diff !== 0) {
                     const color = diff > 0 ? 'var(--accent-green-bright)' : 'var(--accent-red-bright)';
                     const sign = diff > 0 ? '+' : '';
-                    diffHtml = ` <span style="color:${color};font-size:0.75rem">(${sign}${diff})</span>`;
+                    diffHtml = ` <span style="color:${color};font-size:0.72rem">(${sign}${diff})</span>`;
                 }
                 if (newVal > 0) {
                     html += `<div class="stat-row"><span class="stat-name">${this.formatStatName(stat)}</span><span class="stat-value stat-bonus">+${newVal}${diffHtml}</span></div>`;
                 } else if (diff < 0) {
-                    // Stat exists on equipped but not on this item
-                    html += `<div class="stat-row"><span class="stat-name">${this.formatStatName(stat)}</span><span class="stat-value" style="color:var(--accent-red-bright)">—${diffHtml}</span></div>`;
+                    html += `<div class="stat-row"><span class="stat-name">${this.formatStatName(stat)}</span><span class="stat-value" style="color:var(--accent-red-bright)">&mdash;${diffHtml}</span></div>`;
                 }
             }
             html += '</div></div>';
 
             if (equippedItem) {
-                html += `<p style="color:var(--text-dim);font-size:0.75rem;margin:0.5rem 0">Currently equipped: ${equippedItem.icon} ${equippedItem.name}</p>`;
+                html += `<p style="color:var(--text-dim);font-size:0.72rem;margin:0.4rem 0">Replacing: ${equippedItem.icon} ${equippedItem.name}</p>`;
             }
         }
 
         if (item.effect) {
-            html += `<p style="color:var(--accent-green-bright);margin-bottom:1rem">Effect: ${item.description}</p>`;
+            html += `<p style="color:var(--accent-green-bright);margin-bottom:0.8rem;font-size:0.82rem">Effect: ${item.description}</p>`;
         }
 
-        html += '<div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap">';
+        html += '<div style="display:flex;gap:0.4rem;margin-top:0.8rem;flex-wrap:wrap">';
 
         if (item.type === 'weapon' || item.type === 'armor' || item.type === 'tool') {
             html += `<button class="action-btn primary" onclick="Inventory.equipFromInventory('${itemKey}')">Equip</button>`;
@@ -126,7 +140,7 @@ const Inventory = {
         }
 
         html += `<button class="action-btn" onclick="Inventory.render()">Back</button>`;
-        html += '</div>';
+        html += '</div></div>';
 
         const panel = document.getElementById('side-panel-content');
         if (panel) panel.innerHTML = html;
@@ -139,10 +153,13 @@ const Inventory = {
         const item = ITEMS[itemKey];
         if (!item) return;
 
-        let html = `<h3>${item.icon} ${item.name}</h3>`;
-        html += `<p style="color:var(--text-dim);margin-bottom:0.5rem">Equipped — ${slot}</p>`;
-        html += `<p class="item-rarity-${item.rarity || 'common'}" style="text-transform:capitalize;margin-bottom:0.5rem">${item.rarity || 'common'}</p>`;
-        html += `<p style="color:var(--text-secondary);font-style:italic;margin-bottom:1rem">${item.description}</p>`;
+        const rarity = item.rarity || 'common';
+
+        let html = '<div class="item-detail-panel">';
+        html += `<div class="item-title"><span class="item-icon-lg">${item.icon}</span><h3>${item.name}</h3></div>`;
+        html += `<span class="item-rarity-tag ${rarity}">${rarity}</span>`;
+        html += `<p style="color:var(--text-dim);font-size:0.72rem;margin-bottom:0.3rem">Equipped &mdash; ${slot}</p>`;
+        html += `<p style="color:var(--text-secondary);font-style:italic;margin-bottom:0.8rem;font-size:0.85rem;line-height:1.4">${item.description}</p>`;
 
         if (item.stats) {
             html += '<div class="char-sheet"><div class="stat-group"><h4>Stats</h4>';
@@ -152,10 +169,10 @@ const Inventory = {
             html += '</div></div>';
         }
 
-        html += '<div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap">';
+        html += '<div style="display:flex;gap:0.4rem;margin-top:0.8rem;flex-wrap:wrap">';
         html += `<button class="action-btn" onclick="Inventory.unequip('${slot}')">Unequip</button>`;
         html += `<button class="action-btn" onclick="Inventory.render()">Back</button>`;
-        html += '</div>';
+        html += '</div></div>';
 
         const panel = document.getElementById('side-panel-content');
         if (panel) panel.innerHTML = html;

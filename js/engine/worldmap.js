@@ -1210,7 +1210,9 @@ const WorldMap = {
 
     loadSaveData(data) {
         if (!data) return;
-        this.removedResources = data.removedResources || {};
+        // Don't restore removedResources — respawn timers are lost on reload,
+        // so cleared resources would stay gone forever. Let them respawn fresh.
+        this.removedResources = {};
         this.removedEntities = data.removedEntities || {};
         // Convert old facing values (north/south/east/west) to new (up/down/left/right)
         const facingMap = { north: 'up', south: 'down', east: 'right', west: 'left' };

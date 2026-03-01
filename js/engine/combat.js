@@ -15,6 +15,9 @@ const Combat = {
     log: null,
     onCombatEnd: null,
     _pendingTimers: [],
+    comboCount: 0,
+    maxCombo: 0,
+    totalDamageDealt: 0,
 
     start(enemyKey, onEnd) {
         const template = ENEMIES[enemyKey];
@@ -55,6 +58,9 @@ const Combat = {
         this.turnCount = 0;
         this.playerBuffs = [];
         this.enemyBuffs = [];
+        this.comboCount = 0;
+        this.maxCombo = 0;
+        this.totalDamageDealt = 0;
 
         // Ensure player statusEffects array exists
         if (!GameState.player.statusEffects) GameState.player.statusEffects = [];
@@ -305,6 +311,10 @@ const Combat = {
         }
 
         this.applyDamageToEnemy(damage);
+        this.comboCount++;
+        this.totalDamageDealt += damage;
+        if (this.comboCount > this.maxCombo) this.maxCombo = this.comboCount;
+        this.updateComboDisplay();
         this.shakeElement('enemy-display');
         this.flashEnemy(isCrit ? 'rgba(255,200,50,0.7)' : 'rgba(255,255,255,0.5)');
         NativeBridge.hapticMedium();
@@ -364,6 +374,10 @@ const Combat = {
             }
 
             this.applyDamageToEnemy(damage);
+            this.comboCount++;
+            this.totalDamageDealt += damage;
+            if (this.comboCount > this.maxCombo) this.maxCombo = this.comboCount;
+            this.updateComboDisplay();
             this.shakeElement('enemy-display');
             // Spell visual effect
             const spellType = ability.type === 'magical' ? (ability.element === 'fire' ? 'fire' : 'ice') : 'physical';
@@ -551,7 +565,11 @@ const Combat = {
 
             GameState.player.hp = Math.max(0, GameState.player.hp - damage);
             this.logCombat(`${this.enemy.name} uses ${ability.name} for ${damage} damage!`, 'enemy-attack');
-            if (damage > 0) this.showPlayerDamageNumber(damage);
+            if (damage > 0) {
+                this.showPlayerDamageNumber(damage);
+                this.comboCount = 0; // Combo broken
+                this.updateComboDisplay();
+            }
             // Enemy spell visual
             if (ability.type === 'magical') {
                 this.showSpellEffect(ability.element === 'fire' ? 'fire' : 'shadow');
@@ -682,6 +700,9 @@ const Combat = {
             const mpText = playerMpBar.parentElement ? playerMpBar.parentElement.querySelector('.combat-bar-text') : null;
             if (mpText) mpText.textContent = `${GameState.player.mp} / ${GameState.player.maxMp} MP`;
         }
+
+        // Update combat status icons
+        this.updateCombatStatus();
 
         HUD.update();
     },
@@ -828,6 +849,99 @@ const Combat = {
         });
     },
 
+    // ---- COMBO DISPLAY ----
+    updateComboDisplay() {
+        const arena = document.getElementById('combat-arena');
+        if (!arena) return;
+
+        // Remove existing combo counter
+        const existing = arena.querySelector('.combo-counter');
+        if (existing) existing.remove();
+
+        if (this.comboCount >= 2) {
+            const combo = document.createElement('div');
+            combo.className = `combo-counter${this.comboCount >= 5 ? ' high' : ''}`;
+            combo.textContent = `${this.comboCount}x COMBO`;
+            arena.appendChild(combo);
+        }
+    },
+
+    // ---- STATUS DISPLAY IN COMBAT ----
+    updateCombatStatus() {
+        // Player buffs/debuffs under player bars
+        let statusContainer = document.getElementById('combat-status-bar');
+        if (!statusContainer) {
+            const playerSection = document.getElementById('player-combat-section');
+            if (playerSection) {
+                statusContainer = document.createElement('div');
+                statusContainer.id = 'combat-status-bar';
+                playerSection.insertBefore(statusContainer, playerSection.querySelector('#combat-actions'));
+            }
+        }
+        if (!statusContainer) return;
+
+        let html = '';
+
+        // Player buffs
+        for (const buff of this.playerBuffs) {
+            if (buff.type === 'damageReduce') {
+                html += `<span class="combat-status-icon player-buff">🛡️ -${buff.percent}% dmg (${buff.duration})</span>`;
+            } else if (buff.type === 'manaShield') {
+                html += `<span class="combat-status-icon player-buff">💠 Mana Shield (${buff.duration})</span>`;
+            } else if (buff.type === 'absorb') {
+                html += `<span class="combat-status-icon player-buff">🔰 Absorb ${buff.amount} (${buff.duration})</span>`;
+            } else if (buff.type === 'damageBoost') {
+                html += `<span class="combat-status-icon player-buff">⚔️ +${buff.percent}% dmg (${buff.duration})</span>`;
+            } else if (buff.type === 'weaken') {
+                html += `<span class="combat-status-icon player-debuff">💔 Weakened (${buff.duration})</span>`;
+            } else if (buff.stat) {
+                html += `<span class="combat-status-icon player-buff">✨ +${buff.percent}% ${buff.stat} (${buff.duration})</span>`;
+            }
+        }
+
+        // Player status effects
+        if (GameState.player.statusEffects) {
+            for (const se of GameState.player.statusEffects) {
+                if (se.type === 'poison') {
+                    html += `<span class="combat-status-icon player-debuff">☠️ Poison (${se.duration})</span>`;
+                }
+            }
+        }
+
+        // Enemy debuffs
+        for (const debuff of this.enemyBuffs) {
+            if (debuff.type === 'poison') {
+                html += `<span class="combat-status-icon enemy-debuff">☠️ Enemy Poison (${debuff.duration})</span>`;
+            }
+        }
+
+        statusContainer.innerHTML = html;
+    },
+
+    // ---- LOOT RARITY EFFECTS ----
+    showLootEffect(itemKey) {
+        const item = ITEMS[itemKey];
+        if (!item) return;
+
+        const rarity = item.rarity || 'common';
+        if (rarity === 'common') return; // No effect for common
+
+        const container = document.getElementById('game-container') || document.body;
+        const loot = document.createElement('div');
+        loot.className = `loot-notification ${rarity}`;
+        loot.innerHTML = `<span class="loot-icon">${item.icon || '📦'}</span><span class="loot-name">${item.name}</span>`;
+        container.appendChild(loot);
+
+        setTimeout(() => { if (loot.parentNode) loot.remove(); }, 2000);
+
+        // Screen flash for epic+
+        if (rarity === 'epic' || rarity === 'legendary') {
+            Effects.screenFlash(rarity === 'legendary'
+                ? 'rgba(201,168,76,0.15)'
+                : 'rgba(160,68,201,0.1)');
+        }
+    },
+
     handleVictory() {
         if (!this.active) return;
         this.active = false;
@@ -874,9 +988,15 @@ const Combat = {
                     const item = ITEMS[itemKey];
                     if (item) {
                         this.logCombat(`Obtained: ${item.icon} ${item.name}!`, 'info');
+                        this.showLootEffect(itemKey);
                     }
                 }
             }
+        }
+
+        // Show combat stats
+        if (this.maxCombo >= 3) {
+            this.logCombat(`Max combo: ${this.maxCombo}x | Total damage: ${this.totalDamageDealt}`, 'info');
         }
 
         // Track boss defeats

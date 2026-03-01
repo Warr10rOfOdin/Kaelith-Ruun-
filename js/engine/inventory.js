@@ -192,19 +192,39 @@ const Inventory = {
 
     useFromInventory(itemKey) {
         const item = ITEMS[itemKey];
-        if (!item || item.type !== 'consumable' || !item.effect) return;
+        if (!item || item.type !== 'consumable') return;
 
-        if (item.effect.type === 'heal') {
-            if (item.effect.stat === 'hp') {
-                GameState.healPlayer(item.effect.amount, 0);
-                Notifications.show(`Restored ${item.effect.amount} HP`, 'green');
-            } else if (item.effect.stat === 'mp') {
-                GameState.healPlayer(0, item.effect.amount);
-                Notifications.show(`Restored ${item.effect.amount} MP`, 'blue');
-            } else if (item.effect.stat === 'both') {
-                GameState.healPlayer(item.effect.hpAmount || 0, item.effect.mpAmount || 0);
-                Notifications.show(`Restored ${item.effect.hpAmount || 0} HP and ${item.effect.mpAmount || 0} MP`, 'green');
+        // Healing effect
+        if (item.effect) {
+            if (item.effect.type === 'heal') {
+                if (item.effect.stat === 'hp') {
+                    GameState.healPlayer(item.effect.amount, 0);
+                    Notifications.show(`Restored ${item.effect.amount} HP`, 'green');
+                } else if (item.effect.stat === 'mp') {
+                    GameState.healPlayer(0, item.effect.amount);
+                    Notifications.show(`Restored ${item.effect.amount} MP`, 'blue');
+                } else if (item.effect.stat === 'both') {
+                    GameState.healPlayer(item.effect.hpAmount || 0, item.effect.mpAmount || 0);
+                    Notifications.show(`Restored ${item.effect.hpAmount || 0} HP and ${item.effect.mpAmount || 0} MP`, 'green');
+                }
             }
+            // Old-style heal/mana shorthand (fish items)
+            if (item.effect.heal) GameState.healPlayer(item.effect.heal, 0);
+            if (item.effect.mana) GameState.healPlayer(0, item.effect.mana);
+        }
+
+        // Apply food/potion buff
+        if (item.buff) {
+            GameState.addBuff(item.buff);
+        }
+
+        // Apply survival effects (temperature, fatigue, morale)
+        if (item.survivalEffect && GameState.survival) {
+            const s = GameState.survival;
+            const fx = item.survivalEffect;
+            if (fx.temperature) s.temperature = Math.max(0, Math.min(100, s.temperature + fx.temperature));
+            if (fx.fatigue) s.fatigue = Math.max(0, Math.min(100, s.fatigue + fx.fatigue));
+            if (fx.morale) s.morale = Math.max(0, Math.min(100, s.morale + fx.morale));
         }
 
         GameState.removeFromInventory(itemKey);

@@ -22,17 +22,17 @@
     image-rendering: crisp-edges;
 }
 
-/* ---- OVERLAY HUD (translucent top bar) ---- */
+/* ---- OVERLAY HUD (translucent top bar — dark fantasy) ---- */
 #game-screen #hud {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     z-index: 10;
-    background: rgba(10, 10, 15, 0.55);
+    background: linear-gradient(180deg, rgba(8, 6, 12, 0.75) 0%, rgba(10, 10, 15, 0.55) 100%);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
-    border-bottom: 1px solid rgba(58, 58, 82, 0.4);
+    border-bottom: 1px solid rgba(100, 70, 30, 0.25);
     padding: 0.3rem 0.6rem;
     padding-top: calc(0.3rem + var(--sat));
     gap: 0.15rem;
@@ -56,17 +56,19 @@
 
 .float-msg {
     padding: 6px 14px;
-    background: rgba(10, 10, 15, 0.75);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    border: 1px solid rgba(58, 58, 82, 0.4);
-    border-radius: 6px;
+    background: linear-gradient(135deg, rgba(12, 10, 18, 0.82) 0%, rgba(8, 6, 14, 0.78) 100%);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(100, 70, 30, 0.2);
+    border-radius: 4px;
     color: var(--text-primary);
     font-size: 0.82rem;
     line-height: 1.4;
     text-align: center;
     animation: floatMsgIn 0.3s ease, floatMsgOut 0.5s ease 3.5s forwards;
     max-width: 100%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 .float-msg.story {
@@ -148,17 +150,17 @@
 }
 
 .dpad-btn {
-    background: rgba(18, 18, 28, 0.6);
+    background: linear-gradient(180deg, rgba(20, 16, 28, 0.65) 0%, rgba(12, 10, 20, 0.7) 100%);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
-    border: 1px solid rgba(58, 58, 82, 0.5);
+    border: 1px solid rgba(80, 60, 40, 0.25);
     color: var(--text-secondary);
     font-size: 0.9rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: 4px;
     transition: all 0.1s ease;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
@@ -167,15 +169,15 @@
 }
 
 .dpad-btn:active {
-    background: rgba(37, 37, 64, 0.8);
+    background: rgba(40, 30, 50, 0.85);
     border-color: var(--accent-gold-dim);
     color: var(--accent-gold);
     transform: scale(0.93);
 }
 
 .dpad-center {
-    background: rgba(37, 37, 64, 0.7);
-    border-color: rgba(201, 168, 76, 0.4);
+    background: linear-gradient(180deg, rgba(40, 30, 50, 0.75) 0%, rgba(25, 20, 35, 0.8) 100%);
+    border-color: rgba(140, 100, 40, 0.35);
     color: var(--accent-gold);
     font-size: 1.1rem;
 }
@@ -189,19 +191,20 @@
     /* empty grid cell */
 }
 
-/* ---- ACTION BAR (overlay) ---- */
+/* ---- ACTION BAR (overlay — dark fantasy) ---- */
 #action-bar {
     position: absolute;
     bottom: calc(62px + var(--sab));
     right: 10px;
     z-index: 12;
-    background: rgba(10, 10, 15, 0.5);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    border: 1px solid rgba(58, 58, 82, 0.4);
-    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(12, 10, 18, 0.7) 0%, rgba(8, 6, 14, 0.65) 100%);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(100, 70, 30, 0.25);
+    border-radius: 6px;
     padding: 4px;
     max-width: 200px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
 #action-buttons {
@@ -211,21 +214,22 @@
     justify-content: center;
 }
 
-/* ---- BOTTOM NAV (compact overlay) ---- */
+/* ---- BOTTOM NAV (dark fantasy panel bar) ---- */
 #bottom-nav {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 12;
-    background: rgba(10, 10, 15, 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-top: 1px solid rgba(58, 58, 82, 0.4);
+    background: linear-gradient(0deg, rgba(6, 4, 10, 0.88) 0%, rgba(14, 12, 20, 0.78) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(100, 70, 30, 0.3);
     padding-bottom: var(--sab);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* ---- SIDE PANEL (overlay) ---- */
+/* ---- SIDE PANEL (overlay — dark fantasy) ---- */
 #game-screen #side-panel {
     position: absolute;
     top: 0;
@@ -233,9 +237,10 @@
     right: 0;
     bottom: 0;
     z-index: 50;
-    background: rgba(12, 12, 20, 0.95);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: linear-gradient(180deg, rgba(8, 6, 14, 0.96) 0%, rgba(12, 10, 18, 0.94) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-left: 1px solid rgba(100, 70, 30, 0.15);
 }
 
 /* ---- WORLD MAP (Travel Panel) ---- */
@@ -547,6 +552,15 @@
     flex-wrap: wrap;
 }
 
+.hud-row-survival {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0 0.5rem 0.3rem;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    align-items: center;
+}
+
 .status-icon {
     display: inline-flex;
     align-items: center;
@@ -588,14 +602,15 @@
     right: 0.5rem;
     width: 80px;
     height: 80px;
-    border: 1px solid rgba(58,58,82,0.6);
-    border-radius: 4px;
-    background: rgba(10,10,15,0.7);
+    border: 1px solid rgba(100, 70, 30, 0.3);
+    border-radius: 3px;
+    background: rgba(6, 4, 10, 0.75);
     z-index: 11;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     pointer-events: none;
-    opacity: 0.85;
+    opacity: 0.88;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* ---- Combat Status Bar ---- */

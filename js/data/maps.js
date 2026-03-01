@@ -56,7 +56,16 @@ const TILE_TYPES = {
     'Q': { name: 'Ritual Circle', passable: true, color: '#5a3a6a', emoji: '⭕' },
     'N': { name: 'Banner', passable: false, color: '#8a3a3a', emoji: '🚩' },
     'J': { name: 'Skeleton', passable: true, color: '#b0a890', emoji: '💀' },
-    'U': { name: 'Barricade', passable: false, color: '#5a4a3a', emoji: '🪵' }
+    'U': { name: 'Barricade', passable: false, color: '#5a4a3a', emoji: '🪵' },
+    // Scorched village tiles
+    'a': { name: 'Ash Ground', passable: true, color: '#3a3530', emoji: '' },
+    'd': { name: 'Charred Ground', passable: true, color: '#2a2220', emoji: '' },
+    'r': { name: 'Rubble Pile', passable: false, color: '#4a4040', emoji: '' },
+    'l': { name: 'Burned Timber', passable: false, color: '#3a2a1a', emoji: '' },
+    'v': { name: 'Smoke Vent', passable: true, color: '#4a4a4a', emoji: '' },
+    'e': { name: 'Scorched Wall', passable: false, color: '#2a2222', emoji: '' },
+    'k': { name: 'Collapsed Roof', passable: false, color: '#3a3030', emoji: '' },
+    'o': { name: 'Ash Pile', passable: true, color: '#5a5550', emoji: '' }
 };
 
 // Map definitions — procedurally generated at load time via WorldGen
@@ -94,7 +103,7 @@ const MAP_DEFS = {
             { from: { x: 45, y: 38 }, to: { x: 30, y: 50 } },
         ],
         exits: {
-            south: { to: 'scorched_village', entryX: 45, entryY: 5 }
+            south: { to: 'scorched_village', entryX: 40, entryY: 5 }
         },
         // Hand-placed narrative tiles (stamped after generation)
         stamps: [
@@ -150,62 +159,103 @@ const MAP_DEFS = {
     },
 
     scorched_village: {
-        width: 100, height: 70, seed: 1002, biome: 'ashen_wastes',
-        playerStart: { x: 50, y: 5 },
+        width: 80, height: 60, seed: 1002, biome: 'scorched_village',
+        playerStart: { x: 40, y: 5 },
         structures: [
-            { x: 20, y: 15, w: 8, h: 6, type: 'ruin' },
-            { x: 42, y: 15, w: 8, h: 6, type: 'ruin' },
-            { x: 20, y: 30, w: 8, h: 6, type: 'ruin' },
-            { x: 42, y: 30, w: 8, h: 6, type: 'ruin' },
-            { x: 10, y: 42, w: 6, h: 5, type: 'ruin' },
-            { x: 55, y: 10, w: 7, h: 5, type: 'ruin' },
+            // === FOCAL LANDMARK: Burned Village Hall (center) ===
+            { x: 33, y: 22, w: 14, h: 10, type: 'burned_hall' },
+
+            // === WEST CLUSTER: Residential homes ===
+            { x: 12, y: 14, w: 7, h: 5, type: 'scorched_ruin', purpose: 'house' },
+            { x: 12, y: 22, w: 6, h: 5, type: 'scorched_ruin', purpose: 'house' },
+            { x: 12, y: 30, w: 7, h: 5, type: 'scorched_ruin', purpose: 'stable' },
+
+            // === EAST CLUSTER: Commerce/industry ===
+            { x: 55, y: 14, w: 8, h: 6, type: 'scorched_ruin', purpose: 'blacksmith' },
+            { x: 56, y: 24, w: 7, h: 5, type: 'scorched_ruin', purpose: 'storehouse' },
+            { x: 55, y: 33, w: 7, h: 5, type: 'scorched_ruin', purpose: 'tavern' },
+
+            // === SOUTH: Chapel and graveyard area ===
+            { x: 30, y: 42, w: 8, h: 6, type: 'scorched_ruin', purpose: 'chapel' },
+            { x: 42, y: 44, w: 6, h: 5, type: 'scorched_ruin', purpose: 'house' },
+
+            // === NORTH GATEHOUSE: Entry point ===
+            { x: 37, y: 6, w: 6, h: 4, type: 'scorched_ruin', purpose: 'house' },
         ],
         paths: [
-            { from: { x: 50, y: 0 }, to: { x: 50, y: 69 } },
-            { from: { x: 50, y: 33 }, to: { x: 99, y: 33 } },
-            { from: { x: 24, y: 25 }, to: { x: 70, y: 25 } },
-            { from: { x: 24, y: 50 }, to: { x: 70, y: 50 } },
-            { from: { x: 10, y: 60 }, to: { x: 50, y: 60 } },
+            // Main north-south road through village center
+            { from: { x: 40, y: 0 }, to: { x: 40, y: 26 } },
+            { from: { x: 40, y: 32 }, to: { x: 40, y: 59 } },
+            // East-west main street connecting clusters through the hall
+            { from: { x: 8, y: 26 }, to: { x: 33, y: 26 } },
+            { from: { x: 47, y: 26 }, to: { x: 72, y: 26 } },
+            // West residential lane
+            { from: { x: 16, y: 12 }, to: { x: 16, y: 36 } },
+            // East commerce lane
+            { from: { x: 59, y: 12 }, to: { x: 59, y: 38 } },
+            // South chapel approach
+            { from: { x: 34, y: 38 }, to: { x: 34, y: 42 } },
+            // Exit road east to camp
+            { from: { x: 47, y: 26 }, to: { x: 79, y: 26 } },
         ],
         exits: {
-            north: { to: 'ruined_outpost', entryX: 50, entryY: 67 },
+            north: { to: 'ruined_outpost', entryX: 40, entryY: 62 },
             south: { to: 'emberhold', entryX: 35, entryY: 3 },
-            east: { to: 'player_camp', entryX: 3, entryY: 33 }
+            east: { to: 'player_camp', entryX: 3, entryY: 26 }
         },
-        // Narrative stamps — scorched village tells story of destruction
+        // Narrative stamps — dense story-telling through the scorched village
         stamps: [
-            // Village well (now dry, scorched)
-            { x: 35, y: 25, ch: 'Q' },
-            // Broken merchant cart on main road
-            { x: 52, y: 15, ch: 'Y' },
-            // Signpost pointing to Emberhold
-            { x: 50, y: 60, ch: 'Z' },
-            // Fallen guards at village entrance
-            { x: 48, y: 8, ch: 'J' },
-            { x: 52, y: 8, ch: 'J' },
-            // Burned barricade at east crossroads
-            { x: 70, y: 33, ch: 'U' },
-            // Altar in the ruins (survivors' shrine)
-            { x: 24, y: 32, ch: 'A' },
-            // Skeleton in collapsed building
-            { x: 44, y: 17, ch: 'J' },
-            // Banner from the old kingdom
-            { x: 22, y: 15, ch: 'N' },
-            // Bones scattered near ambush point
-            { x: 38, y: 50, ch: 'X' },
+            // Village well in the square (dry, cracked, focal sub-element)
+            { x: 40, y: 20, ch: 'Q' },
+            // Fallen guards at north gate (the attack came from the north)
+            { x: 38, y: 8, ch: 'J' },
+            { x: 42, y: 9, ch: 'J' },
+            // Broken merchant cart on main road (trade interrupted)
+            { x: 44, y: 16, ch: 'Y' },
+            // Survivors' shrine near chapel
+            { x: 32, y: 44, ch: 'A' },
+            // Old kingdom banner at village hall (identity)
+            { x: 35, y: 22, ch: 'N' },
+            { x: 45, y: 22, ch: 'N' },
+            // Barricade — last stand on the east road
+            { x: 66, y: 26, ch: 'U' },
+            // Skeleton in the tavern (died drinking)
+            { x: 57, y: 35, ch: 'J' },
+            // Bones at chapel graveyard
+            { x: 36, y: 48, ch: 'X' },
+            { x: 38, y: 49, ch: 'X' },
+            // Broken signpost at south road (points to Emberhold)
+            { x: 40, y: 52, ch: 'Z' },
+            // Skeleton at west homes (caught in sleep)
+            { x: 14, y: 16, ch: 'J' },
+            // Burned cart near stable
+            { x: 18, y: 32, ch: 'Y' },
         ],
         entities: [
-            { x: 50, y: 25, type: 'npc', id: 'wandering_merchant' },
-            { x: 35, y: 35, type: 'enemy_spawn', enemies: ['scorched_bandit', 'ember_hound'] },
-            { x: 70, y: 50, type: 'enemy_spawn', enemies: ['ashen_wraith', 'scorched_bandit'] },
-            { x: 20, y: 55, type: 'enemy_spawn', enemies: ['void_rat', 'ember_hound'] },
-            { x: 85, y: 20, type: 'enemy_spawn', enemies: ['scorched_bandit', 'scorched_bandit'] },
-            { x: 12, y: 15, type: 'enemy_spawn', enemies: ['void_rat', 'ember_hound'] },
-            { x: 80, y: 60, type: 'enemy_spawn', enemies: ['ashen_wraith'] },
-            { x: 30, y: 22, type: 'chest', loot: ['health_vial', 'mana_vial'] },
-            { x: 80, y: 15, type: 'chest', loot: ['ember_root', 'ember_root'] },
-            { x: 50, y: 50, type: 'campfire' },
-            { x: 15, y: 60, type: 'campfire' }
+            // Merchant sheltering near the well
+            { x: 40, y: 21, type: 'npc', id: 'wandering_merchant' },
+            // Campfire in the village square — survivor camp
+            { x: 39, y: 19, type: 'campfire' },
+            // Campfire near chapel — another safe zone
+            { x: 33, y: 48, type: 'campfire' },
+            // Enemies — bandits in the east commerce ruins
+            { x: 58, y: 17, type: 'enemy_spawn', enemies: ['scorched_bandit', 'ember_hound'] },
+            // Enemies — wraith near the burned hall
+            { x: 38, y: 28, type: 'enemy_spawn', enemies: ['ashen_wraith'] },
+            // Enemies — rats in the residential ruins
+            { x: 14, y: 24, type: 'enemy_spawn', enemies: ['void_rat', 'ember_hound'] },
+            // Enemies — bandits at barricade
+            { x: 68, y: 26, type: 'enemy_spawn', enemies: ['scorched_bandit', 'scorched_bandit'] },
+            // Enemies — graveyard wraith
+            { x: 44, y: 46, type: 'enemy_spawn', enemies: ['ashen_wraith'] },
+            // Enemies — lurkers in south outskirts
+            { x: 22, y: 50, type: 'enemy_spawn', enemies: ['void_rat', 'ember_hound'] },
+            // Chest — loot in collapsed blacksmith
+            { x: 60, y: 16, type: 'chest', loot: ['iron_ore', 'iron_ore', 'health_vial'] },
+            // Chest — hidden in chapel rubble
+            { x: 36, y: 44, type: 'chest', loot: ['health_vial', 'mana_vial'] },
+            // Chest — storehouse salvage
+            { x: 60, y: 26, type: 'chest', loot: ['ember_root', 'ember_root'] },
         ]
     },
 
@@ -223,7 +273,7 @@ const MAP_DEFS = {
             { from: { x: 10, y: 20 }, to: { x: 50, y: 20 } },
         ],
         exits: {
-            north: { to: 'scorched_village', entryX: 35, entryY: 47 },
+            north: { to: 'scorched_village', entryX: 40, entryY: 55 },
             south: { to: 'ashen_throne', entryX: 30, entryY: 3 }
         },
         entities: [
@@ -247,7 +297,7 @@ const MAP_DEFS = {
             { from: { x: 6, y: 33 }, to: { x: 84, y: 33 } },
         ],
         exits: {
-            west: { to: 'scorched_village', entryX: 97, entryY: 33 }
+            west: { to: 'scorched_village', entryX: 77, entryY: 26 }
         },
         entities: [
             { x: 45, y: 24, type: 'campfire' }
@@ -699,67 +749,85 @@ const BUILDINGS = {
         name: 'Shelter', icon: '🏠', description: 'A sturdy shelter. Rest here to fully recover.',
         cost: { wood: 8, stone: 5 },
         size: { w: 3, h: 3 },
-        provides: 'rest'
+        provides: 'rest',
+        roomBonus: { type: 'rest_quality', amount: 1.0 },
+        adjacency: { house: { bonus: 'comfort', desc: '+morale from resting', amount: 5 } }
     },
     forge: {
         name: 'Forge', icon: '🔨', description: 'A blacksmith forge. Craft weapons and armor.',
         cost: { iron_ore: 10, stone: 8, wood: 5 },
         size: { w: 3, h: 3 },
-        provides: 'crafting_weapons'
+        provides: 'crafting_weapons',
+        roomBonus: { type: 'weapon_craft', amount: 1.0 },
+        adjacency: { storage: { bonus: 'efficiency', desc: '10% less materials', amount: 0.9 }, workshop: { bonus: 'synergy', desc: '+5% double craft', amount: 0.05 } }
     },
     workshop: {
         name: 'Workshop', icon: '🔧', description: 'A crafting workshop. Smelt ore and craft tools.',
         cost: { wood: 10, stone: 5, iron_ore: 3 },
         size: { w: 3, h: 3 },
-        provides: 'crafting_tools'
+        provides: 'crafting_tools',
+        roomBonus: { type: 'tool_craft', amount: 1.0 },
+        adjacency: { forge: { bonus: 'synergy', desc: '+1 smelt yield', amount: 1 }, storage: { bonus: 'efficiency', desc: '10% less materials', amount: 0.9 } }
     },
     garden: {
         name: 'Garden', icon: '🌱', description: 'A garden plot. Plant and grow food crops.',
         cost: { wood: 6, ember_root: 4, stone: 2 },
         size: { w: 3, h: 3 },
-        provides: 'farming'
+        provides: 'farming',
+        roomBonus: { type: 'farming', amount: 1.0 },
+        adjacency: { shelter: { bonus: 'irrigation', desc: '+15% growth speed', amount: 0.15 }, farm: { bonus: 'synergy', desc: '+1 crop slot', amount: 1 } }
     },
     storage: {
         name: 'Storage', icon: '📦', description: 'A storage vault. Increases inventory by 20 slots.',
         cost: { wood: 12, stone: 8, iron_ore: 4 },
         size: { w: 3, h: 3 },
-        provides: 'extra_storage'
+        provides: 'extra_storage',
+        roomBonus: { type: 'storage', amount: 20 }
     },
     ward_stones: {
-        name: 'Ward Stones', icon: '🪨', description: 'Protective ward stones. Passive HP regen at camp.',
+        name: 'Ward Stones', icon: '🪨', description: 'Protective ward stones. Passive HP regen at camp. Reduces raid threat.',
         cost: { stone: 10, veil_crystal: 3, flame_essence: 2 },
         size: { w: 3, h: 3 },
-        provides: 'ward_regen'
+        provides: 'ward_regen',
+        roomBonus: { type: 'protection', amount: 15 }
     },
     farm: {
         name: 'Farm Plot', icon: '🌾', description: 'A larger farm. Grow more crops at once.',
         cost: { wood: 8, stone: 4, ember_root: 6, bog_fiber: 4 },
         size: { w: 3, h: 3 },
-        provides: 'farming_large'
+        provides: 'farming_large',
+        roomBonus: { type: 'farming_large', amount: 1.0 },
+        adjacency: { garden: { bonus: 'synergy', desc: '+1 crop slot', amount: 1 } }
     },
     herbalist_bench: {
         name: 'Herb Bench', icon: '🧪', description: 'An alchemy bench. Brew potions from ingredients.',
         cost: { wood: 6, ember_root: 5, bog_fiber: 3 },
         size: { w: 3, h: 3 },
-        provides: 'brewing'
+        provides: 'brewing',
+        roomBonus: { type: 'brewing', amount: 1.0 },
+        adjacency: { garden: { bonus: 'herb_boost', desc: '+15% potion potency', amount: 0.15 } }
     },
     house: {
-        name: 'House', icon: '🏡', description: 'Your home. A proper dwelling with a warm hearth.',
+        name: 'House', icon: '🏡', description: 'Your home. A proper dwelling with a warm hearth. Boosts morale.',
         cost: { wood: 20, stone: 15, iron_ingot: 5 },
         size: { w: 3, h: 3 },
-        provides: 'home'
+        provides: 'home',
+        roomBonus: { type: 'morale', amount: 10 },
+        adjacency: { shelter: { bonus: 'comfort', desc: '+morale from resting', amount: 5 } }
     },
     training_dummy: {
         name: 'Training Grounds', icon: '🎯', description: 'Practice combat. Gain XP without danger.',
         cost: { wood: 10, hide: 5, iron_ore: 3 },
         size: { w: 3, h: 3 },
-        provides: 'training'
+        provides: 'training',
+        roomBonus: { type: 'xp_bonus', amount: 0.05 }
     },
     lookout: {
-        name: 'Lookout Tower', icon: '🗼', description: 'A watchtower. See the world map from above.',
+        name: 'Lookout Tower', icon: '🗼', description: 'A watchtower. See the world map. Warns of raids.',
         cost: { wood: 15, stone: 10, iron_ingot: 3 },
         size: { w: 3, h: 3 },
-        provides: 'map_reveal'
+        provides: 'map_reveal',
+        roomBonus: { type: 'warning', amount: 1 }
     }
 };
 

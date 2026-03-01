@@ -20,6 +20,30 @@ const GameState = {
 
     MAX_INVENTORY_SIZE: 40,
 
+    // ── Survival System ──
+    survival: {
+        temperature: 50,     // 0=freezing, 50=comfortable, 100=scorching
+        fatigue: 0,          // 0=rested, 100=exhausted
+        morale: 70,          // 0=despairing, 100=inspired
+        season: 'summer',    // spring/summer/autumn/winter
+        seasonDay: 0,        // days within current season (0-29)
+        dayCount: 0          // total days survived
+    },
+
+    // ── Active Buffs (from food, potions, shelter) ──
+    activeBuffs: [],   // { id, name, icon, stat, amount, duration, maxDuration }
+
+    // ── Recipe Discovery ──
+    discoveredRecipes: null,  // Set of recipe keys; null = discover all basic
+
+    // ── Camp NPC Roles ──
+    campNPCs: [],  // { id, name, icon, role, productivity, morale }
+
+    // ── Base Threat Tracking ──
+    threatLevel: 0,       // 0-100, increases with base progress
+    lastRaidDay: -10,     // day count of last raid
+    raidWarning: false,
+
     // Statistics and achievements
     stats: {
         enemiesKilled: 0,
@@ -63,6 +87,167 @@ const GameState = {
         explorer:         { name: 'Wanderer',            desc: 'Discover all 3 regions',            check: s => s.regionsDiscovered >= 3 },
         survivor:         { name: 'Survivor',            desc: 'Die and return 3 times',            check: s => s.deathCount >= 3 },
         crit_50:          { name: 'Precision',           desc: 'Land 50 critical hits',             check: s => s.criticalHits >= 50 },
+    },
+
+    // ── Survival Methods ──
+
+    updateSurvival() {
+        if (!this.player) return;
+        const s = this.survival;
+
+        // Temperature based on region, time of day, season, shelter
+        const regionTemp = { ashen_wastes: 65, hollowfen: 40, void_sanctum: 30 };
+        let baseTemp = regionTemp[this.currentRegion] || 50;
+
+        // Season modifier
+        const seasonMod = { spring: -5, summer: 10, autumn: -10, winter: -25 };
+        baseTemp += seasonMod[s.season] || 0;
+
+        // Time of day (night is colder)
+        if (typeof WorldMap !== 'undefined') {
+            const tod = WorldMap.timeOfDay;
+            if (tod < 0.2 || tod > 0.8) baseTemp -= 15;  // Night
+            else if (tod > 0.4 && tod < 0.6) baseTemp += 5;  // Midday
+        }
+
+        // Shelter warmth
+        if (this.currentLocation === 'player_camp' && this.base && this.base.buildings.shelter) {
+            baseTemp = Math.max(baseTemp, 45);  // Shelter keeps you warm
+        }
+
+        // Smooth temperature transition
+        s.temperature += (Math.max(0, Math.min(100, baseTemp)) - s.temperature) * 0.15;
+
+        // Fatigue increases with exploration, combat, harsh conditions
+        if (s.temperature < 25 || s.temperature > 80) {
+            s.fatigue = Math.min(100, s.fatigue + 0.5);  // Harsh weather is tiring
+        }
+
+        // Morale decay toward baseline
+        const baseMorale = 50;
+        if (s.morale > baseMorale) s.morale -= 0.2;
+        if (s.morale < baseMorale) s.morale += 0.1;
+
+        // At camp with house: morale boost
+        if (this.currentLocation === 'player_camp' && this.base && this.base.buildings.house) {
+            s.morale = Math.min(100, s.morale + 0.5);
+        }
+
+        s.temperature = Math.max(0, Math.min(100, s.temperature));
+        s.fatigue = Math.max(0, Math.min(100, s.fatigue));
+        s.morale = Math.max(0, Math.min(100, s.morale));
+    },
+
+    advanceDay() {
+        const s = this.survival;
+        s.dayCount++;
+        s.seasonDay++;
+        if (s.seasonDay >= 30) {
+            s.seasonDay = 0;
+            const seasons = ['spring', 'summer', 'autumn', 'winter'];
+            const idx = seasons.indexOf(s.season);
+            s.season = seasons[(idx + 1) % 4];
+            if (typeof Notifications !== 'undefined') {
+                Notifications.show(`Season changed: ${s.season.charAt(0).toUpperCase() + s.season.slice(1)}`, 'gold');
+            }
+        }
+    },
+
+    // Get survival stat modifiers for combat/exploration
+    getSurvivalModifiers() {
+        const s = this.survival;
+        const mods = { attack: 0, defense: 0, speed: 0, xpBonus: 0 };
+
+        // Fatigue penalties
+        if (s.fatigue > 70) { mods.attack -= 3; mods.defense -= 2; mods.speed -= 2; }
+        else if (s.fatigue > 40) { mods.attack -= 1; mods.speed -= 1; }
+
+        // Temperature penalties
+        if (s.temperature < 20) { mods.speed -= 3; mods.defense -= 1; }  // Freezing
+        else if (s.temperature > 85) { mods.speed -= 2; mods.attack -= 1; }  // Scorching
+
+        // Morale bonuses
+        if (s.morale > 80) { mods.attack += 2; mods.xpBonus += 0.1; }  // Inspired
+        else if (s.morale < 20) { mods.attack -= 2; mods.xpBonus -= 0.1; }  // Despairing
+
+        return mods;
+    },
+
+    // ── Active Buff System ──
+
+    addBuff(buff) {
+        if (!this.activeBuffs) this.activeBuffs = [];
+        // Remove existing buff of same id
+        this.activeBuffs = this.activeBuffs.filter(b => b.id !== buff.id);
+        this.activeBuffs.push(Object.assign({}, buff, { maxDuration: buff.duration }));
+        this.recalculateStats();
+        if (typeof Notifications !== 'undefined') {
+            Notifications.show(`${buff.icon || '+'} ${buff.name}`, 'green');
+        }
+    },
+
+    tickBuffs() {
+        if (!this.activeBuffs || this.activeBuffs.length === 0) return;
+        this.activeBuffs = this.activeBuffs.filter(b => {
+            b.duration--;
+            return b.duration > 0;
+        });
+        this.recalculateStats();
+    },
+
+    getBuffTotal(stat) {
+        if (!this.activeBuffs) return 0;
+        return this.activeBuffs
+            .filter(b => b.stat === stat)
+            .reduce((sum, b) => sum + (b.amount || 0), 0);
+    },
+
+    // ── Recipe Discovery ──
+
+    isRecipeDiscovered(recipeKey) {
+        // If discovery system not initialized, all tier 0 recipes are known
+        if (!this.discoveredRecipes) return true;
+        return this.discoveredRecipes.includes(recipeKey);
+    },
+
+    discoverRecipe(recipeKey) {
+        if (!this.discoveredRecipes) this.discoveredRecipes = [];
+        if (this.discoveredRecipes.includes(recipeKey)) return false;
+        this.discoveredRecipes.push(recipeKey);
+        const recipe = typeof RECIPES !== 'undefined' ? RECIPES[recipeKey] : null;
+        if (recipe && typeof Notifications !== 'undefined') {
+            Notifications.show(`Recipe discovered: ${recipe.name}!`, 'gold');
+        }
+        return true;
+    },
+
+    // ── Base Threat System ──
+
+    updateThreatLevel() {
+        if (!this.base) return;
+        let threat = 0;
+        const b = this.base.buildings;
+        // More buildings = more visible = more threat
+        threat += Object.keys(b).filter(k => b[k]).length * 8;
+        // Forge smoke attracts raiders
+        if (b.forge) threat += 10;
+        // Bright lights attract attention
+        if (b.lookout) threat += 5;
+        // Ward stones reduce threat
+        if (b.ward_stones) threat -= 15;
+        // More bosses defeated = more aggression from remaining forces
+        threat += (this.bossesDefeated.length || 0) * 10;
+        this.threatLevel = Math.max(0, Math.min(100, threat));
+    },
+
+    shouldTriggerRaid() {
+        const s = this.survival;
+        const daysSinceRaid = s.dayCount - (this.lastRaidDay || 0);
+        if (daysSinceRaid < 5) return false;  // Cooldown
+        if (this.threatLevel < 20) return false;  // Too low
+        // Probability scales with threat level
+        const chance = (this.threatLevel / 100) * 0.15;
+        return Math.random() < chance;
     },
 
     trackStat(key, amount) {
@@ -147,6 +332,18 @@ const GameState = {
         this.currentLocation = 'ruined_outpost';
         this.playerMapPos = null;
 
+        // Initialize survival
+        this.survival = {
+            temperature: 50, fatigue: 0, morale: 70,
+            season: 'summer', seasonDay: 0, dayCount: 0
+        };
+        this.activeBuffs = [];
+        this.discoveredRecipes = null;  // null = all tier 0 known
+        this.campNPCs = [];
+        this.threatLevel = 0;
+        this.lastRaidDay = -10;
+        this.raidWarning = false;
+
         this.save();
     },
 
@@ -198,6 +395,23 @@ const GameState = {
                 }
             }
         }
+
+        // Apply active buff bonuses (food, potions, etc.)
+        if (this.activeBuffs && this.activeBuffs.length > 0) {
+            for (const buff of this.activeBuffs) {
+                if (buff.stat && typeof p[buff.stat] === 'number') {
+                    p[buff.stat] += buff.amount;
+                }
+                if (buff.stat === 'maxHp') p.maxHp += buff.amount;
+                if (buff.stat === 'maxMp') p.maxMp += buff.amount;
+            }
+        }
+
+        // Apply survival modifiers
+        const survMods = this.getSurvivalModifiers();
+        p.attack += survMods.attack;
+        p.defense += survMods.defense;
+        p.speed += survMods.speed;
 
         if (p.hp > p.maxHp) p.hp = p.maxHp;
         if (p.mp > p.maxMp) p.mp = p.maxMp;
@@ -375,7 +589,7 @@ const GameState = {
         try {
             if (!this.player) return;
             const saveData = {
-                version: 3,
+                version: 4,
                 player: this.player,
                 currentRegion: this.currentRegion,
                 currentLocation: this.currentLocation,
@@ -391,7 +605,14 @@ const GameState = {
                 maxInventorySize: this.MAX_INVENTORY_SIZE,
                 worldMap: typeof WorldMap !== 'undefined' ? WorldMap.getSaveData() : null,
                 stats: this.stats,
-                achievements: this.achievements
+                achievements: this.achievements,
+                // v4 additions
+                survival: this.survival,
+                activeBuffs: this.activeBuffs,
+                discoveredRecipes: this.discoveredRecipes,
+                campNPCs: this.campNPCs,
+                threatLevel: this.threatLevel,
+                lastRaidDay: this.lastRaidDay
             };
             localStorage.setItem('kaelith_ruun_save', JSON.stringify(saveData));
             if (typeof Game !== 'undefined' && Game.showAutoSaveIndicator) Game.showAutoSaveIndicator();
@@ -451,6 +672,19 @@ const GameState = {
             if (s.achievements) {
                 this.achievements = s.achievements;
             }
+
+            // Load survival systems (v4)
+            if (s.survival) {
+                this.survival = Object.assign({
+                    temperature: 50, fatigue: 0, morale: 70,
+                    season: 'summer', seasonDay: 0, dayCount: 0
+                }, s.survival);
+            }
+            this.activeBuffs = s.activeBuffs || [];
+            this.discoveredRecipes = s.discoveredRecipes || null;
+            this.campNPCs = s.campNPCs || [];
+            this.threatLevel = s.threatLevel || 0;
+            this.lastRaidDay = s.lastRaidDay || -10;
 
             if (s.unlockedRegions) {
                 s.unlockedRegions.forEach(k => { if (WORLD.regions[k]) WORLD.regions[k].unlocked = true; });

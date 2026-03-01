@@ -424,7 +424,9 @@ const WorldMap = {
             return '#';
         }
         const removedKey = `${this.currentMap}:${x},${y}`;
-        if (this.removedResources[removedKey]) return '.';
+        if (this.removedResources[removedKey]) {
+            return this.currentMap === 'scorched_village' ? 'a' : '.';
+        }
         return this.terrain[y][x];
     },
 
@@ -665,12 +667,15 @@ const WorldMap = {
         // ── Pass 2f: Fire spark particles ──
         this.drawFireSparks(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
 
+        // ── Pass 2g: Smoke wisps from scorched vents and ruins ──
+        this.drawSmokeWisps(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
+
         // ── Pass 3: Terrain shadows — tall objects cast directional shadows ──
         for (let ty = startTY; ty <= endTY; ty++) {
             for (let tx = startTX; tx <= endTX; tx++) {
                 if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
                 const ch = this.getTerrainChar(tx, ty);
-                if (ch === 'T' || ch === '#' || ch === 'R' || ch === 'P' || ch === 'K' || ch === 'N' || ch === 'U' || ch === 'A') {
+                if (ch === 'T' || ch === '#' || ch === 'R' || ch === 'P' || ch === 'K' || ch === 'N' || ch === 'U' || ch === 'A' || ch === 'e' || ch === 'r' || ch === 'k' || ch === 'l') {
                     const sx = Math.floor(tx * T - this.camX) + 5;
                     const sy = Math.floor(ty * T - this.camY) + 5;
                     ctx.fillStyle = 'rgba(0,0,0,0.15)';
@@ -767,7 +772,8 @@ const WorldMap = {
                 if (tx < 1 || ty < 1 || ty >= mapH - 1 || tx >= mapW - 1) continue;
                 const ch = this.getTerrainChar(tx, ty);
                 // Only overlay on walkable ground tiles
-                if (ch !== '.' && ch !== 'g' && ch !== 'w' && ch !== 'h' && ch !== 'B') continue;
+                if (ch !== '.' && ch !== 'g' && ch !== 'w' && ch !== 'h' && ch !== 'B'
+                    && ch !== 'a' && ch !== 'd' && ch !== 'o') continue;
 
                 const screenX = Math.floor(tx * T - this.camX);
                 const screenY = Math.floor(ty * T - this.camY);
@@ -901,6 +907,58 @@ const WorldMap = {
                     ctx.fillRect(screenX + bx, screenY + by, 3, 1);
                     ctx.globalAlpha = 1;
                 }
+
+                // Scorched details — soot staining near scorched walls and rubble
+                const nearScorchedWall = n === 'e' || s === 'e' || e === 'e' || w === 'e';
+                const nearRubble = n === 'r' || s === 'r' || e === 'r' || w === 'r' ||
+                                   n === 'k' || s === 'k' || e === 'k' || w === 'k';
+                const nearSmokeVent = n === 'v' || s === 'v' || e === 'v' || w === 'v';
+                const nearBurnedTimber = n === 'l' || s === 'l' || e === 'l' || w === 'l';
+
+                if (nearScorchedWall) {
+                    // Dark soot streaks radiating outward
+                    ctx.fillStyle = '#1a1616';
+                    ctx.globalAlpha = 0.2;
+                    ctx.fillRect(screenX, screenY, T, T);
+                    ctx.globalAlpha = 0.15;
+                    for (let i = 0; i < 3; i++) {
+                        const sx = (hash + i * 9) % (T - 3);
+                        const sy = (hash + i * 13) % (T - 2);
+                        ctx.fillRect(screenX + sx, screenY + sy, 3, 1);
+                    }
+                    ctx.globalAlpha = 1;
+                }
+
+                if (nearRubble && (hash % 5) < 3) {
+                    // Scattered stone chips
+                    ctx.fillStyle = '#5a5555';
+                    ctx.globalAlpha = 0.25;
+                    const rx = (hash % 7) * 4;
+                    const ry = ((hash >> 2) % 6) * 4;
+                    ctx.fillRect(screenX + rx, screenY + ry, 2, 2);
+                    ctx.fillRect(screenX + rx + 8, screenY + ry + 6, 1, 1);
+                    ctx.globalAlpha = 1;
+                }
+
+                if (nearSmokeVent) {
+                    // Warm glow near smoke vents
+                    ctx.fillStyle = '#4a2a1a';
+                    ctx.globalAlpha = 0.12;
+                    ctx.beginPath();
+                    ctx.ellipse(screenX + T / 2, screenY + T / 2, T * 0.5, T * 0.4, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+
+                if (nearBurnedTimber && (hash % 4) < 2) {
+                    // Charcoal and ash specks
+                    ctx.fillStyle = '#2a2420';
+                    ctx.globalAlpha = 0.2;
+                    for (let i = 0; i < 4; i++) {
+                        ctx.fillRect(screenX + (hash + i * 5) % T, screenY + (hash + i * 8) % T, 1, 1);
+                    }
+                    ctx.globalAlpha = 1;
+                }
             }
         }
     },
@@ -908,7 +966,7 @@ const WorldMap = {
     // ── Forest edge canopy overhang — trees cast leaf-shadow onto adjacent ground ──
     drawForestEdges(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T) {
         const treeSet = new Set(['T', 'P', 'K']);
-        const groundSet = new Set(['.', 'p', 'g', 'w', 'h', 'B', 'J', 'Q', 'X']);
+        const groundSet = new Set(['.', 'p', 'g', 'w', 'h', 'B', 'J', 'Q', 'X', 'a', 'd', 'o']);
 
         for (let ty = startTY; ty <= endTY; ty++) {
             for (let tx = startTX; tx <= endTX; tx++) {
@@ -1183,6 +1241,48 @@ const WorldMap = {
                         ctx.fillStyle = i === 0 ? `rgba(255,200,50,${alpha.toFixed(2)})` :
                                                   `rgba(255,120,30,${alpha.toFixed(2)})`;
                         ctx.fillRect(Math.floor(sparkX), Math.floor(sparkY), 1, 1);
+                    }
+                }
+            }
+        }
+    },
+
+    drawSmokeWisps(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T) {
+        const time = Date.now() * 0.001;
+
+        for (let ty = startTY; ty <= endTY; ty++) {
+            for (let tx = startTX; tx <= endTX; tx++) {
+                if (tx < 0 || ty < 0 || ty >= mapH || tx >= mapW) continue;
+                const ch = this.getTerrainChar(tx, ty);
+                // Smoke from vents, and subtle wisps from scorched walls and burned timber
+                if (ch !== 'v' && ch !== 'e' && ch !== 'l') continue;
+
+                const screenX = Math.floor(tx * T - this.camX);
+                const screenY = Math.floor(ty * T - this.camY);
+                const hash = Sprites.hash(tx, ty);
+
+                // Smoke vents get thick smoke; walls/timber get subtle wisps
+                const numPuffs = ch === 'v' ? 3 : 1;
+                const maxAlpha = ch === 'v' ? 0.18 : 0.08;
+                // Only some walls/timbers actually smoke (for variety)
+                if (ch !== 'v' && (hash % 5) > 1) continue;
+
+                for (let i = 0; i < numPuffs; i++) {
+                    const phase = time * 0.6 + i * 2.5 + hash * 0.05;
+                    const cycle = phase % 5;
+                    const progress = cycle / 5;
+
+                    // Smoke puff rises slowly and drifts
+                    const puffX = screenX + T / 2 + Math.sin(phase * 0.8 + i) * 8;
+                    const puffY = screenY + T * 0.3 - progress * T * 1.5;
+                    const size = 3 + progress * 6;
+                    const alpha = Math.max(0, (1 - progress) * maxAlpha);
+
+                    if (alpha > 0.01) {
+                        ctx.fillStyle = `rgba(80,75,70,${alpha.toFixed(3)})`;
+                        ctx.beginPath();
+                        ctx.ellipse(Math.floor(puffX), Math.floor(puffY), size, size * 0.7, 0, 0, Math.PI * 2);
+                        ctx.fill();
                     }
                 }
             }

@@ -951,29 +951,39 @@ const ITEMS = {
     },
     hearth_stew: {
         name: 'Hearth Stew', icon: '🍲', type: 'consumable', stackable: true,
-        description: 'A warm bowl of stew. Restores 50 HP. Tastes like hope.', value: 30,
-        effect: { type: 'heal', stat: 'hp', amount: 50 }
+        description: 'A warm bowl of stew. Restores 50 HP. Grants Warmth (+15 temp) and reduces fatigue.', value: 30,
+        effect: { type: 'heal', stat: 'hp', amount: 50 },
+        buff: { id: 'warmth', name: 'Well Fed', icon: '🍲', stat: 'defense', amount: 2, duration: 10 },
+        survivalEffect: { temperature: 15, fatigue: -15, morale: 5 }
     },
     grilled_meat: {
         name: 'Grilled Meat', icon: '🍖', type: 'consumable', stackable: true,
-        description: 'Charred but filling. Restores 35 HP.', value: 18,
-        effect: { type: 'heal', stat: 'hp', amount: 35 }
+        description: 'Charred but filling. Restores 35 HP. Grants Vigor (+2 attack).', value: 18,
+        effect: { type: 'heal', stat: 'hp', amount: 35 },
+        buff: { id: 'vigor', name: 'Vigor', icon: '🍖', stat: 'attack', amount: 2, duration: 8 },
+        survivalEffect: { fatigue: -10, morale: 3 }
     },
     mushroom_soup: {
         name: 'Mushroom Soup', icon: '🍲', type: 'consumable', stackable: true,
-        description: 'A magical soup. Restores 30 HP and 20 MP.', value: 35,
-        effect: { type: 'heal', stat: 'both', hpAmount: 30, mpAmount: 20 }
+        description: 'A magical soup. Restores 30 HP and 20 MP. Grants Clarity (+3 magic attack).', value: 35,
+        effect: { type: 'heal', stat: 'both', hpAmount: 30, mpAmount: 20 },
+        buff: { id: 'clarity', name: 'Clarity', icon: '🍲', stat: 'magicAttack', amount: 3, duration: 10 },
+        survivalEffect: { fatigue: -8, morale: 5 }
     },
     void_steak: {
         name: 'Void Steak', icon: '🥩', type: 'consumable', stackable: true,
-        description: 'Meat from a void creature. Restores 80 HP. Tastes like nothing.',
+        description: 'Meat from a void creature. Restores 80 HP. Grants Void Resilience (+4 magic defense).',
         value: 60,
-        effect: { type: 'heal', stat: 'hp', amount: 80 }
+        effect: { type: 'heal', stat: 'hp', amount: 80 },
+        buff: { id: 'void_resilience', name: 'Void Resilience', icon: '🥩', stat: 'magicDefense', amount: 4, duration: 12 },
+        survivalEffect: { fatigue: -20, morale: 8 }
     },
     feast_platter: {
         name: 'Feast Platter', icon: '🍽️', type: 'consumable', stackable: true,
-        description: 'A complete meal. Restores 100 HP and 50 MP.', value: 100,
-        effect: { type: 'heal', stat: 'both', hpAmount: 100, mpAmount: 50 }
+        description: 'A complete meal. Restores 100 HP and 50 MP. Grants Inspired (+3 all combat stats).', value: 100,
+        effect: { type: 'heal', stat: 'both', hpAmount: 100, mpAmount: 50 },
+        buff: { id: 'feast', name: 'Feast Inspired', icon: '🍽️', stat: 'attack', amount: 3, duration: 15 },
+        survivalEffect: { fatigue: -30, morale: 15 }
     },
     raw_fish: {
         name: 'Raw Fish', icon: '🐟', type: 'consumable', stackable: true,
@@ -1023,18 +1033,24 @@ const ITEMS = {
     // --- Cooked Fish Recipes ---
     fish_stew: {
         name: 'Fish Stew', icon: '🍲', type: 'consumable', stackable: true,
-        description: 'Hearty fish stew. Restores HP and MP.',
-        effect: { heal: 35, mana: 15 }, value: 25
+        description: 'Hearty fish stew. Restores HP and MP. Grants Warmth.',
+        effect: { heal: 35, mana: 15 }, value: 25,
+        buff: { id: 'warmth', name: 'Warm Belly', icon: '🍲', stat: 'defense', amount: 2, duration: 8 },
+        survivalEffect: { temperature: 10, fatigue: -12, morale: 4 }
     },
     grilled_golden_fish: {
         name: 'Grilled Golden Fish', icon: '🍽️', type: 'consumable', stackable: true,
-        description: 'A perfectly grilled golden fish. Full restoration.',
-        effect: { heal: 60, mana: 30 }, value: 65
+        description: 'A perfectly grilled golden fish. Full restoration. Grants Fortune.',
+        effect: { heal: 60, mana: 30 }, value: 65,
+        buff: { id: 'fortune', name: 'Fortune', icon: '🍽️', stat: 'critChance', amount: 5, duration: 12 },
+        survivalEffect: { fatigue: -25, morale: 12 }
     },
     spicy_fish_skewer: {
         name: 'Spicy Fish Skewer', icon: '🍢', type: 'consumable', stackable: true,
-        description: 'Fish with shadow peppers. Heals and boosts attack.',
-        effect: { heal: 20, buff: { stat: 'attack', amount: 4, duration: 8 } }, value: 30
+        description: 'Fish with shadow peppers. Heals and boosts attack. Grants Warmth.',
+        effect: { heal: 20, buff: { stat: 'attack', amount: 4, duration: 8 } }, value: 30,
+        buff: { id: 'spicy', name: 'Fiery Blood', icon: '🍢', stat: 'attack', amount: 3, duration: 10 },
+        survivalEffect: { temperature: 20, fatigue: -8, morale: 3 }
     },
 
     // ═══════════════════════════════════════════

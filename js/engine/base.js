@@ -74,6 +74,25 @@ const Base = {
             html += '</div>';
         }
 
+        // Show active adjacency bonuses
+        const adjBonuses = this.getActiveAdjacencyBonuses();
+        if (adjBonuses.length > 0) {
+            html += '<div style="margin-top:1rem;padding-top:0.5rem;border-top:1px solid rgba(201,168,76,0.2)">';
+            html += '<h4 style="color:var(--accent-gold);font-size:0.85rem;margin-bottom:0.4rem">Active Bonuses</h4>';
+            for (const ab of adjBonuses) {
+                html += `<div style="font-size:0.75rem;color:var(--accent-green-bright);margin-bottom:0.2rem">`;
+                html += `${ab.source} + ${ab.neighbor}: ${ab.desc}`;
+                html += '</div>';
+            }
+            html += '</div>';
+        }
+
+        // Show camp prestige
+        const prestige = this.getCampPrestige();
+        if (prestige > 0) {
+            html += `<div style="margin-top:0.5rem;font-size:0.75rem;color:var(--accent-gold-dim)">Camp Prestige: ${prestige}</div>`;
+        }
+
         html += `<button class="action-btn" onclick="document.getElementById('side-panel').classList.add('hidden')" style="margin-top:1rem">Close</button>`;
         panel.innerHTML = html;
     },
@@ -799,6 +818,56 @@ const Base = {
         return GameState.base.buildingLevels[buildingId] || (GameState.base.buildings[buildingId] ? 1 : 0);
     },
 
+    // ── Adjacency Bonus System ──
+    getActiveAdjacencyBonuses() {
+        const bonuses = [];
+        if (!GameState.base || !GameState.base.buildings || !GameState.base.placedBuildings) return bonuses;
+
+        const placed = GameState.base.placedBuildings;
+        const builtSet = new Set(placed.map(p => p.id));
+
+        for (const pb of placed) {
+            const bld = BUILDINGS[pb.id];
+            if (!bld || !bld.adjacency) continue;
+
+            for (const [neighborId, adjBonus] of Object.entries(bld.adjacency)) {
+                if (!builtSet.has(neighborId)) continue;
+
+                // Check actual proximity (within 6 tiles)
+                const neighbor = placed.find(p => p.id === neighborId);
+                if (neighbor) {
+                    const dist = Math.abs(pb.x - neighbor.x) + Math.abs(pb.y - neighbor.y);
+                    if (dist <= 8) {
+                        bonuses.push({
+                            source: bld.name,
+                            neighbor: BUILDINGS[neighborId].name,
+                            bonus: adjBonus.bonus,
+                            desc: adjBonus.desc,
+                            amount: adjBonus.amount
+                        });
+                    }
+                }
+            }
+        }
+        return bonuses;
+    },
+
+    // Get total camp prestige (affects morale, NPC attraction, events)
+    getCampPrestige() {
+        if (!GameState.base || !GameState.base.buildings) return 0;
+        let prestige = 0;
+        const b = GameState.base.buildings;
+        for (const key of Object.keys(b)) {
+            if (b[key]) {
+                prestige += 5;
+                prestige += (this.getBuildingLevel(key) - 1) * 3;
+            }
+        }
+        // Adjacency bonuses add prestige
+        prestige += this.getActiveAdjacencyBonuses().length * 2;
+        return prestige;
+    },
+
     upgradeBuilding(buildingId) {
         if (typeof BUILDING_UPGRADES === 'undefined') return;
         const upgradeDef = BUILDING_UPGRADES[buildingId];
@@ -1005,5 +1074,170 @@ const Base = {
         HUD.update();
         GameState.save();
         this.showEnchantPanel();
+    },
+
+    // ════════════════════════════════════════════
+    // NPC CAMP ROLES — Recruit and Assign Workers
+    // ════════════════════════════════════════════
+
+    // Available roles and what they produce
+    NPC_ROLES: {
+        gatherer:  { name: 'Gatherer',  icon: '🪓', desc: 'Gathers wood and stone passively', produces: ['wood', 'stone'], rate: 0.3 },
+        hunter:    { name: 'Hunter',    icon: '🏹', desc: 'Hunts for hides and meat', produces: ['hide', 'grilled_meat'], rate: 0.2 },
+        farmer:    { name: 'Farmer',    icon: '🌾', desc: 'Tends crops, boosting growth', produces: [], rate: 0, farmBoost: 0.25 },
+        guard:     { name: 'Guard',     icon: '⚔️', desc: 'Defends camp, reduces raid threat', produces: [], rate: 0, threatReduction: 10 },
+        herbalist: { name: 'Herbalist', icon: '🧪', desc: 'Brews basic potions passively', produces: ['health_vial'], rate: 0.15 },
+        researcher:{ name: 'Researcher',icon: '📖', desc: 'Discovers recipes over time', produces: [], rate: 0, discoveryChance: 0.05 }
+    },
+
+    // Possible recruitable NPCs (unlocked as game progresses)
+    RECRUITABLE_NPCS: [
+        { id: 'refugee_1',   name: 'Ashen Refugee',     icon: '👤', requirePrestige: 10 },
+        { id: 'refugee_2',   name: 'Displaced Farmer',  icon: '👩', requirePrestige: 15 },
+        { id: 'refugee_3',   name: 'Wandering Scout',   icon: '🏃', requirePrestige: 25, requireBoss: 'the_ashen_king' },
+        { id: 'refugee_4',   name: 'Fen Survivor',      icon: '🧝', requirePrestige: 30, requireBoss: 'the_ashen_king' },
+        { id: 'refugee_5',   name: 'Freed Prisoner',    icon: '👥', requirePrestige: 40, requireBoss: 'mother_of_the_fen' },
+        { id: 'refugee_6',   name: 'Void Defector',     icon: '💀', requirePrestige: 50, requireBoss: 'mother_of_the_fen' }
+    ],
+
+    showCampNPCPanel() {
+        const panel = document.getElementById('side-panel-content');
+        const sidePanel = document.getElementById('side-panel');
+        if (!panel || !sidePanel) return;
+        sidePanel.classList.remove('hidden');
+
+        if (!GameState.campNPCs) GameState.campNPCs = [];
+        const prestige = this.getCampPrestige();
+
+        let html = '<h3>Settlement</h3>';
+        html += `<p style="color:var(--text-secondary);font-size:0.8rem;margin-bottom:0.5rem">Camp Prestige: ${prestige} — Manage your settlers and assign roles.</p>`;
+
+        // Current NPCs
+        if (GameState.campNPCs.length > 0) {
+            html += '<h4 style="color:var(--accent-gold-dim);font-size:0.85rem;margin-bottom:0.3rem">Your Settlers</h4>';
+            for (let i = 0; i < GameState.campNPCs.length; i++) {
+                const npc = GameState.campNPCs[i];
+                const role = this.NPC_ROLES[npc.role];
+                html += `<div class="build-item built">`;
+                html += `<div class="build-header">`;
+                html += `<span class="build-icon">${npc.icon}</span>`;
+                html += `<div class="build-info">`;
+                html += `<div class="build-name">${npc.name}</div>`;
+                html += `<div class="build-desc">${role ? role.icon + ' ' + role.name + ' — ' + role.desc : 'Idle'}</div>`;
+                html += `</div></div>`;
+                // Role assignment buttons
+                html += '<div style="display:flex;gap:0.3rem;flex-wrap:wrap;margin-top:0.3rem">';
+                for (const [roleKey, roleDef] of Object.entries(this.NPC_ROLES)) {
+                    const active = npc.role === roleKey;
+                    html += `<button class="action-btn ${active ? 'primary' : ''}" style="font-size:0.65rem;padding:0.2rem 0.4rem" onclick="Base.assignRole(${i}, '${roleKey}')">${roleDef.icon} ${roleDef.name}</button>`;
+                }
+                html += '</div></div>';
+            }
+        }
+
+        // Recruitable NPCs
+        const available = this.RECRUITABLE_NPCS.filter(r => {
+            if (GameState.campNPCs.some(n => n.id === r.id)) return false;
+            if (prestige < r.requirePrestige) return false;
+            if (r.requireBoss && !GameState.bossesDefeated.includes(r.requireBoss)) return false;
+            return true;
+        });
+
+        if (available.length > 0) {
+            html += '<h4 style="color:var(--accent-gold-dim);font-size:0.85rem;margin-top:0.8rem;margin-bottom:0.3rem">Available Recruits</h4>';
+            for (const recruit of available) {
+                html += `<div class="build-item">`;
+                html += `<div class="build-header">`;
+                html += `<span class="build-icon">${recruit.icon}</span>`;
+                html += `<div class="build-info">`;
+                html += `<div class="build-name">${recruit.name}</div>`;
+                html += `<div class="build-desc">Seeks refuge. Prestige ${recruit.requirePrestige} needed.</div>`;
+                html += `</div></div>`;
+                html += `<button class="action-btn primary" onclick="Base.recruitNPC('${recruit.id}')">Recruit</button>`;
+                html += '</div>';
+            }
+        }
+
+        // Locked recruits (show what's needed)
+        const locked = this.RECRUITABLE_NPCS.filter(r => {
+            if (GameState.campNPCs.some(n => n.id === r.id)) return false;
+            return prestige < r.requirePrestige || (r.requireBoss && !GameState.bossesDefeated.includes(r.requireBoss));
+        });
+        if (locked.length > 0) {
+            html += '<h4 style="color:var(--text-secondary);font-size:0.8rem;margin-top:0.8rem;margin-bottom:0.3rem">Locked</h4>';
+            for (const recruit of locked.slice(0, 2)) {
+                let req = `Prestige ${recruit.requirePrestige}`;
+                if (recruit.requireBoss) req += ', Boss defeated';
+                html += `<div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.2rem">${recruit.icon} ${recruit.name} — needs ${req}</div>`;
+            }
+        }
+
+        html += `<button class="action-btn" onclick="document.getElementById('side-panel').classList.add('hidden')" style="margin-top:1rem">Close</button>`;
+        panel.innerHTML = html;
+    },
+
+    recruitNPC(recruitId) {
+        const recruit = this.RECRUITABLE_NPCS.find(r => r.id === recruitId);
+        if (!recruit) return;
+        if (GameState.campNPCs.some(n => n.id === recruitId)) return;
+
+        GameState.campNPCs.push({
+            id: recruit.id,
+            name: recruit.name,
+            icon: recruit.icon,
+            role: 'gatherer',  // Default role
+            productivity: 1.0,
+            morale: 60
+        });
+
+        Narrative.addStory(`${recruit.name} has joined your settlement!`);
+        Notifications.show(`${recruit.name} recruited!`, 'gold');
+        if (GameState.survival) GameState.survival.morale = Math.min(100, GameState.survival.morale + 5);
+        GameState.save();
+        this.showCampNPCPanel();
+    },
+
+    assignRole(npcIndex, roleKey) {
+        if (!GameState.campNPCs || !GameState.campNPCs[npcIndex]) return;
+        GameState.campNPCs[npcIndex].role = roleKey;
+        GameState.save();
+        this.showCampNPCPanel();
+    },
+
+    // Process NPC production each exploration turn
+    processNPCProduction() {
+        if (!GameState.campNPCs || GameState.campNPCs.length === 0) return;
+
+        for (const npc of GameState.campNPCs) {
+            const role = this.NPC_ROLES[npc.role];
+            if (!role) continue;
+
+            // Resource production
+            if (role.produces.length > 0 && role.rate > 0) {
+                if (Math.random() < role.rate) {
+                    const item = role.produces[Math.floor(Math.random() * role.produces.length)];
+                    if (GameState.addToInventory(item, 1)) {
+                        // Silent production — no notification spam
+                    }
+                }
+            }
+
+            // Guard threat reduction
+            if (role.threatReduction) {
+                GameState.threatLevel = Math.max(0, GameState.threatLevel - role.threatReduction * 0.1);
+            }
+
+            // Researcher recipe discovery
+            if (role.discoveryChance && typeof RECIPES !== 'undefined') {
+                if (Math.random() < role.discoveryChance) {
+                    const allRecipes = Object.keys(RECIPES);
+                    const undiscovered = allRecipes.filter(k => !GameState.isRecipeDiscovered(k));
+                    if (undiscovered.length > 0) {
+                        const found = undiscovered[Math.floor(Math.random() * undiscovered.length)];
+                        GameState.discoverRecipe(found);
+                    }
+                }
+            }
+        }
     }
 };

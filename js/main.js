@@ -454,6 +454,7 @@ const Game = {
         html += '<button class="action-btn primary" onclick="Base.showBuildPanel()" style="padding:0.8rem;font-size:0.95rem">🏗️ Build Structures</button>';
         html += '<button class="action-btn primary" onclick="Base.showCraftPanel()" style="padding:0.8rem;font-size:0.95rem">⚒️ Crafting</button>';
         html += '<button class="action-btn primary" onclick="Base.showFarmPanel()" style="padding:0.8rem;font-size:0.95rem">🌾 Farming</button>';
+        html += '<button class="action-btn primary" onclick="Base.showCampNPCPanel()" style="padding:0.8rem;font-size:0.95rem">👥 Settlement</button>';
         html += '<button class="action-btn primary" onclick="Base.showPlaceablesPanel()" style="padding:0.8rem;font-size:0.95rem">🏠 Placeables</button>';
         html += '<button class="action-btn primary" onclick="Base.showTechPanel()" style="padding:0.8rem;font-size:0.95rem">🔬 Tech Tree</button>';
         html += '</div>';

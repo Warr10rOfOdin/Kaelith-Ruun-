@@ -63,11 +63,50 @@ const HUD = {
                 : location.name;
         }
 
+        // Survival status
+        this.updateSurvivalDisplay();
+
         // Status icons
         this.updateStatusIcons();
 
         // Mark minimap dirty
         this._minimapDirty = true;
+    },
+
+    updateSurvivalDisplay() {
+        const container = document.getElementById('hud-survival');
+        if (!container) return;
+        const s = GameState.survival;
+        if (!s) { container.innerHTML = ''; return; }
+
+        // Temperature icon and color
+        let tempIcon, tempColor, tempLabel;
+        if (s.temperature < 20) { tempIcon = '🥶'; tempColor = '#66aaff'; tempLabel = 'Freezing'; }
+        else if (s.temperature < 35) { tempIcon = '❄️'; tempColor = '#88bbee'; tempLabel = 'Cold'; }
+        else if (s.temperature < 65) { tempIcon = '🌡️'; tempColor = '#88cc88'; tempLabel = 'Comfortable'; }
+        else if (s.temperature < 80) { tempIcon = '🔥'; tempColor = '#ddaa44'; tempLabel = 'Warm'; }
+        else { tempIcon = '🥵'; tempColor = '#ee6644'; tempLabel = 'Scorching'; }
+
+        // Fatigue icon
+        let fatIcon, fatColor;
+        if (s.fatigue < 30) { fatIcon = '💪'; fatColor = '#88cc88'; }
+        else if (s.fatigue < 60) { fatIcon = '😐'; fatColor = '#ccaa44'; }
+        else { fatIcon = '😩'; fatColor = '#cc6644'; }
+
+        // Morale icon
+        let morIcon, morColor;
+        if (s.morale > 70) { morIcon = '😊'; morColor = '#88cc88'; }
+        else if (s.morale > 40) { morIcon = '😐'; morColor = '#ccaa44'; }
+        else { morIcon = '😢'; morColor = '#cc6644'; }
+
+        // Season
+        const seasonIcons = { spring: '🌸', summer: '☀️', autumn: '🍂', winter: '❄️' };
+        const seasonIcon = seasonIcons[s.season] || '🌍';
+
+        container.innerHTML = `<span style="color:${tempColor}" title="${tempLabel}">${tempIcon}</span>`
+            + `<span style="color:${fatColor}" title="Fatigue: ${Math.floor(s.fatigue)}%">${fatIcon}</span>`
+            + `<span style="color:${morColor}" title="Morale: ${Math.floor(s.morale)}%">${morIcon}</span>`
+            + `<span title="${s.season} (Day ${s.seasonDay + 1}/30)">${seasonIcon} D${s.dayCount}</span>`;
     },
 
     // Fast update for stamina only (called from game loop)
@@ -123,6 +162,23 @@ const HUD = {
                 const toolIcons = { axe: '🪓', pickaxe: '⛏️', sickle: '🌾', hammer: '🔨', fishing: '🎣' };
                 html += `<span class="status-icon buff">${toolIcons[weapon.toolType] || '🔧'} T${weapon.toolTier || 1}</span>`;
             }
+        }
+
+        // Active food/potion buffs
+        if (GameState.activeBuffs && GameState.activeBuffs.length > 0) {
+            for (const buff of GameState.activeBuffs) {
+                const pct = buff.maxDuration > 0 ? Math.floor((buff.duration / buff.maxDuration) * 100) : 100;
+                html += `<span class="status-icon buff" title="${buff.name}: +${buff.amount} ${buff.stat} (${buff.duration} turns)">${buff.icon || '+'} ${buff.duration}</span>`;
+            }
+        }
+
+        // Survival warnings
+        const surv = GameState.survival;
+        if (surv) {
+            if (surv.temperature < 20) html += '<span class="status-icon debuff">🥶 Cold</span>';
+            if (surv.temperature > 85) html += '<span class="status-icon debuff">🥵 Heat</span>';
+            if (surv.fatigue > 70) html += '<span class="status-icon debuff">😩 Tired</span>';
+            if (surv.morale < 20) html += '<span class="status-icon debuff">😢 Low Morale</span>';
         }
 
         container.innerHTML = html;

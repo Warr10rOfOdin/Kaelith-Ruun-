@@ -3,7 +3,7 @@
 // Enables offline play and mobile app install
 // ============================================
 
-const CACHE_NAME = 'kaelith-ruun-v9';
+const CACHE_NAME = 'kaelith-ruun-v10';
 const ASSETS = [
     '/',
     '/index.html',

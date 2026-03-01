@@ -43,6 +43,17 @@ const WorldMap = {
     removedResources: {},
     removedEntities: {},
 
+    // Day/night cycle
+    timeOfDay: 0.25,       // 0.0=midnight, 0.25=dawn, 0.5=noon, 0.75=dusk
+    daySpeed: 0.005,       // ~200s full cycle
+
+    // Weather system
+    weather: 'clear',
+    weatherTimer: 0,
+    weatherTransition: 0,
+    weatherParticles: [],
+    fogEllipses: [],
+
     // Game loop
     running: false,
     lastTime: 0,
@@ -197,6 +208,13 @@ const WorldMap = {
 
         // Update diegetic overlay
         if (typeof DiegeticFX !== 'undefined') DiegeticFX.update();
+
+        // Day/night cycle
+        this.timeOfDay += this.daySpeed * dt;
+        if (this.timeOfDay >= 1.0) this.timeOfDay -= 1.0;
+
+        // Weather system
+        this.updateWeather(dt);
 
         // Update stamina bar in HUD (fast path, every frame)
         if (typeof HUD !== 'undefined' && HUD.updateStamina) HUD.updateStamina();
@@ -361,6 +379,159 @@ const WorldMap = {
         return this.entityMap[`${x},${y}`] || null;
     },
 
+    // ---- DAY/NIGHT CYCLE ----
+    getTimeLabel() {
+        const t = this.timeOfDay;
+        if (t < 0.15) return 'Night';
+        if (t < 0.3) return 'Dawn';
+        if (t < 0.4) return 'Morning';
+        if (t < 0.6) return 'Midday';
+        if (t < 0.7) return 'Afternoon';
+        if (t < 0.8) return 'Dusk';
+        return 'Night';
+    },
+
+    // ---- WEATHER SYSTEM ----
+    updateWeather(dt) {
+        this.weatherTimer += dt;
+        // Change weather every 60-120 seconds
+        const interval = 60 + Math.random() * 60;
+        if (this.weatherTimer >= interval) {
+            this.weatherTimer = 0;
+            const region = GameState.currentRegion;
+            const roll = Math.random();
+            if (region === 'ashen_wastes') {
+                if (roll < 0.6) this.weather = 'clear';
+                else if (roll < 0.8) this.weather = 'fog';
+                else this.weather = 'rain';
+            } else if (region === 'hollowfen') {
+                if (roll < 0.3) this.weather = 'clear';
+                else if (roll < 0.6) this.weather = 'fog';
+                else if (roll < 0.9) this.weather = 'rain';
+                else this.weather = 'snow';
+            } else if (region === 'void_sanctum') {
+                if (roll < 0.4) this.weather = 'clear';
+                else if (roll < 0.8) this.weather = 'fog';
+                else this.weather = 'rain';
+            }
+        }
+
+        // Update weather particles
+        if (this.weather === 'rain') {
+            // Spawn ~5 rain particles per frame
+            for (let i = 0; i < 5; i++) {
+                this.weatherParticles.push({
+                    x: Math.random() * this.vpW,
+                    y: -10,
+                    speed: 400 + Math.random() * 200,
+                    length: 10 + Math.random() * 8
+                });
+            }
+            // Update rain
+            for (let i = this.weatherParticles.length - 1; i >= 0; i--) {
+                const p = this.weatherParticles[i];
+                p.y += p.speed * dt;
+                p.x += p.speed * 0.15 * dt; // diagonal
+                if (p.y > this.vpH) {
+                    this.weatherParticles.splice(i, 1);
+                }
+            }
+            // Limit particles
+            if (this.weatherParticles.length > 300) {
+                this.weatherParticles = this.weatherParticles.slice(-300);
+            }
+        } else if (this.weather === 'snow') {
+            // Spawn ~2 snow particles per frame
+            for (let i = 0; i < 2; i++) {
+                this.weatherParticles.push({
+                    x: Math.random() * this.vpW,
+                    y: -5,
+                    speed: 30 + Math.random() * 30,
+                    sway: Math.random() * Math.PI * 2
+                });
+            }
+            // Update snow
+            for (let i = this.weatherParticles.length - 1; i >= 0; i--) {
+                const p = this.weatherParticles[i];
+                p.y += p.speed * dt;
+                p.sway += dt * 2;
+                p.x += Math.sin(p.sway) * 20 * dt;
+                if (p.y > this.vpH) {
+                    this.weatherParticles.splice(i, 1);
+                }
+            }
+            if (this.weatherParticles.length > 200) {
+                this.weatherParticles = this.weatherParticles.slice(-200);
+            }
+        } else if (this.weather === 'fog') {
+            // Initialize fog ellipses if needed
+            if (this.fogEllipses.length === 0) {
+                for (let i = 0; i < 5; i++) {
+                    this.fogEllipses.push({
+                        x: Math.random() * this.vpW,
+                        y: Math.random() * this.vpH,
+                        rx: 150 + Math.random() * 200,
+                        ry: 60 + Math.random() * 80,
+                        speed: 10 + Math.random() * 15
+                    });
+                }
+            }
+            // Update fog
+            for (const f of this.fogEllipses) {
+                f.x += f.speed * dt;
+                if (f.x - f.rx > this.vpW) {
+                    f.x = -f.rx;
+                    f.y = Math.random() * this.vpH;
+                }
+            }
+        } else {
+            // Clear weather — remove particles gradually
+            if (this.weatherParticles.length > 0) {
+                this.weatherParticles = this.weatherParticles.slice(Math.ceil(this.weatherParticles.length * 0.1));
+            }
+            if (this.fogEllipses.length > 0 && this.weather !== 'fog') {
+                this.fogEllipses = [];
+            }
+        }
+    },
+
+    drawWeather(ctx) {
+        if (this.weather === 'rain') {
+            ctx.strokeStyle = 'rgba(150,180,220,0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (const p of this.weatherParticles) {
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x + p.length * 0.15, p.y + p.length);
+            }
+            ctx.stroke();
+
+            // Splash effects at bottom
+            ctx.fillStyle = 'rgba(150,180,220,0.2)';
+            for (const p of this.weatherParticles) {
+                if (p.y > this.vpH - 20) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        } else if (this.weather === 'snow') {
+            ctx.fillStyle = 'rgba(220,230,255,0.6)';
+            for (const p of this.weatherParticles) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else if (this.weather === 'fog') {
+            for (const f of this.fogEllipses) {
+                ctx.fillStyle = 'rgba(150,160,170,0.06)';
+                ctx.beginPath();
+                ctx.ellipse(f.x, f.y, f.rx, f.ry, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    },
+
     // ---- DRAW ----
     draw() {
         const ctx = this.ctx;
@@ -455,7 +626,10 @@ const WorldMap = {
         // Dynamic lighting (darkness + light sources)
         Sprites.collectLightSources(this.terrain, this.entityMap,
             this.camX, this.camY, w, h, this.TS);
-        Sprites.drawLighting(ctx, w, h, GameState.currentRegion);
+        Sprites.drawLighting(ctx, w, h, GameState.currentRegion, this.timeOfDay);
+
+        // Weather overlay
+        this.drawWeather(ctx);
 
         // Vignette
         Sprites.drawVignette(ctx, w, h);

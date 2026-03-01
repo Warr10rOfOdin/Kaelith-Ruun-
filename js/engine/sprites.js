@@ -1845,6 +1845,21 @@ const Sprites = {
         // Enemy marker
         this.cache.enemy_marker = this.drawEnemyMarker();
         this.cache.boss_marker = this.drawBossMarker();
+
+        // Combat enemy sprites (larger, for combat screen)
+        this.cache.combat_void_rat = this.drawCombatEnemy('void_rat');
+        this.cache.combat_ashen_wraith = this.drawCombatEnemy('ashen_wraith');
+        this.cache.combat_scorched_bandit = this.drawCombatEnemy('scorched_bandit');
+        this.cache.combat_ember_hound = this.drawCombatEnemy('ember_hound');
+        this.cache.combat_bog_crawler = this.drawCombatEnemy('bog_crawler');
+        this.cache.combat_fen_witch = this.drawCombatEnemy('fen_witch');
+        this.cache.combat_drowned_knight = this.drawCombatEnemy('drowned_knight');
+        this.cache.combat_void_acolyte = this.drawCombatEnemy('void_acolyte');
+        this.cache.combat_reality_shard = this.drawCombatEnemy('reality_shard');
+        this.cache.combat_shadow_sentinel = this.drawCombatEnemy('shadow_sentinel');
+        this.cache.combat_the_ashen_king = this.drawCombatEnemy('the_ashen_king');
+        this.cache.combat_mother_of_the_fen = this.drawCombatEnemy('mother_of_the_fen');
+        this.cache.combat_ruun_the_unraveler = this.drawCombatEnemy('ruun_the_unraveler');
     },
 
     getNPC(npcId) {
@@ -2120,6 +2135,890 @@ const Sprites = {
         return c;
     },
 
+    // ── Combat Enemy Sprites ────────────────
+
+    getCombatSprite(enemyKey) {
+        return this.cache[`combat_${enemyKey}`] || null;
+    },
+
+    drawCombatEnemy(type) {
+        switch (type) {
+            case 'void_rat': return this.drawCombatVoidRat();
+            case 'ashen_wraith': return this.drawCombatAshenWraith();
+            case 'scorched_bandit': return this.drawCombatScorchedBandit();
+            case 'ember_hound': return this.drawCombatEmberHound();
+            case 'bog_crawler': return this.drawCombatBogCrawler();
+            case 'fen_witch': return this.drawCombatFenWitch();
+            case 'drowned_knight': return this.drawCombatDrownedKnight();
+            case 'void_acolyte': return this.drawCombatVoidAcolyte();
+            case 'reality_shard': return this.drawCombatRealityShard();
+            case 'shadow_sentinel': return this.drawCombatShadowSentinel();
+            case 'the_ashen_king': return this.drawCombatAshenKing();
+            case 'mother_of_the_fen': return this.drawCombatMotherFen();
+            case 'ruun_the_unraveler': return this.drawCombatRuun();
+            default: return this.drawCombatGenericEnemy();
+        }
+    },
+
+    drawCombatVoidRat() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.ellipse(32, 70, 18, 5, 0, 0, Math.PI*2); ctx.fill();
+        // Body
+        ctx.fillStyle = '#3a2a3a';
+        ctx.beginPath(); ctx.ellipse(32, 54, 16, 12, -0.1, 0, Math.PI*2); ctx.fill();
+        // Fur texture
+        ctx.fillStyle = '#4a3a4a';
+        ctx.beginPath(); ctx.ellipse(30, 52, 12, 9, 0, 0, Math.PI*2); ctx.fill();
+        // Head
+        ctx.fillStyle = '#3a2a3a';
+        ctx.beginPath(); ctx.ellipse(20, 42, 10, 9, -0.2, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#4a3a4a';
+        ctx.beginPath(); ctx.ellipse(19, 41, 8, 7, -0.2, 0, Math.PI*2); ctx.fill();
+        // Ears
+        ctx.fillStyle = '#5a3a5a';
+        ctx.beginPath(); ctx.ellipse(14, 34, 4, 6, -0.4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(24, 33, 4, 6, 0.2, 0, Math.PI*2); ctx.fill();
+        // Inner ears
+        ctx.fillStyle = '#8a5a7a';
+        ctx.beginPath(); ctx.ellipse(14, 35, 2, 3, -0.4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(24, 34, 2, 3, 0.2, 0, Math.PI*2); ctx.fill();
+        // Eyes (glowing purple)
+        ctx.fillStyle = '#bb66ff';
+        ctx.fillRect(15, 40, 3, 3);
+        ctx.fillRect(22, 39, 3, 3);
+        ctx.fillStyle = '#dd99ff';
+        ctx.fillRect(16, 40, 1, 1);
+        ctx.fillRect(23, 39, 1, 1);
+        // Nose
+        ctx.fillStyle = '#8a5a6a';
+        ctx.fillRect(12, 44, 3, 2);
+        // Snout whiskers
+        ctx.strokeStyle = '#6a5a6a';
+        ctx.lineWidth = 0.5;
+        ctx.beginPath(); ctx.moveTo(10, 43); ctx.lineTo(4, 41); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(10, 45); ctx.lineTo(3, 46); ctx.stroke();
+        // Legs
+        ctx.fillStyle = '#3a2a3a';
+        ctx.fillRect(20, 62, 5, 8); ctx.fillRect(36, 62, 5, 8);
+        ctx.fillStyle = '#2a1a2a';
+        ctx.fillRect(19, 68, 7, 3); ctx.fillRect(35, 68, 7, 3);
+        // Tail
+        ctx.strokeStyle = '#4a3a4a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(48, 52); ctx.quadraticCurveTo(56, 40, 52, 30);
+        ctx.quadraticCurveTo(50, 24, 54, 20);
+        ctx.stroke();
+        return c;
+    },
+
+    drawCombatAshenWraith() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Ethereal glow
+        ctx.fillStyle = 'rgba(180,180,200,0.08)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 28, 35, 0, 0, Math.PI*2); ctx.fill();
+        // Wispy lower body (no legs)
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = '#8a9aaa';
+        ctx.beginPath(); ctx.moveTo(20, 50); ctx.quadraticCurveTo(22, 75, 18, 78);
+        ctx.lineTo(46, 78); ctx.quadraticCurveTo(42, 75, 44, 50); ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = 0.5;
+        // Cloak body
+        ctx.fillStyle = '#6a7a8a';
+        ctx.beginPath(); ctx.ellipse(32, 42, 14, 18, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#7a8a9a';
+        ctx.beginPath(); ctx.ellipse(32, 38, 11, 14, 0, 0, Math.PI*2); ctx.fill();
+        // Tattered edges
+        ctx.globalAlpha = 0.4;
+        ctx.fillStyle = '#8a9aaa';
+        for (let i = 0; i < 6; i++) {
+            const x = 22 + i * 4, y = 55 + Math.sin(i * 1.5) * 3;
+            ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x+2, y+10); ctx.lineTo(x+4, y); ctx.fill();
+        }
+        ctx.globalAlpha = 0.6;
+        // Head (hooded)
+        ctx.fillStyle = '#5a6a7a';
+        ctx.beginPath(); ctx.ellipse(32, 24, 10, 11, 0, 0, Math.PI*2); ctx.fill();
+        // Hood
+        ctx.fillStyle = '#4a5a6a';
+        ctx.beginPath(); ctx.arc(32, 20, 12, Math.PI, 0); ctx.fill();
+        // Dark face hollow
+        ctx.fillStyle = '#1a1a2a';
+        ctx.beginPath(); ctx.ellipse(32, 26, 6, 7, 0, 0, Math.PI*2); ctx.fill();
+        // Glowing eyes
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = '#aaddff';
+        ctx.fillRect(28, 24, 3, 2);
+        ctx.fillRect(34, 24, 3, 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(29, 24, 1, 1);
+        ctx.fillRect(35, 24, 1, 1);
+        ctx.globalAlpha = 1;
+        return c;
+    },
+
+    drawCombatScorchedBandit() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.ellipse(32, 74, 16, 5, 0, 0, Math.PI*2); ctx.fill();
+        // Boots
+        ctx.fillStyle = '#2a1a1a';
+        ctx.fillRect(18, 68, 10, 6); ctx.fillRect(36, 68, 10, 6);
+        // Legs
+        ctx.fillStyle = '#3a2a1a';
+        ctx.fillRect(20, 54, 8, 16); ctx.fillRect(36, 54, 8, 16);
+        // Torso
+        ctx.fillStyle = '#4a2a1a';
+        ctx.fillRect(16, 30, 32, 26);
+        ctx.fillStyle = '#5a3a2a';
+        ctx.fillRect(18, 32, 28, 20);
+        // Belt
+        ctx.fillStyle = '#3a3a2a';
+        ctx.fillRect(16, 52, 32, 3);
+        ctx.fillStyle = '#8a7a3a';
+        ctx.fillRect(28, 52, 8, 3);
+        // Arms
+        ctx.fillStyle = '#3a2010';
+        ctx.fillRect(8, 32, 8, 18); ctx.fillRect(48, 32, 8, 18);
+        // Hands (charred skin)
+        ctx.fillStyle = '#5a3a2a';
+        ctx.fillRect(8, 48, 8, 5); ctx.fillRect(48, 48, 8, 5);
+        // Head
+        ctx.fillStyle = '#4a3020';
+        ctx.fillRect(20, 10, 24, 22);
+        ctx.fillStyle = '#5a3a2a';
+        ctx.fillRect(22, 12, 20, 18);
+        // Bandana
+        ctx.fillStyle = '#6a2a1a';
+        ctx.fillRect(18, 10, 28, 7);
+        // Eyes (angry)
+        ctx.fillStyle = '#ff6633';
+        ctx.fillRect(26, 18, 4, 3);
+        ctx.fillRect(36, 18, 4, 3);
+        ctx.fillStyle = '#111';
+        ctx.fillRect(27, 19, 2, 2);
+        ctx.fillRect(37, 19, 2, 2);
+        // Mouth snarl
+        ctx.fillStyle = '#2a1a0a';
+        ctx.fillRect(28, 26, 10, 2);
+        // Scars
+        ctx.fillStyle = '#6a4a3a';
+        ctx.fillRect(24, 22, 1, 6);
+        ctx.fillRect(40, 16, 1, 8);
+        // Curved blade in right hand
+        ctx.fillStyle = '#8a8a9a';
+        ctx.beginPath();
+        ctx.moveTo(52, 36); ctx.lineTo(58, 18); ctx.lineTo(60, 20); ctx.lineTo(54, 38);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#aaaabc';
+        ctx.fillRect(57, 16, 2, 4);
+        return c;
+    },
+
+    drawCombatEmberHound() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Warm ground glow
+        ctx.fillStyle = 'rgba(200,80,20,0.1)';
+        ctx.beginPath(); ctx.ellipse(32, 68, 24, 10, 0, 0, Math.PI*2); ctx.fill();
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.beginPath(); ctx.ellipse(32, 70, 20, 5, 0, 0, Math.PI*2); ctx.fill();
+        // Legs
+        ctx.fillStyle = '#4a2a1a';
+        ctx.fillRect(14, 58, 6, 12); ctx.fillRect(22, 58, 6, 12);
+        ctx.fillRect(38, 58, 6, 12); ctx.fillRect(46, 58, 6, 12);
+        // Paws
+        ctx.fillStyle = '#3a1a0a';
+        ctx.fillRect(13, 68, 8, 4); ctx.fillRect(21, 68, 8, 4);
+        ctx.fillRect(37, 68, 8, 4); ctx.fillRect(45, 68, 8, 4);
+        // Body
+        ctx.fillStyle = '#5a2a1a';
+        ctx.beginPath(); ctx.ellipse(32, 50, 20, 12, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#6a3a2a';
+        ctx.beginPath(); ctx.ellipse(32, 48, 17, 10, 0, 0, Math.PI*2); ctx.fill();
+        // Ember glow between ribs
+        ctx.fillStyle = '#ff6600';
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(22, 48, 2, 6); ctx.fillRect(28, 47, 2, 7);
+        ctx.fillRect(34, 47, 2, 7); ctx.fillRect(40, 48, 2, 6);
+        ctx.fillStyle = '#ffaa00';
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(23, 49, 1, 4); ctx.fillRect(29, 48, 1, 5);
+        ctx.fillRect(35, 48, 1, 5); ctx.fillRect(41, 49, 1, 4);
+        ctx.globalAlpha = 1;
+        // Neck/head
+        ctx.fillStyle = '#5a2a1a';
+        ctx.fillRect(10, 36, 14, 10);
+        ctx.fillStyle = '#6a3a2a';
+        ctx.beginPath(); ctx.ellipse(12, 32, 10, 9, -0.2, 0, Math.PI*2); ctx.fill();
+        // Ears
+        ctx.fillStyle = '#4a2a1a';
+        ctx.beginPath(); ctx.moveTo(6, 24); ctx.lineTo(4, 30); ctx.lineTo(10, 30); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(18, 23); ctx.lineTo(16, 29); ctx.lineTo(22, 29); ctx.fill();
+        // Eyes (fiery)
+        ctx.fillStyle = '#ff4400';
+        ctx.fillRect(7, 30, 4, 3);
+        ctx.fillRect(14, 30, 4, 3);
+        ctx.fillStyle = '#ffcc00';
+        ctx.fillRect(8, 30, 2, 1);
+        ctx.fillRect(15, 30, 2, 1);
+        // Mouth/jaw
+        ctx.fillStyle = '#3a1a0a';
+        ctx.fillRect(4, 36, 12, 3);
+        // Teeth
+        ctx.fillStyle = '#ddd';
+        ctx.fillRect(5, 36, 2, 2); ctx.fillRect(9, 36, 2, 2); ctx.fillRect(13, 36, 2, 2);
+        // Tail (ember)
+        ctx.strokeStyle = '#5a2a1a';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(52, 46); ctx.quadraticCurveTo(58, 38, 56, 30);
+        ctx.stroke();
+        ctx.fillStyle = '#ff6600';
+        ctx.beginPath(); ctx.arc(56, 28, 3, 0, Math.PI*2); ctx.fill();
+        return c;
+    },
+
+    drawCombatBogCrawler() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.beginPath(); ctx.ellipse(32, 72, 22, 6, 0, 0, Math.PI*2); ctx.fill();
+        // Legs (wide stance)
+        ctx.fillStyle = '#3a5a2a';
+        ctx.fillRect(6, 58, 8, 14); ctx.fillRect(50, 58, 8, 14);
+        ctx.fillRect(16, 60, 7, 12); ctx.fillRect(42, 60, 7, 12);
+        // Claws
+        ctx.fillStyle = '#2a3a1a';
+        ctx.fillRect(4, 70, 12, 4); ctx.fillRect(48, 70, 12, 4);
+        ctx.fillRect(14, 70, 10, 3); ctx.fillRect(40, 70, 10, 3);
+        // Body (wide, low)
+        ctx.fillStyle = '#3a5a2a';
+        ctx.beginPath(); ctx.ellipse(32, 50, 22, 14, 0, 0, Math.PI*2); ctx.fill();
+        // Scale detail
+        ctx.fillStyle = '#4a6a3a';
+        ctx.beginPath(); ctx.ellipse(32, 48, 18, 11, 0, 0, Math.PI*2); ctx.fill();
+        // Scale pattern
+        ctx.fillStyle = '#3a5a2a';
+        for (let i = 0; i < 8; i++) {
+            const x = 18 + i * 4, y = 44 + (i % 2) * 3;
+            ctx.fillRect(x, y, 3, 3);
+        }
+        // Belly
+        ctx.fillStyle = '#5a7a4a';
+        ctx.beginPath(); ctx.ellipse(32, 54, 14, 6, 0, 0, Math.PI*2); ctx.fill();
+        // Head
+        ctx.fillStyle = '#3a5a2a';
+        ctx.beginPath(); ctx.ellipse(32, 34, 14, 10, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#4a6a3a';
+        ctx.beginPath(); ctx.ellipse(32, 33, 11, 8, 0, 0, Math.PI*2); ctx.fill();
+        // Eyes (yellow)
+        ctx.fillStyle = '#ddcc22';
+        ctx.fillRect(24, 30, 4, 4);
+        ctx.fillRect(36, 30, 4, 4);
+        ctx.fillStyle = '#111';
+        ctx.fillRect(25, 31, 2, 2);
+        ctx.fillRect(37, 31, 2, 2);
+        // Mouth open
+        ctx.fillStyle = '#2a1a0a';
+        ctx.fillRect(24, 38, 16, 4);
+        // Fangs
+        ctx.fillStyle = '#ddd';
+        ctx.fillRect(26, 38, 2, 3); ctx.fillRect(36, 38, 2, 3);
+        // Tail
+        ctx.fillStyle = '#3a5a2a';
+        ctx.beginPath();
+        ctx.moveTo(50, 54); ctx.quadraticCurveTo(60, 52, 62, 44);
+        ctx.lineTo(60, 46); ctx.quadraticCurveTo(58, 52, 48, 56);
+        ctx.closePath(); ctx.fill();
+        return c;
+    },
+
+    drawCombatFenWitch() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.ellipse(32, 74, 14, 4, 0, 0, Math.PI*2); ctx.fill();
+        // Robes (long, flowing)
+        ctx.fillStyle = '#2a3a2a';
+        ctx.beginPath();
+        ctx.moveTo(20, 36); ctx.lineTo(14, 74); ctx.lineTo(50, 74); ctx.lineTo(44, 36);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#3a4a3a';
+        ctx.beginPath();
+        ctx.moveTo(22, 38); ctx.lineTo(16, 72); ctx.lineTo(48, 72); ctx.lineTo(42, 38);
+        ctx.closePath(); ctx.fill();
+        // Robe seam
+        ctx.strokeStyle = '#1a2a1a';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(32, 40); ctx.lineTo(32, 72); ctx.stroke();
+        // Body
+        ctx.fillStyle = '#3a4a3a';
+        ctx.fillRect(22, 30, 20, 16);
+        // Arms (thin)
+        ctx.fillStyle = '#2a3a2a';
+        ctx.fillRect(10, 32, 12, 6);
+        ctx.fillRect(42, 32, 12, 6);
+        // Hands
+        ctx.fillStyle = '#6a8a5a';
+        ctx.fillRect(6, 32, 6, 5);
+        // Spell glow in left hand
+        ctx.fillStyle = 'rgba(80,200,80,0.4)';
+        ctx.beginPath(); ctx.arc(9, 34, 8, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#44ff44';
+        ctx.beginPath(); ctx.arc(9, 34, 3, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#aaffaa';
+        ctx.fillRect(8, 33, 2, 2);
+        // Head (hooded)
+        ctx.fillStyle = '#2a3a2a';
+        ctx.beginPath(); ctx.arc(32, 20, 12, Math.PI, 0); ctx.fill();
+        ctx.fillRect(20, 16, 24, 16);
+        // Face shadow
+        ctx.fillStyle = '#1a2a1a';
+        ctx.beginPath(); ctx.ellipse(32, 24, 8, 9, 0, 0, Math.PI*2); ctx.fill();
+        // Face
+        ctx.fillStyle = '#6a7a5a';
+        ctx.beginPath(); ctx.ellipse(32, 24, 6, 7, 0, 0, Math.PI*2); ctx.fill();
+        // Eyes (eerie green)
+        ctx.fillStyle = '#44ff44';
+        ctx.fillRect(28, 22, 3, 2);
+        ctx.fillRect(34, 22, 3, 2);
+        ctx.fillStyle = '#88ff88';
+        ctx.fillRect(29, 22, 1, 1);
+        ctx.fillRect(35, 22, 1, 1);
+        // Nose
+        ctx.fillStyle = '#5a6a4a';
+        ctx.fillRect(31, 26, 2, 2);
+        // Crooked grin
+        ctx.fillStyle = '#2a2a1a';
+        ctx.fillRect(28, 29, 8, 1);
+        // Hood point
+        ctx.fillStyle = '#2a3a2a';
+        ctx.beginPath(); ctx.moveTo(26, 16); ctx.lineTo(32, 4); ctx.lineTo(38, 16); ctx.fill();
+        return c;
+    },
+
+    drawCombatDrownedKnight() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.beginPath(); ctx.ellipse(32, 74, 18, 5, 0, 0, Math.PI*2); ctx.fill();
+        // Water drip effect
+        ctx.fillStyle = 'rgba(80,140,180,0.15)';
+        ctx.fillRect(26, 72, 2, 6); ctx.fillRect(38, 70, 2, 8);
+        // Boots (heavy)
+        ctx.fillStyle = '#2a3a3a';
+        ctx.fillRect(16, 66, 12, 8); ctx.fillRect(36, 66, 12, 8);
+        // Greaves
+        ctx.fillStyle = '#3a5a5a';
+        ctx.fillRect(18, 52, 10, 16); ctx.fillRect(36, 52, 10, 16);
+        ctx.fillStyle = '#4a6a6a';
+        ctx.fillRect(20, 54, 6, 12); ctx.fillRect(38, 54, 6, 12);
+        // Torso armor
+        ctx.fillStyle = '#3a5a5a';
+        ctx.fillRect(14, 26, 36, 28);
+        ctx.fillStyle = '#4a6a6a';
+        ctx.fillRect(16, 28, 32, 24);
+        // Armor plates
+        ctx.fillStyle = '#3a5a5a';
+        ctx.fillRect(16, 34, 32, 2);
+        ctx.fillRect(16, 42, 32, 2);
+        // Rust stains
+        ctx.fillStyle = 'rgba(120,80,40,0.3)';
+        ctx.fillRect(20, 30, 6, 8);
+        ctx.fillRect(38, 36, 8, 6);
+        // Pauldrons
+        ctx.fillStyle = '#3a5a5a';
+        ctx.fillRect(6, 24, 12, 10);
+        ctx.fillRect(46, 24, 12, 10);
+        ctx.fillStyle = '#4a6a6a';
+        ctx.fillRect(8, 26, 8, 6);
+        ctx.fillRect(48, 26, 8, 6);
+        // Arms
+        ctx.fillStyle = '#3a4a4a';
+        ctx.fillRect(6, 32, 10, 16);
+        ctx.fillRect(48, 32, 10, 16);
+        // Helmet
+        ctx.fillStyle = '#3a5a5a';
+        ctx.fillRect(18, 6, 28, 22);
+        ctx.fillStyle = '#4a6a6a';
+        ctx.fillRect(20, 8, 24, 18);
+        // Visor slit
+        ctx.fillStyle = '#1a2a2a';
+        ctx.fillRect(22, 14, 20, 4);
+        // Eyes (dim blue glow)
+        ctx.fillStyle = '#6699bb';
+        ctx.fillRect(26, 15, 3, 2);
+        ctx.fillRect(36, 15, 3, 2);
+        // Helmet crest
+        ctx.fillStyle = '#3a5a5a';
+        ctx.fillRect(28, 2, 8, 6);
+        // Sword (large)
+        ctx.fillStyle = '#6a7a8a';
+        ctx.fillRect(56, 10, 4, 40);
+        ctx.fillStyle = '#7a8a9a';
+        ctx.fillRect(57, 12, 2, 36);
+        // Crossguard
+        ctx.fillStyle = '#4a5a5a';
+        ctx.fillRect(52, 48, 12, 3);
+        // Grip
+        ctx.fillStyle = '#3a2a1a';
+        ctx.fillRect(56, 51, 4, 8);
+        // Water drips on armor
+        ctx.fillStyle = 'rgba(100,160,200,0.25)';
+        ctx.fillRect(24, 38, 1, 4); ctx.fillRect(40, 32, 1, 6);
+        return c;
+    },
+
+    drawCombatVoidAcolyte() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Purple glow
+        ctx.fillStyle = 'rgba(80,20,120,0.1)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 28, 35, 0, 0, Math.PI*2); ctx.fill();
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.ellipse(32, 74, 14, 4, 0, 0, Math.PI*2); ctx.fill();
+        // Robes
+        ctx.fillStyle = '#2a1a3a';
+        ctx.beginPath();
+        ctx.moveTo(18, 34); ctx.lineTo(12, 74); ctx.lineTo(52, 74); ctx.lineTo(46, 34);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#3a2a4a';
+        ctx.beginPath();
+        ctx.moveTo(20, 36); ctx.lineTo(14, 72); ctx.lineTo(50, 72); ctx.lineTo(44, 36);
+        ctx.closePath(); ctx.fill();
+        // Body
+        ctx.fillStyle = '#3a2a4a';
+        ctx.fillRect(20, 28, 24, 14);
+        // Arms raised
+        ctx.fillStyle = '#2a1a3a';
+        ctx.fillRect(8, 24, 12, 6);
+        ctx.fillRect(44, 24, 12, 6);
+        // Hands
+        ctx.fillStyle = '#5a4a5a';
+        ctx.fillRect(4, 22, 6, 6);
+        ctx.fillRect(54, 22, 6, 6);
+        // Dark energy between hands
+        ctx.fillStyle = 'rgba(120,40,180,0.3)';
+        ctx.beginPath(); ctx.ellipse(32, 24, 16, 6, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(160,60,220,0.2)';
+        ctx.beginPath(); ctx.ellipse(32, 24, 10, 4, 0, 0, Math.PI*2); ctx.fill();
+        // Head with deep hood
+        ctx.fillStyle = '#2a1a3a';
+        ctx.fillRect(20, 6, 24, 24);
+        ctx.beginPath(); ctx.arc(32, 6, 12, Math.PI, 0); ctx.fill();
+        // Hood shadow
+        ctx.fillStyle = '#1a0a2a';
+        ctx.beginPath(); ctx.ellipse(32, 18, 8, 10, 0, 0, Math.PI*2); ctx.fill();
+        // Empty eye sockets with void glow
+        ctx.fillStyle = '#6a2a8a';
+        ctx.fillRect(26, 16, 4, 4);
+        ctx.fillRect(36, 16, 4, 4);
+        ctx.fillStyle = '#8a4aaa';
+        ctx.fillRect(27, 17, 2, 2);
+        ctx.fillRect(37, 17, 2, 2);
+        // Void tendrils from sockets
+        ctx.strokeStyle = 'rgba(120,40,180,0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(28, 20); ctx.lineTo(26, 26); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(38, 20); ctx.lineTo(40, 26); ctx.stroke();
+        return c;
+    },
+
+    drawCombatRealityShard() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Distortion glow
+        ctx.fillStyle = 'rgba(100,150,255,0.08)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 30, 35, 0, 0, Math.PI*2); ctx.fill();
+        // Floating shadow (small, it hovers)
+        ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        ctx.beginPath(); ctx.ellipse(32, 74, 12, 3, 0, 0, Math.PI*2); ctx.fill();
+        // Crystal shards
+        const drawShard = (x, y, w, h, color, angle) => {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle || 0);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(0, h/2); ctx.lineTo(w/2, -h/2); ctx.lineTo(-w/2, -h/2); ctx.closePath();
+            ctx.fill();
+            // Highlight
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.fillRect(-1, -h/4, 2, h/3);
+            ctx.restore();
+        };
+        // Back shards
+        drawShard(20, 38, 10, 30, '#4a3a8a', -0.2);
+        drawShard(44, 36, 8, 26, '#3a2a7a', 0.3);
+        // Main shards
+        drawShard(28, 32, 12, 36, '#5a4aaa', -0.1);
+        drawShard(36, 30, 14, 40, '#6a5abb', 0.1);
+        drawShard(32, 28, 10, 42, '#7a6acc', 0);
+        // Front shard
+        drawShard(40, 40, 8, 24, '#5a4a9a', 0.25);
+        // Inner glow
+        ctx.fillStyle = 'rgba(180,150,255,0.3)';
+        ctx.beginPath(); ctx.ellipse(32, 34, 8, 12, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(220,200,255,0.2)';
+        ctx.beginPath(); ctx.ellipse(32, 32, 4, 6, 0, 0, Math.PI*2); ctx.fill();
+        // Sparkles
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(30, 20, 2, 2);
+        ctx.fillRect(36, 26, 2, 2);
+        ctx.fillRect(26, 36, 1, 1);
+        ctx.fillRect(42, 30, 1, 1);
+        // Distortion lines
+        ctx.strokeStyle = 'rgba(150,120,255,0.2)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 4; i++) {
+            const r = 24 + i * 4;
+            ctx.beginPath();
+            ctx.arc(32, 34, r, Math.PI * i * 0.3, Math.PI * i * 0.3 + 0.5);
+            ctx.stroke();
+        }
+        return c;
+    },
+
+    drawCombatShadowSentinel() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Dark aura
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 28, 36, 0, 0, Math.PI*2); ctx.fill();
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath(); ctx.ellipse(32, 74, 20, 5, 0, 0, Math.PI*2); ctx.fill();
+        // Ghost/shadow duplicates (overlapping forms)
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#1a1a2a';
+        ctx.fillRect(10, 12, 28, 56); // left shadow form
+        ctx.fillRect(28, 10, 28, 58); // right shadow form
+        ctx.globalAlpha = 1;
+        // Boots
+        ctx.fillStyle = '#1a1a2a';
+        ctx.fillRect(18, 66, 10, 8); ctx.fillRect(36, 66, 10, 8);
+        // Legs
+        ctx.fillStyle = '#2a2a3a';
+        ctx.fillRect(20, 52, 8, 16); ctx.fillRect(36, 52, 8, 16);
+        // Heavy armor torso
+        ctx.fillStyle = '#1a1a2a';
+        ctx.fillRect(12, 24, 40, 30);
+        ctx.fillStyle = '#2a2a3a';
+        ctx.fillRect(14, 26, 36, 26);
+        // Armor detail
+        ctx.fillStyle = '#3a3a4a';
+        ctx.fillRect(16, 30, 32, 3);
+        ctx.fillRect(16, 40, 32, 3);
+        // Pauldrons (large)
+        ctx.fillStyle = '#1a1a2a';
+        ctx.fillRect(2, 20, 14, 12);
+        ctx.fillRect(48, 20, 14, 12);
+        ctx.fillStyle = '#2a2a3a';
+        ctx.fillRect(4, 22, 10, 8);
+        ctx.fillRect(50, 22, 10, 8);
+        // Helmet
+        ctx.fillStyle = '#1a1a2a';
+        ctx.fillRect(16, 4, 32, 22);
+        ctx.fillStyle = '#2a2a3a';
+        ctx.fillRect(18, 6, 28, 18);
+        // Visor (glowing red)
+        ctx.fillStyle = '#1a0a0a';
+        ctx.fillRect(20, 12, 24, 5);
+        ctx.fillStyle = '#ff2222';
+        ctx.fillRect(24, 13, 5, 3);
+        ctx.fillRect(36, 13, 5, 3);
+        ctx.fillStyle = '#ff6666';
+        ctx.fillRect(25, 13, 2, 1);
+        ctx.fillRect(37, 13, 2, 1);
+        // Helmet horn
+        ctx.fillStyle = '#1a1a2a';
+        ctx.beginPath(); ctx.moveTo(20, 6); ctx.lineTo(16, 0); ctx.lineTo(24, 6); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(40, 6); ctx.lineTo(48, 0); ctx.lineTo(44, 6); ctx.fill();
+        // Large weapon
+        ctx.fillStyle = '#3a3a4a';
+        ctx.fillRect(58, 4, 4, 50);
+        ctx.fillStyle = '#4a4a5a';
+        ctx.fillRect(59, 6, 2, 46);
+        // Axe head
+        ctx.fillStyle = '#3a3a4a';
+        ctx.beginPath();
+        ctx.moveTo(58, 8); ctx.lineTo(52, 4); ctx.lineTo(52, 18); ctx.lineTo(58, 14);
+        ctx.closePath(); ctx.fill();
+        return c;
+    },
+
+    // Boss sprites (larger)
+    drawCombatAshenKing() {
+        const W = 80, H = 100;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Fire glow
+        ctx.fillStyle = 'rgba(200,80,20,0.12)';
+        ctx.beginPath(); ctx.ellipse(40, 50, 38, 45, 0, 0, Math.PI*2); ctx.fill();
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath(); ctx.ellipse(40, 92, 24, 6, 0, 0, Math.PI*2); ctx.fill();
+        // Cape
+        ctx.fillStyle = '#4a1a0a';
+        ctx.beginPath();
+        ctx.moveTo(16, 36); ctx.lineTo(10, 90); ctx.lineTo(70, 90); ctx.lineTo(64, 36);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#5a2a1a';
+        ctx.beginPath();
+        ctx.moveTo(18, 38); ctx.lineTo(14, 88); ctx.lineTo(66, 88); ctx.lineTo(62, 38);
+        ctx.closePath(); ctx.fill();
+        // Boots
+        ctx.fillStyle = '#2a0a0a';
+        ctx.fillRect(22, 82, 14, 10); ctx.fillRect(44, 82, 14, 10);
+        // Legs
+        ctx.fillStyle = '#3a1a1a';
+        ctx.fillRect(26, 64, 10, 20); ctx.fillRect(46, 64, 10, 20);
+        // Armor torso
+        ctx.fillStyle = '#4a1a1a';
+        ctx.fillRect(18, 32, 44, 34);
+        ctx.fillStyle = '#5a2a2a';
+        ctx.fillRect(20, 34, 40, 30);
+        // Armor plates
+        ctx.fillStyle = '#6a3a2a';
+        ctx.fillRect(22, 38, 36, 3);
+        ctx.fillRect(22, 48, 36, 3);
+        ctx.fillRect(22, 56, 36, 3);
+        // Gold trim
+        ctx.fillStyle = '#aa8a2a';
+        ctx.fillRect(20, 34, 40, 2);
+        ctx.fillRect(20, 62, 40, 2);
+        // Pauldrons
+        ctx.fillStyle = '#4a1a1a';
+        ctx.fillRect(4, 28, 18, 14);
+        ctx.fillRect(58, 28, 18, 14);
+        ctx.fillStyle = '#6a3a2a';
+        ctx.fillRect(6, 30, 14, 10);
+        ctx.fillRect(60, 30, 14, 10);
+        // Fire on pauldrons
+        ctx.fillStyle = '#ff6600';
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath(); ctx.moveTo(10, 28); ctx.quadraticCurveTo(12, 20, 16, 24); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(64, 28); ctx.quadraticCurveTo(66, 20, 70, 24); ctx.fill();
+        ctx.globalAlpha = 1;
+        // Helmet
+        ctx.fillStyle = '#3a0a0a';
+        ctx.fillRect(22, 6, 36, 28);
+        ctx.fillStyle = '#4a1a1a';
+        ctx.fillRect(24, 8, 32, 24);
+        // Visor
+        ctx.fillStyle = '#1a0000';
+        ctx.fillRect(26, 16, 28, 6);
+        // Fiery eyes
+        ctx.fillStyle = '#ff4400';
+        ctx.fillRect(30, 17, 5, 4);
+        ctx.fillRect(46, 17, 5, 4);
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(31, 17, 3, 2);
+        ctx.fillRect(47, 17, 3, 2);
+        // Crown
+        ctx.fillStyle = '#aa8a2a';
+        ctx.fillRect(22, 4, 36, 4);
+        ctx.fillStyle = '#ccaa3a';
+        ctx.fillRect(24, 0, 4, 6);
+        ctx.fillRect(32, 0, 4, 8);
+        ctx.fillRect(40, 0, 4, 8);
+        ctx.fillRect(48, 0, 4, 6);
+        // Crown gems
+        ctx.fillStyle = '#ff4400';
+        ctx.fillRect(33, 2, 2, 2);
+        ctx.fillRect(41, 2, 2, 2);
+        // Mouth slit
+        ctx.fillStyle = '#1a0000';
+        ctx.fillRect(30, 26, 20, 2);
+        return c;
+    },
+
+    drawCombatMotherFen() {
+        const W = 80, H = 100;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Swamp glow
+        ctx.fillStyle = 'rgba(20,60,20,0.1)';
+        ctx.beginPath(); ctx.ellipse(40, 50, 38, 48, 0, 0, Math.PI*2); ctx.fill();
+        // Coiled body (snake)
+        ctx.strokeStyle = '#3a5a2a';
+        ctx.lineWidth = 16;
+        ctx.beginPath();
+        ctx.moveTo(20, 90); ctx.quadraticCurveTo(10, 70, 30, 60);
+        ctx.quadraticCurveTo(50, 50, 60, 65);
+        ctx.quadraticCurveTo(70, 80, 50, 85);
+        ctx.quadraticCurveTo(30, 90, 25, 80);
+        ctx.stroke();
+        // Scale overlay
+        ctx.strokeStyle = '#4a6a3a';
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.moveTo(20, 90); ctx.quadraticCurveTo(10, 70, 30, 60);
+        ctx.quadraticCurveTo(50, 50, 60, 65);
+        ctx.quadraticCurveTo(70, 80, 50, 85);
+        ctx.stroke();
+        // Belly stripe
+        ctx.strokeStyle = '#6a8a5a';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(20, 90); ctx.quadraticCurveTo(10, 70, 30, 60);
+        ctx.quadraticCurveTo(50, 50, 60, 65);
+        ctx.stroke();
+        // Neck rising up
+        ctx.fillStyle = '#3a5a2a';
+        ctx.beginPath();
+        ctx.moveTo(25, 55); ctx.quadraticCurveTo(20, 30, 30, 16);
+        ctx.lineTo(42, 16); ctx.quadraticCurveTo(45, 30, 40, 55);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#4a6a3a';
+        ctx.beginPath();
+        ctx.moveTo(28, 52); ctx.quadraticCurveTo(24, 32, 32, 18);
+        ctx.lineTo(40, 18); ctx.quadraticCurveTo(42, 32, 38, 52);
+        ctx.closePath(); ctx.fill();
+        // Head (serpent)
+        ctx.fillStyle = '#3a5a2a';
+        ctx.beginPath(); ctx.ellipse(36, 14, 14, 10, -0.1, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#4a6a3a';
+        ctx.beginPath(); ctx.ellipse(36, 13, 11, 8, -0.1, 0, Math.PI*2); ctx.fill();
+        // Hood/frill
+        ctx.fillStyle = '#3a5a2a';
+        ctx.beginPath();
+        ctx.moveTo(22, 16); ctx.lineTo(18, 8); ctx.lineTo(26, 12); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(50, 16); ctx.lineTo(54, 8); ctx.lineTo(46, 12); ctx.fill();
+        // Eyes (yellow, slit pupils)
+        ctx.fillStyle = '#ddcc22';
+        ctx.fillRect(28, 10, 5, 5);
+        ctx.fillRect(40, 10, 5, 5);
+        ctx.fillStyle = '#111';
+        ctx.fillRect(30, 11, 2, 3);
+        ctx.fillRect(42, 11, 2, 3);
+        // Mouth
+        ctx.fillStyle = '#2a1a0a';
+        ctx.fillRect(26, 20, 20, 3);
+        // Fangs
+        ctx.fillStyle = '#ddd';
+        ctx.fillRect(28, 20, 2, 4);
+        ctx.fillRect(42, 20, 2, 4);
+        // Smaller snake heads (children)
+        for (const [sx, sy] of [[12, 46], [58, 52], [8, 72]]) {
+            ctx.fillStyle = '#3a5a2a';
+            ctx.beginPath(); ctx.ellipse(sx, sy, 5, 4, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ddcc22';
+            ctx.fillRect(sx-3, sy-1, 2, 2);
+            ctx.fillRect(sx+1, sy-1, 2, 2);
+        }
+        return c;
+    },
+
+    drawCombatRuun() {
+        const W = 80, H = 100;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Void distortion aura
+        ctx.fillStyle = 'rgba(60,20,80,0.15)';
+        ctx.beginPath(); ctx.ellipse(40, 50, 38, 48, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(80,30,100,0.1)';
+        ctx.beginPath(); ctx.ellipse(40, 50, 28, 36, 0, 0, Math.PI*2); ctx.fill();
+        // Floating reality fragments (orbit around)
+        const drawFragment = (x, y, size, color) => {
+            ctx.fillStyle = color;
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(Math.random() * Math.PI);
+            ctx.fillRect(-size/2, -size/2, size, size);
+            ctx.restore();
+        };
+        ctx.globalAlpha = 0.5;
+        drawFragment(10, 20, 8, '#5a7a3a');
+        drawFragment(68, 24, 6, '#3a5a8a');
+        drawFragment(8, 60, 7, '#8a6a4a');
+        drawFragment(72, 56, 5, '#4a4a6a');
+        drawFragment(14, 82, 6, '#6a5a3a');
+        drawFragment(66, 78, 7, '#3a6a5a');
+        ctx.globalAlpha = 1;
+        // Central dark void core
+        const grd = ctx.createRadialGradient(40, 46, 4, 40, 46, 24);
+        grd.addColorStop(0, '#0a0010');
+        grd.addColorStop(0.5, '#1a0a2a');
+        grd.addColorStop(1, 'rgba(40,15,60,0)');
+        ctx.fillStyle = grd;
+        ctx.beginPath(); ctx.ellipse(40, 46, 24, 28, 0, 0, Math.PI*2); ctx.fill();
+        // Inner void
+        ctx.fillStyle = '#050008';
+        ctx.beginPath(); ctx.ellipse(40, 46, 14, 16, 0, 0, Math.PI*2); ctx.fill();
+        // Eye/face in the void
+        ctx.fillStyle = '#3a1a4a';
+        ctx.beginPath(); ctx.ellipse(40, 40, 10, 12, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#1a0a2a';
+        ctx.beginPath(); ctx.ellipse(40, 40, 8, 10, 0, 0, Math.PI*2); ctx.fill();
+        // Eyes (bright purple-white)
+        ctx.fillStyle = '#cc88ff';
+        ctx.fillRect(34, 38, 4, 3);
+        ctx.fillRect(42, 38, 4, 3);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(35, 38, 2, 2);
+        ctx.fillRect(43, 38, 2, 2);
+        // Mouth (void gash)
+        ctx.fillStyle = '#6a2a8a';
+        ctx.fillRect(34, 46, 12, 2);
+        // Energy tendrils radiating outward
+        ctx.strokeStyle = '#8a3aaa';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath(); ctx.moveTo(40, 20); ctx.quadraticCurveTo(35, 10, 28, 4); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(40, 20); ctx.quadraticCurveTo(45, 8, 54, 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(18, 46); ctx.quadraticCurveTo(8, 42, 2, 36); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(62, 46); ctx.quadraticCurveTo(72, 40, 78, 34); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(30, 68); ctx.quadraticCurveTo(20, 80, 14, 92); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(50, 68); ctx.quadraticCurveTo(60, 78, 68, 90); ctx.stroke();
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = '#bb66dd';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(40, 20); ctx.quadraticCurveTo(42, 6, 40, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(16, 46); ctx.quadraticCurveTo(6, 50, 0, 55); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(64, 46); ctx.quadraticCurveTo(74, 50, 80, 55); ctx.stroke();
+        ctx.globalAlpha = 1;
+        // Central sparkle
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = 0.8;
+        ctx.fillRect(39, 34, 2, 2);
+        ctx.fillRect(44, 42, 1, 1);
+        ctx.fillRect(34, 44, 1, 1);
+        ctx.globalAlpha = 1;
+        return c;
+    },
+
+    drawCombatGenericEnemy() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.ellipse(32, 72, 16, 4, 0, 0, Math.PI*2); ctx.fill();
+        // Generic dark figure
+        ctx.fillStyle = '#3a1a1a';
+        ctx.fillRect(20, 54, 8, 16); ctx.fillRect(36, 54, 8, 16);
+        ctx.fillStyle = '#5a2a2a';
+        ctx.fillRect(14, 26, 36, 30);
+        ctx.fillRect(4, 28, 12, 16);
+        ctx.fillRect(48, 28, 12, 16);
+        ctx.fillStyle = '#4a1a1a';
+        ctx.fillRect(18, 6, 28, 22);
+        ctx.fillStyle = '#ff3333';
+        ctx.fillRect(24, 12, 4, 3);
+        ctx.fillRect(36, 12, 4, 3);
+        return c;
+    },
+
     // ── Interaction Indicator ───────────────
 
     drawInteractPrompt(ctx, x, y, text) {
@@ -2258,11 +3157,38 @@ const Sprites = {
         }
     },
 
-    drawLighting(ctx, w, h, region) {
-        // Determine ambient darkness level by region
-        let ambientDark = 0.25; // base darkness
-        if (region === 'void_sanctum') ambientDark = 0.4;
-        else if (region === 'hollowfen') ambientDark = 0.3;
+    drawLighting(ctx, w, h, region, timeOfDay) {
+        if (timeOfDay === undefined) timeOfDay = 0.5;
+
+        // Determine base ambient darkness level by region
+        let baseDark = 0.25;
+        if (region === 'void_sanctum') baseDark = 0.4;
+        else if (region === 'hollowfen') baseDark = 0.3;
+
+        // Time-of-day darkness offset (smooth cosine interpolation via keyframes)
+        // Keyframes: 0.0=midnight(+0.35), 0.25=dawn(+0.1), 0.5=noon(+0.0), 0.75=dusk(+0.15)
+        const todKeys = [
+            { t: 0.0, v: 0.35 },
+            { t: 0.25, v: 0.1 },
+            { t: 0.5, v: 0.0 },
+            { t: 0.75, v: 0.15 },
+            { t: 1.0, v: 0.35 }
+        ];
+        let todOffset = 0;
+        for (let i = 0; i < todKeys.length - 1; i++) {
+            if (timeOfDay >= todKeys[i].t && timeOfDay <= todKeys[i + 1].t) {
+                const span = todKeys[i + 1].t - todKeys[i].t;
+                const frac = (timeOfDay - todKeys[i].t) / span;
+                const smooth = 0.5 - 0.5 * Math.cos(frac * Math.PI);
+                todOffset = todKeys[i].v + (todKeys[i + 1].v - todKeys[i].v) * smooth;
+                break;
+            }
+        }
+        const ambientDark = Math.min(0.85, baseDark + todOffset);
+
+        // Player light radius — larger at night for visibility
+        const isNight = (timeOfDay < 0.15 || timeOfDay >= 0.8);
+        const playerLightRadius = isNight ? 180 : 130;
 
         // Create or reuse offscreen lighting canvas
         if (!this._lightCanvas || this._lightCanvas.width !== w || this._lightCanvas.height !== h) {
@@ -2294,14 +3220,15 @@ const Sprites = {
                 light.radius * 2, light.radius * 2);
         }
 
-        // Player emits a personal light (wider radius for visibility)
+        // Player emits a personal light (wider radius at night)
         const px = w / 2, py = h / 2;
-        const playerGrd = lctx.createRadialGradient(px, py, 0, px, py, 130);
+        const playerGrd = lctx.createRadialGradient(px, py, 0, px, py, playerLightRadius);
         playerGrd.addColorStop(0, 'rgba(0,0,0,0.45)');
         playerGrd.addColorStop(0.6, 'rgba(0,0,0,0.15)');
         playerGrd.addColorStop(1, 'rgba(0,0,0,0)');
         lctx.fillStyle = playerGrd;
-        lctx.fillRect(px - 130, py - 130, 260, 260);
+        lctx.fillRect(px - playerLightRadius, py - playerLightRadius,
+            playerLightRadius * 2, playerLightRadius * 2);
 
         // Apply darkness overlay to main canvas
         ctx.drawImage(this._lightCanvas, 0, 0);
@@ -2323,6 +3250,37 @@ const Sprites = {
                 light.radius * 2, light.radius * 2);
         }
         ctx.drawImage(this._lightCanvas, 0, 0);
+
+        // Time-of-day color tint overlay
+        // Dawn: warm orange, Noon: none, Dusk: purple-orange, Night: blue
+        const tintKeys = [
+            { t: 0.0, r: 20, g: 30, b: 80, a: 0.12 },
+            { t: 0.15, r: 20, g: 30, b: 80, a: 0.12 },
+            { t: 0.25, r: 255, g: 160, b: 80, a: 0.08 },
+            { t: 0.35, r: 255, g: 160, b: 80, a: 0.02 },
+            { t: 0.5, r: 0, g: 0, b: 0, a: 0.0 },
+            { t: 0.65, r: 200, g: 100, b: 60, a: 0.02 },
+            { t: 0.75, r: 200, g: 100, b: 60, a: 0.1 },
+            { t: 0.85, r: 20, g: 30, b: 80, a: 0.12 },
+            { t: 1.0, r: 20, g: 30, b: 80, a: 0.12 }
+        ];
+        let tr = 0, tg = 0, tb = 0, ta = 0;
+        for (let i = 0; i < tintKeys.length - 1; i++) {
+            if (timeOfDay >= tintKeys[i].t && timeOfDay <= tintKeys[i + 1].t) {
+                const span = tintKeys[i + 1].t - tintKeys[i].t;
+                const frac = span > 0 ? (timeOfDay - tintKeys[i].t) / span : 0;
+                const smooth = 0.5 - 0.5 * Math.cos(frac * Math.PI);
+                tr = Math.round(tintKeys[i].r + (tintKeys[i + 1].r - tintKeys[i].r) * smooth);
+                tg = Math.round(tintKeys[i].g + (tintKeys[i + 1].g - tintKeys[i].g) * smooth);
+                tb = Math.round(tintKeys[i].b + (tintKeys[i + 1].b - tintKeys[i].b) * smooth);
+                ta = tintKeys[i].a + (tintKeys[i + 1].a - tintKeys[i].a) * smooth;
+                break;
+            }
+        }
+        if (ta > 0.001) {
+            ctx.fillStyle = `rgba(${tr},${tg},${tb},${ta.toFixed(3)})`;
+            ctx.fillRect(0, 0, w, h);
+        }
     },
 
     // ── Ambient Particle System ─────────────

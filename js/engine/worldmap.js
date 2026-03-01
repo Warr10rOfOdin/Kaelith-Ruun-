@@ -65,6 +65,9 @@ const WorldMap = {
     // Interaction cooldown
     interactCooldown: 0,
 
+    // Screen transition
+    _transition: null,  // { phase: 'out'|'in', alpha: 0-1, callback: null }
+
     // ---- INIT ----
     init() {
         this.canvas = document.getElementById('game-canvas');
@@ -182,6 +185,9 @@ const WorldMap = {
         if (GameState.currentScreen !== 'game') return;
         if (GameState.combatState) return;
 
+        // Screen transition (block input during transition)
+        this.updateTransition(dt);
+
         // Interaction cooldown
         if (this.interactCooldown > 0) this.interactCooldown -= dt;
 
@@ -224,6 +230,9 @@ const WorldMap = {
     },
 
     handleMovement(dt) {
+        // Block input during transitions
+        if (this._transition) return;
+
         let dx = 0, dy = 0;
         if (this.keys.up) dy = -1;
         if (this.keys.down) dy = 1;
@@ -369,7 +378,44 @@ const WorldMap = {
         }
 
         Narrative.addAction(`You travel ${direction}...`);
-        this.loadMap(exit.to, exit.entryX, exit.entryY);
+        this.transitionToMap(exit.to, exit.entryX, exit.entryY);
+    },
+
+    // Fade-out → load map → fade-in transition
+    transitionToMap(mapKey, entryX, entryY) {
+        // Start fade-out
+        this._transition = { phase: 'out', alpha: 0, speed: 3.5 };
+        this._pendingMap = { mapKey, entryX, entryY };
+    },
+
+    updateTransition(dt) {
+        if (!this._transition) return false;
+        const t = this._transition;
+        const step = t.speed * dt;
+
+        if (t.phase === 'out') {
+            t.alpha = Math.min(1, t.alpha + step);
+            if (t.alpha >= 1) {
+                // Fully black — load the new map
+                if (this._pendingMap) {
+                    this.loadMap(this._pendingMap.mapKey, this._pendingMap.entryX, this._pendingMap.entryY);
+                    this._pendingMap = null;
+                }
+                t.phase = 'in';
+            }
+        } else {
+            t.alpha = Math.max(0, t.alpha - step);
+            if (t.alpha <= 0) {
+                this._transition = null;
+            }
+        }
+        return true;
+    },
+
+    drawTransition(ctx, w, h) {
+        if (!this._transition) return;
+        ctx.fillStyle = `rgba(0,0,0,${this._transition.alpha.toFixed(3)})`;
+        ctx.fillRect(0, 0, w, h);
     },
 
     // ---- TERRAIN ----
@@ -635,33 +681,55 @@ const WorldMap = {
             }
         }
 
-        // ── Pass 4: Entity shadows ──
+        // ── Pass 4+5+6: Y-sorted depth rendering (entities + player) ──
+        // Collect all drawable entities and the player, sort by Y position, draw back-to-front
+        const drawables = [];
+
+        // Add entities
         for (const key in this.entityMap) {
             const entity = this.entityMap[key];
             const [ex, ey] = key.split(',').map(Number);
             const screenX = Math.floor(ex * T - this.camX);
             const screenY = Math.floor(ey * T - this.camY);
             if (screenX < -T || screenX > vw || screenY < -T || screenY > vh) continue;
-            if (entity.type === 'npc' || entity.type === 'enemy_spawn' || entity.type === 'boss') {
-                ctx.fillStyle = 'rgba(0,0,0,0.2)';
-                ctx.beginPath();
-                ctx.ellipse(screenX + T / 2, screenY + T - 3, T * 0.35, 3, 0, 0, Math.PI * 2);
-                ctx.fill();
+            drawables.push({
+                type: 'entity',
+                entity,
+                screenX,
+                screenY,
+                sortY: ey * T + T  // Bottom of tile for depth
+            });
+        }
+
+        // Add player
+        const playerSprite = Sprites.getPlayer(this.facing, this.walkFrame);
+        if (playerSprite) {
+            drawables.push({
+                type: 'player',
+                sortY: this.py + playerSprite.height / 2  // Bottom of player
+            });
+        }
+
+        // Sort back-to-front by Y position
+        drawables.sort((a, b) => a.sortY - b.sortY);
+
+        // Draw all in sorted order (shadow first, then sprite)
+        for (const d of drawables) {
+            if (d.type === 'entity') {
+                // Entity shadow
+                if (d.entity.type === 'npc' || d.entity.type === 'enemy_spawn' || d.entity.type === 'boss') {
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                    ctx.beginPath();
+                    ctx.ellipse(d.screenX + T / 2, d.screenY + T - 3, T * 0.35, 3, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                // Entity sprite
+                this.drawEntity(ctx, d.entity, d.screenX, d.screenY);
+            } else {
+                // Player shadow + sprite
+                this.drawPlayer(ctx);
             }
         }
-
-        // ── Pass 5: Entities ──
-        for (const key in this.entityMap) {
-            const entity = this.entityMap[key];
-            const [ex, ey] = key.split(',').map(Number);
-            const screenX = Math.floor(ex * T - this.camX);
-            const screenY = Math.floor(ey * T - this.camY);
-            if (screenX < -T || screenX > vw || screenY < -T || screenY > vh) continue;
-            this.drawEntity(ctx, entity, screenX, screenY);
-        }
-
-        // ── Pass 6: Player shadow + player ──
-        this.drawPlayer(ctx);
 
         // ── Pass 7: Forest edge canopy overhang (drawn over entities for depth) ──
         this.drawForestEdges(ctx, startTX, startTY, endTX, endTY, mapW, mapH, T);
@@ -685,6 +753,9 @@ const WorldMap = {
 
         this.drawWeather(ctx);
         Sprites.drawVignette(ctx, w, h);
+
+        // ── Pass 11: Screen transition overlay ──
+        this.drawTransition(ctx, w, h);
     },
 
     // ── Ground detail overlay — contextual details clustered near features ──
@@ -718,38 +789,51 @@ const WorldMap = {
                 const nearDead = n === 'K' || s === 'K' || e === 'K' || w === 'K' ||
                                  n === 'X' || s === 'X' || e === 'X' || w === 'X';
 
-                // Path-edge worn blend — grass/dirt gradient at path borders
+                // Path-edge worn blend — gradient dirt transition at path borders
                 if (nearPath) {
-                    // Determine which side the path is on
                     const pN = n === 'p', pS = s === 'p', pW = w === 'p', pE = e === 'p';
 
-                    // Worn dirt scatter along the path edge
-                    ctx.fillStyle = '#7a6a55';
-                    ctx.globalAlpha = 0.3;
+                    // Soft dirt gradient fading away from path edge
                     if (pN) {
-                        // Dirt fading south from path
-                        for (let i = 0; i < 4; i++) {
-                            const dx = (hash + i * 7) % (T - 2);
-                            ctx.fillRect(screenX + dx, screenY + ((hash + i) % 4), 3, 2);
-                        }
+                        const grd = ctx.createLinearGradient(screenX, screenY, screenX, screenY + T);
+                        grd.addColorStop(0, 'rgba(90,80,60,0.35)');
+                        grd.addColorStop(0.4, 'rgba(90,80,60,0.12)');
+                        grd.addColorStop(1, 'rgba(90,80,60,0)');
+                        ctx.fillStyle = grd;
+                        ctx.fillRect(screenX, screenY, T, T);
                     }
                     if (pS) {
-                        for (let i = 0; i < 4; i++) {
-                            const dx = (hash + i * 5) % (T - 2);
-                            ctx.fillRect(screenX + dx, screenY + T - 4 + ((hash + i) % 3), 3, 2);
-                        }
+                        const grd = ctx.createLinearGradient(screenX, screenY + T, screenX, screenY);
+                        grd.addColorStop(0, 'rgba(90,80,60,0.35)');
+                        grd.addColorStop(0.4, 'rgba(90,80,60,0.12)');
+                        grd.addColorStop(1, 'rgba(90,80,60,0)');
+                        ctx.fillStyle = grd;
+                        ctx.fillRect(screenX, screenY, T, T);
                     }
                     if (pW) {
-                        for (let i = 0; i < 3; i++) {
-                            const dy = (hash + i * 6) % (T - 2);
-                            ctx.fillRect(screenX + ((hash + i) % 4), screenY + dy, 2, 3);
-                        }
+                        const grd = ctx.createLinearGradient(screenX, screenY, screenX + T, screenY);
+                        grd.addColorStop(0, 'rgba(90,80,60,0.35)');
+                        grd.addColorStop(0.4, 'rgba(90,80,60,0.12)');
+                        grd.addColorStop(1, 'rgba(90,80,60,0)');
+                        ctx.fillStyle = grd;
+                        ctx.fillRect(screenX, screenY, T, T);
                     }
                     if (pE) {
-                        for (let i = 0; i < 3; i++) {
-                            const dy = (hash + i * 8) % (T - 2);
-                            ctx.fillRect(screenX + T - 4 + ((hash + i) % 3), screenY + dy, 2, 3);
-                        }
+                        const grd = ctx.createLinearGradient(screenX + T, screenY, screenX, screenY);
+                        grd.addColorStop(0, 'rgba(90,80,60,0.35)');
+                        grd.addColorStop(0.4, 'rgba(90,80,60,0.12)');
+                        grd.addColorStop(1, 'rgba(90,80,60,0)');
+                        ctx.fillStyle = grd;
+                        ctx.fillRect(screenX, screenY, T, T);
+                    }
+
+                    // Scattered dirt specks along the path edge
+                    ctx.fillStyle = '#7a6a55';
+                    ctx.globalAlpha = 0.3;
+                    for (let i = 0; i < 5; i++) {
+                        const sx = (hash + i * 7) % (T - 2);
+                        const sy = (hash + i * 11) % (T - 2);
+                        ctx.fillRect(screenX + sx, screenY + sy, 2, 1);
                     }
 
                     // Trampled grass (shorter, yellowed blades near path)

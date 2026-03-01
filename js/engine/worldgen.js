@@ -376,6 +376,8 @@ const WorldGen = {
     },
 
     stampBuilding(grid, bx, by, bw, bh, mapW, mapH) {
+        const seed = bx * 59 + by * 41;
+
         // Walls
         for (let y = by; y < by + bh && y < mapH; y++) {
             for (let x = bx; x < bx + bw && x < mapW; x++) {
@@ -391,24 +393,121 @@ const WorldGen = {
         if (doorX < mapW && by + bh - 1 < mapH) {
             grid[by + bh - 1][doorX] = 'D';
         }
+
+        // Interior furnishing for larger buildings
+        const innerW = bw - 2;
+        const innerH = bh - 2;
+        if (innerW < 2 || innerH < 2) return;
+
+        // Place a lantern inside
+        const lx = bx + 1 + Math.floor(innerW / 2);
+        const ly = by + 1;
+        if (lx < mapW && ly < mapH && grid[ly][lx] === '.') {
+            grid[ly][lx] = 'L';
+        }
+
+        // Place a barrel/crate (fence tile) in a corner
+        if (innerW >= 3 && this._noise(bx, by, seed + 15) < 0.5) {
+            const cx = bx + 1;
+            const cy = by + 1;
+            if (cx < mapW && cy < mapH && grid[cy][cx] === '.') {
+                grid[cy][cx] = 'f';
+            }
+        }
     },
 
     stampRuin(grid, bx, by, bw, bh, mapW, mapH) {
-        // Partial walls with gaps
+        const seed = bx * 73 + by * 37;
+
+        // Partial walls with gaps — corners always have walls for structure
         for (let y = by; y < by + bh && y < mapH; y++) {
             for (let x = bx; x < bx + bw && x < mapW; x++) {
                 const isEdge = x === bx || x === bx + bw - 1 || y === by || y === by + bh - 1;
-                if (isEdge) {
-                    grid[y][x] = Math.random() < 0.6 ? '#' : '.';
+                const isCorner = (x === bx || x === bx + bw - 1) && (y === by || y === by + bh - 1);
+                if (isCorner) {
+                    grid[y][x] = '#';
+                } else if (isEdge) {
+                    // Walls with crumbling — more intact near corners
+                    const distFromCorner = Math.min(
+                        Math.abs(x - bx), Math.abs(x - (bx + bw - 1)),
+                        Math.abs(y - by), Math.abs(y - (by + bh - 1))
+                    );
+                    const wallChance = 0.7 - distFromCorner * 0.05;
+                    grid[y][x] = this._noise(x, y, seed) < wallChance ? '#' : '.';
                 } else {
-                    grid[y][x] = Math.random() < 0.1 ? 'X' : '.';
+                    // Interior — scatter debris and furniture
+                    grid[y][x] = '.';
                 }
             }
         }
-        // Door
+
+        // Door at bottom center
         const doorX = bx + Math.floor(bw / 2);
         if (doorX < mapW && by + bh - 1 < mapH) {
             grid[by + bh - 1][doorX] = 'D';
+        }
+
+        // Interior details — only if ruin is large enough
+        const innerW = bw - 2;
+        const innerH = bh - 2;
+        if (innerW < 2 || innerH < 2) return;
+
+        const ix = bx + 1;
+        const iy = by + 1;
+
+        // Rubble piles near broken wall sections
+        for (let y = by; y < by + bh && y < mapH; y++) {
+            for (let x = bx; x < bx + bw && x < mapW; x++) {
+                const isEdge = x === bx || x === bx + bw - 1 || y === by || y === by + bh - 1;
+                if (isEdge && grid[y][x] === '.') {
+                    // Broken wall — scatter rubble inward
+                    const inX = x === bx ? x + 1 : x === bx + bw - 1 ? x - 1 : x;
+                    const inY = y === by ? y + 1 : y === by + bh - 1 ? y - 1 : y;
+                    if (inX > bx && inX < bx + bw - 1 && inY > by && inY < by + bh - 1
+                        && inY < mapH && inX < mapW && grid[inY][inX] === '.') {
+                        if (this._noise(inX, inY, seed + 5) < 0.4) {
+                            grid[inY][inX] = 'X'; // bones/rubble
+                        }
+                    }
+                }
+            }
+        }
+
+        // Scatter interior objects based on ruin size
+        const interiorTiles = [];
+        for (let y = iy; y < iy + innerH && y < mapH; y++) {
+            for (let x = ix; x < ix + innerW && x < mapW; x++) {
+                if (grid[y][x] === '.') interiorTiles.push({ x, y });
+            }
+        }
+
+        // Broken furniture (barricades used as overturned tables/shelves)
+        const furnitureCount = Math.min(2, Math.floor(interiorTiles.length / 6));
+        for (let i = 0; i < furnitureCount; i++) {
+            const idx = Math.floor(this._noise(ix + i, iy + i, seed + 10) * interiorTiles.length);
+            const tile = interiorTiles[idx];
+            if (tile && grid[tile.y][tile.x] === '.') {
+                grid[tile.y][tile.x] = 'U'; // barricade as broken furniture
+            }
+        }
+
+        // Scattered bones/debris
+        const debrisCount = Math.min(3, Math.floor(interiorTiles.length / 4));
+        for (let i = 0; i < debrisCount; i++) {
+            const idx = Math.floor(this._noise(ix + i * 3, iy + i * 2, seed + 20) * interiorTiles.length);
+            const tile = interiorTiles[idx];
+            if (tile && grid[tile.y][tile.x] === '.') {
+                grid[tile.y][tile.x] = 'X'; // bones/rubble
+            }
+        }
+
+        // Occasional lantern (still burning dimly)
+        if (innerW >= 3 && innerH >= 3 && this._noise(bx, by, seed + 30) < 0.35) {
+            const lx = ix + Math.floor(innerW / 2);
+            const ly = iy + Math.floor(innerH / 2);
+            if (lx < mapW && ly < mapH && grid[ly][lx] === '.') {
+                grid[ly][lx] = 'L';
+            }
         }
     },
 

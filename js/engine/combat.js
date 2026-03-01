@@ -93,6 +93,10 @@ const Combat = {
         if (typeof Audio !== 'undefined') Audio.startCombatAmbient(this.enemy.isBoss);
 
         this.renderCombatUI();
+
+        // Start persistent ambient particles
+        this._setTimeout(() => this.startAmbientParticles(), 300);
+
         this.logCombat(`A ${this.enemy.name} appears!`, 'info');
 
         if (this.enemy.isBoss && this.enemy.phases.length > 0) {
@@ -370,9 +374,10 @@ const Combat = {
         // Store the telegraphed ability so enemyTurn uses the same one
         this._telegraphedAbility = telegraphed;
 
-        // Show the intent indicator
+        // Show the intent indicator and trigger wind-up animation
         if (telegraphed) {
             this.showEnemyIntent(telegraphed);
+            this.triggerEnemyWindUp(telegraphed);
         }
 
         // Execute after telegraph delay (600ms for normal, 900ms for boss specials)
@@ -431,7 +436,7 @@ const Combat = {
         this.totalDamageDealt += damage;
         if (this.comboCount > this.maxCombo) this.maxCombo = this.comboCount;
         this.updateComboDisplay();
-        this.shakeElement('enemy-display');
+        this.shakeElement('enemy-display', damage);
         this.triggerEnemyHitRecoil();
         this.triggerBarDrain();
         this.flashEnemy(isCrit ? 'rgba(255,200,50,0.7)' : 'rgba(255,255,255,0.5)');
@@ -439,7 +444,7 @@ const Combat = {
         this.showImpactParticles('enemy-display', isCrit ? '#ffcc44' : '#aabbff', isCrit ? 8 : 5);
         this.animatePlayerSprite('attacking');
         if (isCrit) {
-            this.shakeElement('combat-arena');
+            this.shakeElement('combat-arena', damage);
         }
         NativeBridge.hapticMedium();
     },
@@ -528,24 +533,24 @@ const Combat = {
             this.totalDamageDealt += damage;
             if (this.comboCount > this.maxCombo) this.maxCombo = this.comboCount;
             this.updateComboDisplay();
-            this.shakeElement('enemy-display');
+            this.shakeElement('enemy-display', damage);
             this.triggerEnemyHitRecoil();
             this.triggerBarDrain();
-            // Spell visual + sound effect
-            const spellType = ability.type === 'magical' ? (ability.element === 'fire' ? 'fire' : 'ice') : 'physical';
-            this.showSpellEffect(spellType);
+
+            // Ability-specific VFX dispatch
+            const vfx = this.getAbilityVFX(ability);
+            this.showSpellEffect(vfx.spell);
+            this.flashEnemy(vfx.flash);
+            this.showSlashEffect(vfx.slash);
+            this.showImpactParticles('enemy-display', vfx.particleColor, isCrit ? 10 : 6);
+
             if (typeof Audio !== 'undefined') {
                 if (ability.type === 'magical') Audio.playSpell(ability.element || 'generic');
                 else Audio.playAttack();
             }
-            this.flashEnemy(ability.type === 'magical' ? 'rgba(100,150,255,0.6)' : 'rgba(255,255,255,0.5)');
-            const slashType = ability.type === 'magical' ? (ability.element === 'fire' ? 'fire' : ability.element === 'ice' ? 'ice' : 'shadow') : 'physical';
-            this.showSlashEffect(slashType);
-            const particleColor = ability.type === 'magical' ? (ability.element === 'fire' ? '#ff6622' : '#44aaff') : '#ffffff';
-            this.showImpactParticles('enemy-display', particleColor, isCrit ? 10 : 6);
             this.animatePlayerSprite('attacking');
             if (isCrit) {
-                this.shakeElement('combat-arena');
+                this.shakeElement('combat-arena', damage);
             }
 
             // Lifesteal abilities
@@ -852,6 +857,7 @@ const Combat = {
         }
 
         this.updateBars();
+        this.updateStatusOverlays();
 
         if (GameState.player.hp <= 0) {
             this.handleDefeat();
@@ -945,9 +951,18 @@ const Combat = {
         this.log.scrollTop = this.log.scrollHeight;
     },
 
-    shakeElement(id) {
+    shakeElement(id, damage) {
         const el = document.getElementById(id);
-        if (el) {
+        if (!el) return;
+        // Scale shake intensity by damage
+        if (damage && damage >= 30) {
+            el.classList.remove('shake', 'heavy-shake');
+            void el.offsetWidth;
+            el.classList.add('heavy-shake');
+            this._setTimeout(() => el.classList.remove('heavy-shake'), 500);
+        } else {
+            el.classList.remove('shake', 'heavy-shake');
+            void el.offsetWidth;
             el.classList.add('shake');
             this._setTimeout(() => el.classList.remove('shake'), 300);
         }
@@ -1219,6 +1234,7 @@ const Combat = {
         if (!this.active) return;
         this.active = false;
         this._clearTimers();
+        this.stopAmbientParticles();
 
         const enemy = this.enemy;
         if (!enemy) return;
@@ -1326,6 +1342,7 @@ const Combat = {
         if (!this.active) return;
         this.active = false;
         this._clearTimers();
+        this.stopAmbientParticles();
 
         this.logCombat('You have fallen...', 'defeat');
         NativeBridge.hapticNotification('error');
@@ -1386,6 +1403,7 @@ const Combat = {
     },
 
     returnToGame() {
+        this.stopAmbientParticles();
         ScreenManager.showScreen('game');
         Exploration.showCurrentLocation();
         HUD.update();
@@ -1402,6 +1420,7 @@ const Combat = {
     endCombat(reason) {
         this.active = false;
         this._clearTimers();
+        this.stopAmbientParticles();
         ScreenManager.showScreen('game');
         HUD.update();
 
@@ -1496,6 +1515,198 @@ const Combat = {
             bar.classList.add('low-hp');
         } else if (bar) {
             bar.classList.remove('low-hp');
+        }
+    },
+
+    // ---- ABILITY-SPECIFIC VFX MAPPING ----
+    getAbilityVFX(ability) {
+        if (!ability) return { spell: 'physical', flash: 'rgba(255,255,255,0.5)', slash: 'physical', particleColor: '#aabbff' };
+
+        const name = (ability.name || '').toLowerCase();
+
+        // Blood / lifesteal abilities
+        if (name.includes('blood') || name.includes('crimson') || name.includes('sanguine') || name.includes('exsanguinate') || name.includes('hemorrhage') || name.includes('drain')) {
+            return { spell: 'blood', flash: 'rgba(180,20,20,0.6)', slash: 'blood', particleColor: '#cc2222' };
+        }
+
+        // Void / shadow abilities
+        if (name.includes('void') || name.includes('shadow') || name.includes('umbral') || name.includes('dark') || name.includes('unmaking') || name.includes('rift') || name.includes('null') || name.includes('reality') || name.includes('phase')) {
+            return { spell: 'void', flash: 'rgba(100,30,180,0.6)', slash: 'void', particleColor: '#9944dd' };
+        }
+
+        // Fire abilities
+        if (ability.element === 'fire' || name.includes('fire') || name.includes('flame') || name.includes('ember') || name.includes('runefire') || name.includes('meteor') || name.includes('crown of flame')) {
+            return { spell: 'fire', flash: 'rgba(255,120,30,0.6)', slash: 'fire', particleColor: '#ff6622' };
+        }
+
+        // Ice abilities
+        if (ability.element === 'ice' || name.includes('frost') || name.includes('ice') || name.includes('cold')) {
+            return { spell: 'ice', flash: 'rgba(80,180,255,0.6)', slash: 'ice', particleColor: '#44aaff' };
+        }
+
+        // Lightning abilities
+        if (ability.element === 'lightning' || name.includes('lightning') || name.includes('chain') || name.includes('shock')) {
+            return { spell: 'lightning', flash: 'rgba(180,220,255,0.7)', slash: 'lightning', particleColor: '#aaddff' };
+        }
+
+        // Heal / restoration abilities
+        if (ability.type === 'heal' || name.includes('heal') || name.includes('restoration') || name.includes('soul heal')) {
+            return { spell: 'heal', flash: 'rgba(60,200,80,0.5)', slash: 'heal', particleColor: '#44aa55' };
+        }
+
+        // Buff abilities
+        if (ability.type === 'buff') {
+            return { spell: 'buff', flash: 'rgba(201,168,76,0.4)', slash: 'heal', particleColor: '#c9a84c' };
+        }
+
+        // Multi-hit abilities
+        if (ability.hits && ability.hits > 1 || name.includes('fan') || name.includes('thousand') || name.includes('rift walk')) {
+            return { spell: 'physical', flash: 'rgba(255,255,255,0.6)', slash: 'multi', particleColor: '#ffffff' };
+        }
+
+        // Soul / spectral abilities
+        if (name.includes('soul') || name.includes('spectral') || name.includes('spirit') || name.includes('reaping')) {
+            return { spell: 'shadow', flash: 'rgba(120,140,200,0.5)', slash: 'shadow', particleColor: '#8899cc' };
+        }
+
+        // Generic magical
+        if (ability.type === 'magical') {
+            return { spell: 'shadow', flash: 'rgba(100,150,255,0.5)', slash: 'shadow', particleColor: '#6699cc' };
+        }
+
+        // Generic physical
+        return { spell: 'physical', flash: 'rgba(255,255,255,0.5)', slash: 'physical', particleColor: '#aabbff' };
+    },
+
+    // ---- ENEMY WIND-UP ANIMATION ----
+    triggerEnemyWindUp(ability) {
+        const display = document.getElementById('enemy-display');
+        if (!display) return;
+        const canvas = display.querySelector('.enemy-art-canvas');
+        if (!canvas) return;
+
+        canvas.classList.remove('wind-up-physical', 'wind-up-magical', 'wind-up-heavy');
+        void canvas.offsetWidth;
+
+        let windUpClass = 'wind-up-physical';
+        if (ability) {
+            if (ability.damage && ability.damage[1] >= 25) {
+                windUpClass = 'wind-up-heavy';
+            } else if (ability.type === 'magical') {
+                windUpClass = 'wind-up-magical';
+            }
+        }
+
+        canvas.classList.add(windUpClass);
+        const duration = windUpClass === 'wind-up-heavy' ? 700 : 500;
+        this._setTimeout(() => canvas.classList.remove(windUpClass), duration);
+    },
+
+    // ---- STATUS EFFECT VISUAL OVERLAYS ----
+    updateStatusOverlays() {
+        const stage = document.getElementById('combat-stage');
+        if (!stage) return;
+
+        // Remove all existing status overlays
+        stage.querySelectorAll('[class^="status-overlay-"]').forEach(el => el.remove());
+
+        // Add overlays for active debuffs on the player
+        const activeTypes = new Set();
+        for (const buff of this.playerBuffs) {
+            if (buff.type === 'poison' || buff.type === 'blind' || buff.type === 'slow' || buff.type === 'weaken') {
+                activeTypes.add(buff.type);
+            }
+        }
+        if (GameState.player.statusEffects) {
+            for (const se of GameState.player.statusEffects) {
+                if (se.type === 'poison') activeTypes.add('poison');
+            }
+        }
+
+        for (const type of activeTypes) {
+            const overlay = document.createElement('div');
+            overlay.className = `status-overlay-${type}`;
+            stage.appendChild(overlay);
+        }
+    },
+
+    // ---- PERSISTENT COMBAT AMBIENT PARTICLES ----
+    _ambientParticleInterval: null,
+
+    startAmbientParticles() {
+        this.stopAmbientParticles();
+        const stage = document.getElementById('combat-stage');
+        if (!stage) return;
+
+        const region = GameState.currentRegion || 'ashen_wastes';
+        let particleClass, count;
+
+        if (region === 'hollowfen') {
+            particleClass = 'spore';
+            count = 8;
+        } else if (region === 'void_sanctum') {
+            particleClass = 'void-mote';
+            count = 10;
+        } else {
+            particleClass = 'ember';
+            count = 12;
+        }
+
+        // Create initial batch
+        this._spawnAmbientBatch(stage, particleClass, count);
+
+        // Respawn particles periodically
+        this._ambientParticleInterval = setInterval(() => {
+            // Clean up old particles (beyond a reasonable count)
+            const existing = stage.querySelectorAll('.combat-ambient-particle');
+            if (existing.length < count * 2) {
+                this._spawnAmbientBatch(stage, particleClass, Math.ceil(count / 2));
+            }
+        }, 3000);
+    },
+
+    _spawnAmbientBatch(stage, particleClass, count) {
+        const stageRect = stage.getBoundingClientRect();
+        const W = stageRect.width || 300;
+        const H = stageRect.height || 400;
+
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement('div');
+            p.className = `combat-ambient-particle ${particleClass}`;
+            const size = 2 + Math.random() * 4;
+            const x = Math.random() * W;
+            const y = H * 0.3 + Math.random() * H * 0.6;
+            const duration = 3 + Math.random() * 4;
+            const delay = Math.random() * 3;
+            const dx = (Math.random() - 0.5) * 30;
+            const dy = -(20 + Math.random() * 40);
+            const dx2 = dx + (Math.random() - 0.5) * 20;
+            const dy2 = dy - (20 + Math.random() * 30);
+            const alpha = 0.3 + Math.random() * 0.4;
+
+            p.style.cssText = `
+                left:${x}px;top:${y}px;
+                width:${size}px;height:${size}px;
+                --duration:${duration}s;--delay:${delay}s;
+                --dx:${dx}px;--dy:${dy}px;
+                --dx2:${dx2}px;--dy2:${dy2}px;
+                --alpha:${alpha};
+            `;
+            stage.appendChild(p);
+
+            // Remove after animation cycle
+            setTimeout(() => { if (p.parentNode) p.remove(); }, (duration + delay) * 1000);
+        }
+    },
+
+    stopAmbientParticles() {
+        if (this._ambientParticleInterval) {
+            clearInterval(this._ambientParticleInterval);
+            this._ambientParticleInterval = null;
+        }
+        const stage = document.getElementById('combat-stage');
+        if (stage) {
+            stage.querySelectorAll('.combat-ambient-particle').forEach(el => el.remove());
         }
     }
 };

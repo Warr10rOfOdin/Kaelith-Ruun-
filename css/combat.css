@@ -100,6 +100,44 @@
     100% { transform: translateX(0) scale(1); filter: brightness(1) drop-shadow(0 6px 12px rgba(0,0,0,0.6)); }
 }
 
+/* Enemy wind-up — visible charge before attacking */
+.enemy-art-canvas.wind-up-physical {
+    animation: enemyWindUpPhysical 0.5s ease !important;
+}
+
+.enemy-art-canvas.wind-up-magical {
+    animation: enemyWindUpMagical 0.5s ease !important;
+}
+
+.enemy-art-canvas.wind-up-heavy {
+    animation: enemyWindUpHeavy 0.7s ease !important;
+}
+
+@keyframes enemyWindUpPhysical {
+    0% { transform: translateY(0) scale(1); }
+    30% { transform: translateY(-4px) scale(1.06) translateX(-3px); filter: brightness(1.15); }
+    60% { transform: translateY(-2px) scale(1.08) translateX(-5px); }
+    80% { transform: translateY(6px) scale(0.97) translateX(8px); filter: brightness(1.3); }
+    100% { transform: translateY(0) scale(1); filter: brightness(1); }
+}
+
+@keyframes enemyWindUpMagical {
+    0% { transform: scale(1); filter: brightness(1); }
+    20% { transform: scale(1.04); filter: brightness(1.2) saturate(1.5); }
+    50% { transform: scale(1.08); filter: brightness(1.5) saturate(2); }
+    70% { transform: scale(1.04); filter: brightness(1.8) saturate(2.5); }
+    100% { transform: scale(1); filter: brightness(1) saturate(1); }
+}
+
+@keyframes enemyWindUpHeavy {
+    0% { transform: translateY(0) scale(1); filter: brightness(1); }
+    15% { transform: translateY(-8px) scale(1.1); filter: brightness(1.2); }
+    40% { transform: translateY(-12px) scale(1.15); filter: brightness(1.4) drop-shadow(0 0 15px rgba(255,60,30,0.4)); }
+    70% { transform: translateY(8px) scale(0.95) translateX(6px); filter: brightness(1.6); }
+    85% { transform: translateY(2px) scale(1.02); filter: brightness(1.2); }
+    100% { transform: translateY(0) scale(1); filter: brightness(1); }
+}
+
 /* Enemy death animation */
 .enemy-art-canvas.dying {
     animation: enemyDeath 0.8s ease forwards !important;
@@ -599,6 +637,26 @@
     background: radial-gradient(circle at 50% 25%, rgba(255,255,255,0.18) 0%, transparent 45%);
     animation: slashFlash 0.3s ease forwards;
 }
+.spell-overlay.lightning {
+    background: linear-gradient(175deg, transparent 30%, rgba(180,220,255,0.5) 48%, rgba(255,255,255,0.7) 50%, rgba(180,220,255,0.5) 52%, transparent 70%);
+    animation: lightningFlash 0.4s ease forwards;
+}
+.spell-overlay.blood {
+    background: radial-gradient(circle at 50% 30%, rgba(180,20,20,0.4) 0%, rgba(120,10,10,0.15) 40%, transparent 65%);
+    animation: bloodPulse 0.6s ease forwards;
+}
+.spell-overlay.heal {
+    background: radial-gradient(circle at 50% 60%, rgba(60,200,80,0.3) 0%, rgba(40,160,60,0.1) 45%, transparent 70%);
+    animation: healGlow 0.8s ease forwards;
+}
+.spell-overlay.void {
+    background: radial-gradient(circle at 50% 30%, rgba(80,0,140,0.4) 0%, rgba(40,0,80,0.2) 35%, transparent 60%);
+    animation: voidRip 0.7s ease forwards;
+}
+.spell-overlay.buff {
+    background: radial-gradient(circle at 50% 70%, rgba(201,168,76,0.25) 0%, rgba(160,130,60,0.08) 50%, transparent 75%);
+    animation: buffShimmer 0.7s ease forwards;
+}
 
 @keyframes spellFlash {
     0% { opacity: 0; transform: scale(0.8); }
@@ -609,6 +667,45 @@
 @keyframes slashFlash {
     0% { opacity: 0; }
     15% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes lightningFlash {
+    0% { opacity: 0; transform: scaleX(0.3); }
+    10% { opacity: 1; transform: scaleX(1.2); }
+    20% { opacity: 0.4; transform: scaleX(0.8); }
+    30% { opacity: 1; transform: scaleX(1.1); }
+    50% { opacity: 0.6; }
+    100% { opacity: 0; }
+}
+
+@keyframes bloodPulse {
+    0% { opacity: 0; transform: scale(0.5); }
+    20% { opacity: 1; transform: scale(1.1); }
+    40% { opacity: 0.8; transform: scale(0.95); }
+    60% { opacity: 0.6; transform: scale(1.05); }
+    100% { opacity: 0; transform: scale(1.2); }
+}
+
+@keyframes healGlow {
+    0% { opacity: 0; transform: scale(0.6); }
+    30% { opacity: 1; transform: scale(1.05); }
+    70% { opacity: 0.8; transform: scale(1.0); }
+    100% { opacity: 0; transform: scale(1.1); }
+}
+
+@keyframes voidRip {
+    0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+    15% { opacity: 1; transform: scale(1.15) rotate(3deg); }
+    40% { opacity: 0.8; transform: scale(0.95) rotate(-2deg); }
+    100% { opacity: 0; transform: scale(1.3) rotate(0deg); }
+}
+
+@keyframes buffShimmer {
+    0% { opacity: 0; }
+    20% { opacity: 0.8; }
+    50% { opacity: 0.4; }
+    70% { opacity: 0.7; }
     100% { opacity: 0; }
 }
 
@@ -641,6 +738,73 @@
     animation: magicBurst 0.45s ease-out forwards;
 }
 
+.slash-effect.lightning-slash {
+    background: linear-gradient(160deg, transparent 20%, rgba(180,220,255,0.8) 45%, rgba(255,255,255,0.9) 50%, rgba(180,220,255,0.8) 55%, transparent 80%);
+    animation: lightningStrike 0.35s ease-out forwards;
+}
+
+.slash-effect.blood-slash {
+    background: radial-gradient(ellipse at 45% 45%, rgba(180,20,20,0.7) 0%, rgba(120,10,10,0.4) 35%, transparent 60%);
+    animation: bloodSplash 0.5s ease-out forwards;
+}
+
+.slash-effect.void-slash {
+    background: radial-gradient(ellipse at 50% 50%, rgba(80,0,180,0.6) 0%, rgba(40,0,100,0.3) 40%, transparent 65%);
+    animation: voidBurst 0.5s ease-out forwards;
+}
+
+.slash-effect.heal-slash {
+    background: radial-gradient(ellipse at 50% 60%, rgba(60,200,80,0.5) 0%, rgba(40,160,60,0.2) 40%, transparent 65%);
+    animation: healRing 0.6s ease-out forwards;
+}
+
+.slash-effect.multi-slash {
+    background:
+        linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.5) 47%, transparent 50%),
+        linear-gradient(140deg, transparent 30%, rgba(255,255,255,0.5) 47%, transparent 50%),
+        linear-gradient(170deg, transparent 30%, rgba(255,255,255,0.5) 47%, transparent 50%);
+    animation: multiStrike 0.5s ease-out forwards;
+}
+
+@keyframes lightningStrike {
+    0% { opacity: 0; transform: scaleY(0.2); }
+    15% { opacity: 1; transform: scaleY(1.3) scaleX(1.2); }
+    30% { opacity: 0.3; transform: scaleY(0.9); }
+    45% { opacity: 0.9; transform: scaleY(1.1); }
+    100% { opacity: 0; transform: scaleY(0.8); }
+}
+
+@keyframes bloodSplash {
+    0% { opacity: 0; transform: scale(0.3); }
+    20% { opacity: 1; transform: scale(1.2); }
+    40% { opacity: 0.7; transform: scale(0.9); }
+    60% { opacity: 0.5; transform: scale(1.1); }
+    100% { opacity: 0; transform: scale(1.4); }
+}
+
+@keyframes voidBurst {
+    0% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+    20% { opacity: 1; transform: scale(1.2) rotate(10deg); }
+    50% { opacity: 0.6; transform: scale(0.9) rotate(-5deg); }
+    100% { opacity: 0; transform: scale(1.5) rotate(0deg); }
+}
+
+@keyframes healRing {
+    0% { opacity: 0; transform: scale(0.4); border-radius: 50%; }
+    30% { opacity: 0.8; transform: scale(1.0); }
+    60% { opacity: 0.5; transform: scale(1.2); }
+    100% { opacity: 0; transform: scale(1.5); }
+}
+
+@keyframes multiStrike {
+    0% { opacity: 0; transform: rotate(-30deg) scale(0.4); }
+    15% { opacity: 0.8; transform: rotate(-15deg) scale(1.1); }
+    30% { opacity: 0.5; transform: rotate(0deg) scale(1.0); }
+    50% { opacity: 0.8; transform: rotate(10deg) scale(1.05); }
+    70% { opacity: 0.4; transform: rotate(20deg) scale(0.9); }
+    100% { opacity: 0; transform: rotate(30deg) scale(0.6); }
+}
+
 @keyframes slashSwing {
     0% { opacity: 0; transform: rotate(-40deg) scale(0.4); }
     20% { opacity: 1; transform: rotate(-5deg) scale(1.15); }
@@ -667,6 +831,119 @@
 @keyframes particleBurst {
     0% { opacity: 1; transform: translate(0, 0) scale(1); }
     100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0); }
+}
+
+/* ---- STATUS EFFECT OVERLAYS ---- */
+/* Applied to #combat-stage to affect the whole battlefield */
+.status-overlay-poison {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 6;
+    background: linear-gradient(180deg, transparent 50%, rgba(30,120,20,0.06) 80%, rgba(20,80,10,0.12) 100%);
+    animation: poisonDrip 2s ease-in-out infinite;
+}
+
+@keyframes poisonDrip {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+.status-overlay-blind {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 6;
+    background: radial-gradient(ellipse at 50% 50%, transparent 20%, rgba(0,0,0,0.25) 60%, rgba(0,0,0,0.5) 100%);
+    animation: blindPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes blindPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+.status-overlay-slow {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 6;
+    border: 3px solid rgba(100,180,255,0.15);
+    box-shadow: inset 0 0 40px rgba(80,160,255,0.06);
+    animation: frostShimmer 2.5s ease-in-out infinite;
+}
+
+@keyframes frostShimmer {
+    0%, 100% { border-color: rgba(100,180,255,0.10); box-shadow: inset 0 0 30px rgba(80,160,255,0.04); }
+    50% { border-color: rgba(100,180,255,0.25); box-shadow: inset 0 0 50px rgba(80,160,255,0.10); }
+}
+
+.status-overlay-weaken {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 6;
+    background: radial-gradient(ellipse at 50% 70%, rgba(100,40,40,0.08) 0%, transparent 60%);
+    animation: weakenPulse 2s ease-in-out infinite;
+}
+
+@keyframes weakenPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+/* ---- PERSISTENT COMBAT PARTICLES ---- */
+.combat-ambient-particle {
+    position: absolute;
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 50%;
+}
+
+.combat-ambient-particle.ember {
+    background: radial-gradient(circle, rgba(255,120,30,0.8) 0%, rgba(255,60,10,0.3) 60%, transparent 100%);
+    animation: emberFloat var(--duration, 4s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+}
+
+.combat-ambient-particle.spore {
+    background: radial-gradient(circle, rgba(80,160,60,0.6) 0%, rgba(40,100,30,0.2) 60%, transparent 100%);
+    animation: sporeFloat var(--duration, 6s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+}
+
+.combat-ambient-particle.void-mote {
+    background: radial-gradient(circle, rgba(140,60,220,0.7) 0%, rgba(80,20,160,0.3) 60%, transparent 100%);
+    animation: voidMoteFloat var(--duration, 5s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+}
+
+@keyframes emberFloat {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    10% { opacity: var(--alpha, 0.6); }
+    50% { transform: translate(var(--dx, 10px), var(--dy, -40px)) scale(0.8); opacity: var(--alpha, 0.6); }
+    90% { opacity: 0.1; }
+    100% { transform: translate(var(--dx2, 15px), var(--dy2, -80px)) scale(0.3); opacity: 0; }
+}
+
+@keyframes sporeFloat {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    15% { opacity: var(--alpha, 0.4); }
+    50% { transform: translate(var(--dx, 8px), var(--dy, -20px)) scale(1.1); opacity: var(--alpha, 0.4); }
+    85% { opacity: 0.1; }
+    100% { transform: translate(var(--dx2, -5px), var(--dy2, -50px)) scale(0.5); opacity: 0; }
+}
+
+@keyframes voidMoteFloat {
+    0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+    20% { opacity: var(--alpha, 0.5); transform: scale(1); }
+    50% { transform: translate(var(--dx, 5px), var(--dy, -15px)) scale(1.2); opacity: var(--alpha, 0.5); }
+    80% { opacity: 0.2; }
+    100% { transform: translate(var(--dx2, -8px), var(--dy2, -35px)) scale(0.3); opacity: 0; }
 }
 
 /* ---- REGION-SPECIFIC COMBAT BACKGROUNDS ---- */

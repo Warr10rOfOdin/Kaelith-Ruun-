@@ -1282,26 +1282,104 @@ const Sprites = {
 
     drawAltar() {
         const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
-        // Grass base
-        ctx.fillStyle = this.PAL.grass[2]; ctx.fillRect(0, 0, T, T);
         // Dark stone floor
-        ctx.fillStyle = '#3a3a4a'; ctx.fillRect(4, 10, 24, 18);
-        // Altar body
-        ctx.fillStyle = '#5a5a6a'; ctx.fillRect(8, 8, 16, 14);
-        ctx.fillStyle = '#6a6a7a'; ctx.fillRect(9, 9, 14, 4);
-        // Top slab
-        ctx.fillStyle = '#7a7a8a'; ctx.fillRect(6, 6, 20, 4);
-        ctx.fillStyle = '#8a8aaa'; ctx.fillRect(8, 6, 16, 2);
-        // Carved runes (glowing)
-        ctx.fillStyle = '#aa66ff';
-        ctx.globalAlpha = 0.6;
-        ctx.fillRect(10, 14, 2, 2); ctx.fillRect(14, 14, 2, 2);
-        ctx.fillRect(18, 14, 2, 2); ctx.fillRect(12, 18, 2, 1);
-        ctx.fillRect(16, 18, 2, 1);
+        ctx.fillStyle = '#1a1a22';
+        ctx.fillRect(0, 0, T, T);
+        ctx.fillStyle = '#222230';
+        ctx.fillRect(2, 4, 28, 24);
+
+        // Purple glow from below
+        const glow = ctx.createRadialGradient(16, 18, 2, 16, 18, 14);
+        glow.addColorStop(0, 'rgba(120,40,180,0.25)');
+        glow.addColorStop(0.6, 'rgba(80,20,140,0.10)');
+        glow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, T, T);
+
+        // Stone pedestal base — wide, stepped
+        ctx.fillStyle = '#3a3840';
+        ctx.fillRect(4, 18, 24, 10);
+        ctx.fillStyle = '#4a4850';
+        ctx.fillRect(6, 16, 20, 4);
+        ctx.fillStyle = '#5a5860';
+        ctx.fillRect(8, 14, 16, 4);
+        // Pedestal highlight
+        ctx.fillStyle = '#6a6870';
+        ctx.fillRect(9, 14, 14, 1);
+
+        // Skull on top — demonic with horns
+        ctx.fillStyle = '#c8c0b0';
+        ctx.beginPath(); ctx.ellipse(16, 11, 6, 5, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#d8d0c0';
+        ctx.beginPath(); ctx.ellipse(16, 10, 5, 4, 0, 0, Math.PI * 2); ctx.fill();
+        // Eye sockets — glowing purple
+        ctx.fillStyle = '#1a0a1a';
+        ctx.fillRect(12, 9, 3, 3); ctx.fillRect(17, 9, 3, 3);
+        ctx.fillStyle = '#aa44ff';
+        ctx.fillRect(13, 10, 1, 1); ctx.fillRect(18, 10, 1, 1);
+        // Eye glow
+        ctx.fillStyle = 'rgba(170,68,255,0.2)';
+        ctx.fillRect(11, 8, 5, 5); ctx.fillRect(16, 8, 5, 5);
+        // Nose hole
+        ctx.fillStyle = '#2a1a2a';
+        ctx.fillRect(15, 12, 2, 1);
+        // Jaw
+        ctx.fillStyle = '#b8b0a0';
+        ctx.fillRect(12, 13, 8, 2);
+        ctx.fillStyle = '#a8a090';
+        ctx.fillRect(13, 14, 6, 1);
+
+        // Demonic horns — curving upward
+        ctx.fillStyle = '#3a2a1a';
+        // Left horn
+        ctx.fillRect(9, 7, 3, 4);
+        ctx.fillRect(7, 4, 3, 5);
+        ctx.fillRect(6, 2, 2, 4);
+        // Right horn
+        ctx.fillRect(20, 7, 3, 4);
+        ctx.fillRect(22, 4, 3, 5);
+        ctx.fillRect(24, 2, 2, 4);
+        // Horn highlights
+        ctx.fillStyle = '#5a4a38';
+        ctx.fillRect(8, 5, 1, 3); ctx.fillRect(23, 5, 1, 3);
+
+        // Fire braziers — left and right
+        // Left brazier
+        ctx.fillStyle = '#4a4a50';
+        ctx.fillRect(1, 14, 4, 8);
+        ctx.fillStyle = '#5a5a60';
+        ctx.fillRect(0, 12, 6, 3);
+        ctx.fillStyle = '#ff6600';
+        ctx.fillRect(1, 9, 4, 4);
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(2, 10, 2, 2);
+        ctx.fillStyle = '#ffcc33';
+        ctx.fillRect(2, 10, 1, 1);
+        // Right brazier
+        ctx.fillStyle = '#4a4a50';
+        ctx.fillRect(27, 14, 4, 8);
+        ctx.fillStyle = '#5a5a60';
+        ctx.fillRect(26, 12, 6, 3);
+        ctx.fillStyle = '#ff6600';
+        ctx.fillRect(27, 9, 4, 4);
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(28, 10, 2, 2);
+        ctx.fillStyle = '#ffcc33';
+        ctx.fillRect(29, 10, 1, 1);
+
+        // Fire glow
+        ctx.fillStyle = 'rgba(255,120,20,0.12)';
+        ctx.beginPath(); ctx.arc(3, 10, 6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(29, 10, 6, 0, Math.PI * 2); ctx.fill();
+
+        // Carved runes on pedestal — glowing purple
+        ctx.fillStyle = '#8a44cc';
+        ctx.globalAlpha = 0.5;
+        ctx.fillRect(10, 19, 2, 1); ctx.fillRect(14, 19, 2, 1);
+        ctx.fillRect(18, 19, 2, 1); ctx.fillRect(12, 22, 2, 1);
+        ctx.fillRect(16, 22, 2, 1);
         ctx.globalAlpha = 1;
-        // Candles
-        ctx.fillStyle = '#eee'; ctx.fillRect(7, 3, 2, 3); ctx.fillRect(23, 3, 2, 3);
-        ctx.fillStyle = '#ffaa00'; ctx.fillRect(7, 2, 2, 2); ctx.fillRect(23, 2, 2, 2);
+
         return c;
     },
 
@@ -1358,45 +1436,111 @@ const Sprites = {
     drawRitualCircle() {
         const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
         ctx.fillStyle = this.PAL.grass[0]; ctx.fillRect(0, 0, T, T);
-        // Darkened ground
-        ctx.fillStyle = '#2a2a2a'; ctx.globalAlpha = 0.3;
-        ctx.beginPath(); ctx.arc(T/2, T/2, 14, 0, Math.PI * 2); ctx.fill();
+
+        // Scorched/darkened ground circle
+        ctx.fillStyle = '#1a1818';
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath(); ctx.arc(T/2, T/2, 15, 0, Math.PI * 2); ctx.fill();
         ctx.globalAlpha = 1;
-        // Outer circle (carved stones)
-        ctx.strokeStyle = '#6a5a7a'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(T/2, T/2, 12, 0, Math.PI * 2); ctx.stroke();
-        // Inner runes (glowing purple)
-        ctx.strokeStyle = '#8a4aaa'; ctx.lineWidth = 1; ctx.globalAlpha = 0.7;
-        ctx.beginPath(); ctx.arc(T/2, T/2, 7, 0, Math.PI * 2); ctx.stroke();
+
+        // Blood-stained inner circle
+        ctx.fillStyle = '#3a1010';
+        ctx.globalAlpha = 0.3;
+        ctx.beginPath(); ctx.arc(T/2, T/2, 10, 0, Math.PI * 2); ctx.fill();
         ctx.globalAlpha = 1;
-        // Rune marks
-        ctx.fillStyle = '#aa66cc'; ctx.globalAlpha = 0.5;
-        ctx.fillRect(T/2-1, 6, 2, 3); ctx.fillRect(T/2-1, T-9, 2, 3);
-        ctx.fillRect(6, T/2-1, 3, 2); ctx.fillRect(T-9, T/2-1, 3, 2);
+
+        // Outer circle — carved/burned into ground
+        ctx.strokeStyle = '#5a3a6a';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(T/2, T/2, 13, 0, Math.PI * 2); ctx.stroke();
+
+        // Inner pentagram-style lines (glowing)
+        ctx.strokeStyle = '#8a3aaa';
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.6;
+        const pts = 5, r = 8;
+        ctx.beginPath();
+        for (let i = 0; i < pts; i++) {
+            const a1 = (i * 2 % pts) * (Math.PI * 2 / pts) - Math.PI / 2;
+            const a2 = ((i * 2 + 2) % pts) * (Math.PI * 2 / pts) - Math.PI / 2;
+            ctx.moveTo(T/2 + Math.cos(a1) * r, T/2 + Math.sin(a1) * r);
+            ctx.lineTo(T/2 + Math.cos(a2) * r, T/2 + Math.sin(a2) * r);
+        }
+        ctx.stroke();
         ctx.globalAlpha = 1;
+
+        // Glowing rune marks at cardinal points
+        ctx.fillStyle = '#cc55ff';
+        ctx.globalAlpha = 0.6;
+        ctx.fillRect(T/2-1, 4, 2, 3);
+        ctx.fillRect(T/2-1, T-7, 2, 3);
+        ctx.fillRect(4, T/2-1, 3, 2);
+        ctx.fillRect(T-7, T/2-1, 3, 2);
+        ctx.globalAlpha = 1;
+
+        // Center glow
+        ctx.fillStyle = 'rgba(140,50,200,0.15)';
+        ctx.beginPath(); ctx.arc(T/2, T/2, 6, 0, Math.PI * 2); ctx.fill();
+
         return c;
     },
 
     drawBanner() {
         const c = this.mkCanvas(); const ctx = c.getContext('2d'); const T = this.TS;
         ctx.fillStyle = this.PAL.grass[1]; ctx.fillRect(0, 0, T, T);
-        // Pole
-        ctx.fillStyle = '#4a4a4a'; ctx.fillRect(14, 2, 4, 30);
-        ctx.fillStyle = '#5a5a5a'; ctx.fillRect(15, 2, 2, 28);
-        // Banner cloth (tattered)
-        ctx.fillStyle = '#8a2222'; ctx.fillRect(18, 4, 10, 14);
-        ctx.fillStyle = '#aa3333'; ctx.fillRect(19, 5, 8, 6);
-        // Torn edge
+
+        // Iron pole — taller, darker
+        ctx.fillStyle = '#3a3a3a';
+        ctx.fillRect(14, 0, 4, 32);
+        ctx.fillStyle = '#4a4a4a';
+        ctx.fillRect(15, 1, 2, 30);
+
+        // Pole top — spear point
+        ctx.fillStyle = '#5a5a5a';
+        ctx.fillRect(13, 0, 6, 2);
+        ctx.fillStyle = '#6a6a6a';
+        ctx.fillRect(14, 0, 4, 1);
+
+        // Banner cloth — deep crimson, tattered, larger
+        ctx.fillStyle = '#6a1818';
+        ctx.fillRect(18, 3, 12, 18);
         ctx.fillStyle = '#8a2222';
-        ctx.fillRect(18, 17, 8, 2); ctx.fillRect(20, 19, 5, 2);
-        ctx.fillRect(22, 21, 3, 1);
-        // Symbol on banner
-        ctx.fillStyle = '#cc9944'; ctx.globalAlpha = 0.7;
-        ctx.fillRect(21, 7, 4, 4);
-        ctx.fillRect(22, 6, 2, 1); ctx.fillRect(22, 11, 2, 1);
+        ctx.fillRect(19, 4, 10, 14);
+        ctx.fillStyle = '#aa2a2a';
+        ctx.fillRect(20, 5, 8, 8);
+
+        // Tattered bottom edge
+        ctx.fillStyle = '#6a1818';
+        ctx.fillRect(18, 20, 10, 2);
+        ctx.fillRect(20, 22, 7, 2);
+        ctx.fillRect(22, 24, 4, 1);
+        ctx.fillRect(24, 25, 2, 1);
+        // Tear holes
+        ctx.clearRect(21, 16, 2, 2);
+        ctx.clearRect(26, 12, 2, 3);
+
+        // Gold heraldic symbol — skull/demon sigil
+        ctx.fillStyle = '#cc9933';
+        ctx.globalAlpha = 0.8;
+        // Skull outline
+        ctx.fillRect(22, 6, 4, 4);
+        ctx.fillRect(21, 7, 6, 2);
+        // Horns
+        ctx.fillRect(20, 5, 2, 3);
+        ctx.fillRect(26, 5, 2, 3);
+        // Eyes
+        ctx.fillStyle = '#1a0a0a';
+        ctx.fillRect(23, 7, 1, 1);
+        ctx.fillRect(25, 7, 1, 1);
         ctx.globalAlpha = 1;
-        // Pole top
-        ctx.fillStyle = '#6a6a6a'; ctx.fillRect(13, 0, 6, 3);
+
+        // Banner border trim — gold thread
+        ctx.fillStyle = '#aa8833';
+        ctx.globalAlpha = 0.4;
+        ctx.fillRect(18, 3, 12, 1);
+        ctx.fillRect(18, 3, 1, 18);
+        ctx.globalAlpha = 1;
+
         return c;
     },
 

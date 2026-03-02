@@ -7,7 +7,7 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 ## Current Priority: World & Content Expansion
 
 ### World Content
-- [ ] Fourth region: The Shattered Spire (endgame zone)
+- [x] Fourth region: The Shattered Spire (endgame zone) — `enemies.js` + `items.js` + `world.js` + `npcs.js` + `maps.js` + `sprites.js` + `worldmap.js` + `audio.js`
 - [ ] Region-specific random encounters
 - [ ] Rare world bosses with unique loot tables
 - [ ] Environmental puzzles in ruin interiors
@@ -25,6 +25,7 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ## Recently Completed
 
+- [x] The Shattered Spire — full endgame region with 4 enemies, boss, 2 NPCs, 6 items, 4 locations, map data, visual atmosphere, weather, ambient music — `enemies.js` + `items.js` + `world.js` + `npcs.js` + `maps.js` + `sprites.js` + `worldmap.js` + `audio.js`
 - [x] Combat stance system (aggressive/balanced/defensive with damage, crit, MP modifiers) — `combat.js` + `combat.css`
 - [x] Boss environmental mechanics (fire rain, poison fog, void fissures, etc.) — `combat.js` + `enemies.js` + `combat.css`
 - [x] Character Creation visual overhaul (progress dots, stat chips, sprite preview, animated steps) — `main.js` + `style.css` + `index.html`

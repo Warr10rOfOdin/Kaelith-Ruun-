@@ -473,6 +473,11 @@ const WorldMap = {
                 if (roll < 0.4) this.weather = 'clear';
                 else if (roll < 0.8) this.weather = 'fog';
                 else this.weather = 'rain';
+            } else if (region === 'shattered_spire') {
+                if (roll < 0.45) this.weather = 'clear';
+                else if (roll < 0.7) this.weather = 'fog';
+                else if (roll < 0.85) this.weather = 'snow';
+                else this.weather = 'rain';
             }
         }
 
@@ -606,7 +611,8 @@ const WorldMap = {
         const bgColors = {
             ashen_wastes: '#2a1f14',
             hollowfen: '#0f1a1f',
-            void_sanctum: '#15081a'
+            void_sanctum: '#15081a',
+            shattered_spire: '#0a0e22'
         };
         ctx.fillStyle = bgColors[GameState.currentRegion] || '#1a2a15';
         ctx.fillRect(0, 0, w, h);

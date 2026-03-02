@@ -386,6 +386,10 @@ const Audio = {
                 notes = [131, 147, 165, 156, 131, 110];
                 tempo = 900;
                 type = 'sine';
+            } else if (region === 'shattered_spire') {
+                notes = [330, 392, 440, 494, 392, 330];
+                tempo = 850;
+                type = 'triangle';
             } else {
                 notes = [262, 294, 330, 294, 262, 247];
                 tempo = 700;

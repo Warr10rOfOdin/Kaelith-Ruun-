@@ -4890,6 +4890,16 @@ const Sprites = {
             heatGrd.addColorStop(1, 'rgba(80,50,20,0)');
             ctx.fillStyle = heatGrd;
             ctx.fillRect(0, 0, w, h * 0.25);
+        } else if (region === 'shattered_spire') {
+            // Blue-violet crystalline haze
+            ctx.fillStyle = 'rgba(20,15,50,0.16)';
+            ctx.fillRect(0, 0, w, h);
+            // Faint arcane shimmer band across upper third
+            const arcGrd = ctx.createLinearGradient(0, 0, 0, h * 0.35);
+            arcGrd.addColorStop(0, 'rgba(60,80,180,0.04)');
+            arcGrd.addColorStop(1, 'rgba(60,80,180,0)');
+            ctx.fillStyle = arcGrd;
+            ctx.fillRect(0, 0, w, h * 0.35);
         }
     },
 
@@ -5028,6 +5038,7 @@ const Sprites = {
         // Determine base ambient darkness level by region — dark fantasy: overall darker
         let baseDark = 0.32;
         if (region === 'void_sanctum') baseDark = 0.48;
+        else if (region === 'shattered_spire') baseDark = 0.42;
         else if (region === 'hollowfen') baseDark = 0.38;
         else if (region === 'scorched_village') baseDark = 0.35;
 
@@ -5161,7 +5172,7 @@ const Sprites = {
         this._ambientTimer += dt;
 
         // Spawn new ambient particles periodically
-        const spawnRate = region === 'void_sanctum' ? 0.08 : 0.15;
+        const spawnRate = (region === 'void_sanctum' || region === 'shattered_spire') ? 0.08 : 0.15;
         if (this._ambientTimer >= spawnRate) {
             this._ambientTimer -= spawnRate;
             this.spawnAmbientParticle(region, camX, camY, vpW, vpH);
@@ -5318,6 +5329,55 @@ const Sprites = {
                     pulsePhase: Math.random() * 6.28
                 });
             }
+        } else if (region === 'shattered_spire') {
+            if (roll < 0.5) {
+                // Crystal motes — gentle upward drift, blue-purple sparkle
+                const r = Math.random();
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: -6 - Math.random() * 10,
+                    life: 3 + Math.random() * 4,
+                    maxLife: 3 + Math.random() * 4,
+                    color: r < 0.33 ? '#6a8aff' : r < 0.66 ? '#9a6aee' : '#4ae0ff',
+                    size: 1 + Math.random() * 2,
+                    wave: true,
+                    waveFreq: 1.5 + Math.random() * 2,
+                    waveAmp: 5 + Math.random() * 6,
+                    waveOffset: Math.random() * 6.28
+                });
+            } else if (roll < 0.8) {
+                // Arcane rune fragments — tiny glyphs that fade in and out
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: -2 - Math.random() * 3,
+                    life: 2 + Math.random() * 3,
+                    maxLife: 2 + Math.random() * 3,
+                    color: Math.random() < 0.5 ? '#8080ff' : '#b060ff',
+                    size: 2,
+                    wave: true,
+                    waveFreq: 1 + Math.random(),
+                    waveAmp: 3,
+                    waveOffset: Math.random() * 6.28,
+                    isSpark: true
+                });
+            } else {
+                // Crystal dust — very fine particles that shimmer
+                this.ambientParticles.push({
+                    x: worldX, y: worldY,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: -10 - Math.random() * 8,
+                    life: 1.5 + Math.random() * 2,
+                    maxLife: 1.5 + Math.random() * 2,
+                    color: '#aaccff',
+                    size: 1,
+                    wave: true,
+                    waveFreq: 3 + Math.random() * 2,
+                    waveAmp: 6,
+                    waveOffset: Math.random() * 6.28
+                });
+            }
         }
     },
 
@@ -5442,6 +5502,7 @@ const Sprites = {
         switch (region) {
             case 'hollowfen': this._drawBattlefieldHollowfen(ctx, W, H); break;
             case 'void_sanctum': this._drawBattlefieldVoidSanctum(ctx, W, H); break;
+            case 'shattered_spire': this._drawBattlefieldShatteredSpire(ctx, W, H); break;
             default: this._drawBattlefieldAshenWastes(ctx, W, H); break;
         }
     },
@@ -5662,6 +5723,121 @@ const Sprites = {
             const size = rng() < 0.3 ? 2 : 1;
             ctx.fillStyle = `rgba(${150 + Math.floor(rng() * 60)},${100 + Math.floor(rng() * 60)},${200 + Math.floor(rng() * 55)},${alpha})`;
             ctx.fillRect(x, y, size, size);
+        }
+
+        this._drawBattlefieldVignette(ctx, W, H);
+    },
+
+    _drawBattlefieldShatteredSpire(ctx, W, H) {
+        // Sky — deep blue-violet gradient with crystalline shimmer
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.5);
+        skyGrad.addColorStop(0, '#04061a');
+        skyGrad.addColorStop(0.3, '#0a0e2a');
+        skyGrad.addColorStop(0.6, '#121838');
+        skyGrad.addColorStop(1, '#1a2040');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, W, H * 0.5);
+
+        // Distant arcane glow — twin energy sources
+        ctx.fillStyle = 'rgba(80,120,255,0.06)';
+        ctx.beginPath();
+        ctx.ellipse(W * 0.35, H * 0.25, W * 0.12, H * 0.08, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(150,80,220,0.05)';
+        ctx.beginPath();
+        ctx.ellipse(W * 0.65, H * 0.2, W * 0.1, H * 0.06, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Shattered spire silhouettes — broken tower forms
+        ctx.fillStyle = '#0a0e20';
+        ctx.beginPath();
+        ctx.moveTo(0, H * 0.48);
+        ctx.lineTo(W * 0.08, H * 0.38);
+        ctx.lineTo(W * 0.12, H * 0.42);
+        ctx.lineTo(W * 0.18, H * 0.22);
+        ctx.lineTo(W * 0.22, H * 0.28);
+        ctx.lineTo(W * 0.28, H * 0.44);
+        ctx.lineTo(W * 0.38, H * 0.36);
+        ctx.lineTo(W * 0.45, H * 0.18);
+        ctx.lineTo(W * 0.50, H * 0.30);
+        ctx.lineTo(W * 0.58, H * 0.42);
+        ctx.lineTo(W * 0.65, H * 0.34);
+        ctx.lineTo(W * 0.72, H * 0.20);
+        ctx.lineTo(W * 0.78, H * 0.32);
+        ctx.lineTo(W * 0.85, H * 0.40);
+        ctx.lineTo(W * 0.92, H * 0.26);
+        ctx.lineTo(W, H * 0.38);
+        ctx.lineTo(W, H * 0.50);
+        ctx.lineTo(0, H * 0.50);
+        ctx.closePath();
+        ctx.fill();
+
+        // Ground — cracked crystalline platform
+        const groundGrad = ctx.createLinearGradient(0, H * 0.48, 0, H);
+        groundGrad.addColorStop(0, '#1a1a38');
+        groundGrad.addColorStop(0.3, '#12122a');
+        groundGrad.addColorStop(1, '#08081a');
+        ctx.fillStyle = groundGrad;
+        ctx.fillRect(0, H * 0.48, W, H * 0.52);
+
+        // Crystal veins in the ground
+        const rng = this.seeded(55);
+        ctx.strokeStyle = 'rgba(100,140,255,0.1)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 12; i++) {
+            const x = rng() * W;
+            const y = H * 0.52 + rng() * H * 0.40;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + (rng() - 0.5) * 30, y + rng() * 15);
+            ctx.lineTo(x + (rng() - 0.5) * 50, y + rng() * 20);
+            ctx.stroke();
+        }
+
+        // Floating crystal shards
+        ctx.fillStyle = '#2a3060';
+        ctx.save();
+        ctx.translate(W * 0.12, H * 0.30);
+        ctx.rotate(0.5);
+        ctx.fillRect(-3, -7, 6, 14);
+        ctx.fillStyle = 'rgba(100,140,255,0.2)';
+        ctx.fillRect(-2, -5, 4, 10);
+        ctx.restore();
+        ctx.fillStyle = '#2a2a50';
+        ctx.save();
+        ctx.translate(W * 0.88, H * 0.22);
+        ctx.rotate(-0.4);
+        ctx.fillRect(-4, -9, 8, 18);
+        ctx.fillStyle = 'rgba(150,80,220,0.15)';
+        ctx.fillRect(-3, -7, 6, 14);
+        ctx.restore();
+        ctx.fillStyle = '#2a3060';
+        ctx.save();
+        ctx.translate(W * 0.78, H * 0.42);
+        ctx.rotate(0.7);
+        ctx.fillRect(-2, -5, 4, 10);
+        ctx.restore();
+
+        // Crystal sparkle particles (static)
+        for (let i = 0; i < 25; i++) {
+            const x = rng() * W;
+            const y = rng() * H * 0.7;
+            const size = rng() < 0.3 ? 2 : 1;
+            const alpha = 0.15 + rng() * 0.35;
+            const r = rng();
+            const color = r < 0.33 ? `rgba(100,160,255,${alpha})` : r < 0.66 ? `rgba(160,100,240,${alpha})` : `rgba(80,230,255,${alpha})`;
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, size, size);
+        }
+
+        // Runic floor markings
+        ctx.fillStyle = 'rgba(80,120,255,0.08)';
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2;
+            const r = W * 0.2;
+            const x = W * 0.5 + Math.cos(angle) * r;
+            const y = H * 0.7 + Math.sin(angle) * r * 0.25;
+            ctx.fillRect(x - 1, y - 1, 3, 3);
         }
 
         this._drawBattlefieldVignette(ctx, W, H);

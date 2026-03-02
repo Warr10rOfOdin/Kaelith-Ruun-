@@ -449,5 +449,82 @@ const NPCS = {
                 choices: []
             }
         }
+    },
+
+    // ---- SHATTERED SPIRE NPCs ----
+    spire_runesmith: {
+        name: 'Vael',
+        icon: '🔨',
+        title: 'Runesmith of the Skybridge',
+        location: 'skybridge_outpost',
+        description: 'A dwarf-like artisan who forges weapons from the spire\'s crystal. Her hands glow faintly with absorbed rune-energy.',
+        dialogues: {
+            initial: {
+                text: "Crystal and light — the only materials worth forging up here. Everything else crumbles. You want something that won't? Then you've come to the right forge.",
+                choices: [
+                    { text: "Show me your wares.", next: 'shop', shopType: 'blacksmith' },
+                    { text: "What is this place?", next: 'about_spire' },
+                    { text: "I'll be going.", next: 'farewell' }
+                ]
+            },
+            about_spire: {
+                text: "The Shattered Spire. Once the tallest tower in the world — built by the Architect to prove that mortals could create something eternal. The Sundering broke everything else, but this tower... it refused to fall. Parts of it still float, held by equations the Architect carved into reality itself. Trouble is, the Architect went mad. Now it rebuilds and destroys in an endless loop. Be careful up there.",
+                choices: [
+                    { text: "Let me see your stock.", next: 'shop', shopType: 'blacksmith' },
+                    { text: "Thanks for the warning.", next: 'farewell' }
+                ]
+            },
+            shop: {
+                text: "Everything here is forged from spire crystal. Lighter than steel, sharper than obsidian. Just don't drop it off the edge — it's a long way down.",
+                choices: [],
+                isShop: true,
+                shopType: 'blacksmith'
+            },
+            farewell: {
+                text: "Watch the edges. There are no guardrails in the spire.",
+                choices: []
+            }
+        }
+    },
+    spire_alchemist: {
+        name: 'Thessaly',
+        icon: '⚗️',
+        title: 'Alchemist of the Skybridge',
+        location: 'skybridge_outpost',
+        description: 'A wild-eyed researcher who distills potions from arcane dust and dissolved crystal. Her concoctions are potent, if unpredictable.',
+        dialogues: {
+            initial: {
+                text: "You look like you need something strong. The altitude here does strange things to the body — and stranger things to the mind. I have tonics for both.",
+                choices: [
+                    { text: "What do you have?", next: 'shop', shopType: 'herbalist' },
+                    { text: "What are you researching?", next: 'research' },
+                    { text: "Not now, thanks.", next: 'farewell' }
+                ]
+            },
+            research: {
+                text: "The crystal here isn't just stone — it's stored thought. The Architect literally crystallized mathematics. I've been dissolving the lesser shards and analyzing the compounds. Each one contains fragments of equations that describe the fundamental forces of reality. If I could decode them fully... well. Let's just say I'd understand more about the universe than anyone alive.",
+                choices: [
+                    { text: "Sounds dangerous.", next: 'dangerous' },
+                    { text: "Show me your potions.", next: 'shop', shopType: 'herbalist' }
+                ]
+            },
+            dangerous: {
+                text: "Everything up here is dangerous. The floor could vanish. A golem could reform from rubble. A rune wraith might decide your thoughts look tastier than a crystal slate. But knowledge? Knowledge is worth every risk.",
+                choices: [
+                    { text: "Fair enough. Show me your wares.", next: 'shop', shopType: 'herbalist' },
+                    { text: "Good luck with your research.", next: 'farewell' }
+                ]
+            },
+            shop: {
+                text: "Fresh batch. The blue ones restore mana, the red ones heal wounds, and the gold one will make you feel invincible for about ten minutes. After that, you'll feel terrible. Worth it, though.",
+                choices: [],
+                isShop: true,
+                shopType: 'herbalist'
+            },
+            farewell: {
+                text: "If you see any intact crystal slates up there, bring them to me. I pay well for undamaged knowledge.",
+                choices: []
+            }
+        }
     }
 };

@@ -100,12 +100,20 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 - [x] Boss environmental mechanics — unique per-boss hazards (fire rain, poison fog, void fissures, etc.)
 - [x] Stance selector UI strip integrated into combat actions
 
+### The Shattered Spire (v0.11.0)
+- [x] New endgame region: The Shattered Spire (level 8-12) with 4 locations
+- [x] 4 new enemies + The Architect boss with phase-based environmental mechanics
+- [x] 2 NPCs (Vael, Thessaly) with dialogue trees and shops at Skybridge Outpost
+- [x] 6 new items including legendary Architect's Compass and Architect's Crown
+- [x] Full map definitions with procedural terrain generation
+- [x] Purple-blue crystalline visual atmosphere (tint, lighting, particles, battlefield)
+- [x] Region-specific weather and ambient music
+
 ---
 
 ## Planned
 
 ### World & Content Expansion
-- [ ] New region: The Shattered Spire (endgame zone)
 - [ ] Region-specific random events and encounters
 - [ ] Dynamic NPC schedules and deeper dialogue trees
 - [ ] Crafting specializations tied to class

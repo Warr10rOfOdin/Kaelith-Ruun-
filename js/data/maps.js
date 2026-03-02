@@ -678,6 +678,144 @@ const MAP_DEFS = {
             { x: 34, y: 32, type: 'enemy_spawn', enemies: ['void_acolyte'] }
         ],
         bossArea: true
+    },
+
+    // =============================
+    // THE SHATTERED SPIRE
+    // =============================
+    spire_approach: {
+        width: 90, height: 65, seed: 4001, biome: 'shattered_spire',
+        playerStart: { x: 45, y: 60 },
+        structures: [
+            { x: 36, y: 25, w: 18, h: 12, type: 'ruin', purpose: 'gatehouse' },
+            { x: 14, y: 10, w: 10, h: 8, type: 'ruin', purpose: 'watchtower' },
+            { x: 66, y: 14, w: 10, h: 8, type: 'ruin', purpose: 'barracks' },
+        ],
+        paths: [
+            { from: { x: 45, y: 64 }, to: { x: 45, y: 50 } },
+            { from: { x: 45, y: 50 }, to: { x: 45, y: 30 } },
+            { from: { x: 45, y: 30 }, to: { x: 30, y: 18 } },
+            { from: { x: 45, y: 30 }, to: { x: 60, y: 18 } },
+            { from: { x: 45, y: 50 }, to: { x: 20, y: 40 } },
+        ],
+        exits: {
+            north: { to: 'crystalline_archive', entryX: 50, entryY: 65 },
+        },
+        stamps: [
+            { x: 44, y: 28, ch: 'A' },
+            { x: 20, y: 40, ch: 'Z' },
+            { x: 70, y: 50, ch: 'J' },
+            { x: 15, y: 55, ch: 'Y' },
+            { x: 36, y: 48, ch: 'N' },
+            { x: 54, y: 48, ch: 'N' },
+        ],
+        entities: [
+            { x: 44, y: 30, type: 'campfire' },
+            { x: 16, y: 12, type: 'chest', loot: ['greater_health_potion', 'crystal_shard'] },
+            { x: 68, y: 16, type: 'chest', loot: ['arcane_dust', 'greater_mana_potion'] },
+            { x: 30, y: 42, type: 'enemy_spawn', enemies: ['crystal_revenant'] },
+            { x: 60, y: 35, type: 'enemy_spawn', enemies: ['rune_wraith'] },
+            { x: 75, y: 50, type: 'enemy_spawn', enemies: ['fractured_golem'] },
+            { x: 20, y: 20, type: 'enemy_spawn', enemies: ['crystal_revenant', 'crystal_revenant'] },
+        ]
+    },
+
+    crystalline_archive: {
+        width: 100, height: 70, seed: 4002, biome: 'shattered_spire',
+        playerStart: { x: 50, y: 65 },
+        structures: [
+            { x: 30, y: 20, w: 40, h: 25, type: 'ruin', purpose: 'main_archive' },
+            { x: 10, y: 10, w: 12, h: 10, type: 'ruin', purpose: 'west_wing' },
+            { x: 78, y: 10, w: 12, h: 10, type: 'ruin', purpose: 'east_wing' },
+        ],
+        paths: [
+            { from: { x: 50, y: 69 }, to: { x: 50, y: 50 } },
+            { from: { x: 50, y: 50 }, to: { x: 50, y: 30 } },
+            { from: { x: 50, y: 30 }, to: { x: 16, y: 15 } },
+            { from: { x: 50, y: 30 }, to: { x: 84, y: 15 } },
+            { from: { x: 50, y: 50 }, to: { x: 20, y: 50 } },
+            { from: { x: 50, y: 50 }, to: { x: 80, y: 50 } },
+        ],
+        exits: {
+            south: { to: 'spire_approach', entryX: 45, entryY: 5 },
+            north: { to: 'skybridge_outpost', entryX: 30, entryY: 37 },
+        },
+        stamps: [
+            { x: 50, y: 30, ch: 'A' },
+            { x: 35, y: 25, ch: 'L' },
+            { x: 65, y: 25, ch: 'L' },
+            { x: 12, y: 12, ch: 'Q' },
+            { x: 82, y: 12, ch: 'Q' },
+            { x: 40, y: 55, ch: 'J' },
+            { x: 60, y: 55, ch: 'X' },
+        ],
+        entities: [
+            { x: 50, y: 32, type: 'campfire' },
+            { x: 14, y: 14, type: 'chest', loot: ['crystal_shard', 'crystal_shard', 'arcane_dust'] },
+            { x: 84, y: 14, type: 'chest', loot: ['runeward_staff'] },
+            { x: 35, y: 40, type: 'enemy_spawn', enemies: ['rune_wraith', 'rune_wraith'] },
+            { x: 65, y: 40, type: 'enemy_spawn', enemies: ['spire_seraph'] },
+            { x: 20, y: 55, type: 'enemy_spawn', enemies: ['fractured_golem'] },
+            { x: 80, y: 55, type: 'enemy_spawn', enemies: ['crystal_revenant', 'rune_wraith'] },
+            { x: 50, y: 20, type: 'enemy_spawn', enemies: ['spire_seraph'] },
+        ]
+    },
+
+    skybridge_outpost: {
+        width: 60, height: 40, seed: 4003, biome: 'village',
+        playerStart: { x: 30, y: 3 },
+        structures: [
+            { x: 12, y: 12, w: 10, h: 8, type: 'building', purpose: 'forge' },
+            { x: 38, y: 12, w: 10, h: 8, type: 'building', purpose: 'apothecary' },
+            { x: 24, y: 24, w: 12, h: 8, type: 'building', purpose: 'lodge' },
+        ],
+        paths: [
+            { from: { x: 30, y: 0 }, to: { x: 30, y: 39 } },
+            { from: { x: 8, y: 16 }, to: { x: 52, y: 16 } },
+            { from: { x: 30, y: 16 }, to: { x: 30, y: 28 } },
+        ],
+        exits: {
+            south: { to: 'crystalline_archive', entryX: 50, entryY: 5 },
+            north: { to: 'architects_sanctum', entryX: 25, entryY: 3 },
+        },
+        entities: [
+            { x: 17, y: 15, type: 'npc', id: 'spire_runesmith' },
+            { x: 43, y: 15, type: 'npc', id: 'spire_alchemist' },
+            { x: 30, y: 20, type: 'campfire' },
+        ]
+    },
+
+    architects_sanctum: {
+        width: 50, height: 40, seed: 4004, biome: 'boss_arena',
+        playerStart: { x: 25, y: 3 },
+        structures: [
+            { x: 12, y: 10, w: 26, h: 20, type: 'ruin', purpose: 'sanctum' },
+        ],
+        paths: [
+            { from: { x: 25, y: 0 }, to: { x: 25, y: 14 } },
+            { from: { x: 14, y: 20 }, to: { x: 36, y: 20 } },
+        ],
+        exits: {
+            south: { to: 'skybridge_outpost', entryX: 30, entryY: 37 },
+        },
+        stamps: [
+            { x: 25, y: 15, ch: 'A' },
+            { x: 16, y: 20, ch: 'Q' },
+            { x: 34, y: 20, ch: 'Q' },
+            { x: 25, y: 26, ch: 'Q' },
+            { x: 13, y: 11, ch: 'N' },
+            { x: 37, y: 11, ch: 'N' },
+            { x: 20, y: 35, ch: 'J' },
+            { x: 30, y: 35, ch: 'X' },
+        ],
+        entities: [
+            { x: 25, y: 20, type: 'boss', id: 'the_architect' },
+            { x: 14, y: 8, type: 'enemy_spawn', enemies: ['crystal_revenant'] },
+            { x: 36, y: 8, type: 'enemy_spawn', enemies: ['spire_seraph'] },
+            { x: 14, y: 32, type: 'enemy_spawn', enemies: ['fractured_golem'] },
+            { x: 36, y: 32, type: 'enemy_spawn', enemies: ['rune_wraith'] },
+        ],
+        bossArea: true
     }
 };
 
@@ -733,14 +871,19 @@ const MAP_REGIONS = {
     outer_gate: 'void_sanctum',
     last_vigil: 'void_sanctum',
     hall_of_echoes: 'void_sanctum',
-    throne_of_unmaking: 'void_sanctum'
+    throne_of_unmaking: 'void_sanctum',
+    spire_approach: 'shattered_spire',
+    crystalline_archive: 'shattered_spire',
+    skybridge_outpost: 'shattered_spire',
+    architects_sanctum: 'shattered_spire'
 };
 
 // Region entry points (first map in each region)
 const REGION_ENTRIES = {
     ashen_wastes: 'ruined_outpost',
     hollowfen: 'sunken_chapel',
-    void_sanctum: 'outer_gate'
+    void_sanctum: 'outer_gate',
+    shattered_spire: 'spire_approach'
 };
 
 // Building definitions for the player camp

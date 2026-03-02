@@ -59,6 +59,25 @@ const WORLD = {
                 'A door you passed through moments ago now leads somewhere different.',
                 'The whispers grow louder. You almost understand them. Almost.'
             ]
+        },
+        shattered_spire: {
+            name: 'The Shattered Spire',
+            icon: '🏛️',
+            description: 'The remains of an impossible tower that once pierced the sky. Its crystal floors hang suspended in the air, held together by arcane forces that refuse to die.',
+            levelRange: [8, 12],
+            enemies: ['crystal_revenant', 'rune_wraith', 'fractured_golem', 'spire_seraph'],
+            boss: 'the_architect',
+            locations: ['spire_approach', 'crystalline_archive', 'skybridge_outpost', 'architects_sanctum'],
+            unlocked: false,
+            unlockCondition: 'Defeat Ruun, the Unraveler',
+            explored: false,
+            ambientText: [
+                'Crystal shards float through the air like frozen rain, refracting light into impossible colors.',
+                'You walk on glass floors and see the sky beneath your feet. The vertigo is overwhelming.',
+                'Runes carved into the walls flicker to life as you pass, then fade behind you.',
+                'A section of floor crumbles away into the void below. The fall is infinite.',
+                'The wind howls through broken arches, carrying the sound of a voice reciting equations in a dead language.'
+            ]
         }
     },
 
@@ -339,6 +358,96 @@ const WORLD = {
             narrative: {
                 enter: 'The throne room exists in all realities and none. The walls show infinite versions of you approaching infinite thrones. At the center, a being of pure void sits upon a throne made of unraveled reality itself.',
                 preBoss: 'Ruun does not have a face, but you feel it smile. "You\'ve come so far," it says, its voice the absence of sound. "Through ash and fen and shadow. And now you stand before the end of everything." It rises. "Let us see if you are worth the world I unmade."'
+            }
+        },
+
+        // SHATTERED SPIRE
+        spire_approach: {
+            name: 'The Spire Approach',
+            icon: '🏛️',
+            region: 'shattered_spire',
+            description: 'A shattered causeway of crystal and stone that leads to the base of the floating tower. Gravity works strangely here.',
+            type: 'exploration',
+            events: ['combat_random', 'find_supplies', 'random_encounter'],
+            narrative: {
+                enter: 'The ground gives way to translucent crystal. Below your feet, the world drops away into a dizzying abyss. Ahead, fragments of the ancient spire float in defiance of gravity, connected by bridges of solidified light. Whatever power built this place has not entirely died.',
+                explore: [
+                    'A crystal revenant materializes from the shattered floor, its body assembling from scattered shards.',
+                    'You find ancient rune-inscriptions on the walls. They describe mathematical proofs for the construction of reality itself.',
+                    'A section of the causeway collapses behind you. There is no going back — only up.',
+                    'Through a crack in the crystal floor, you see another version of this tower — intact, gleaming, impossibly tall.'
+                ]
+            }
+        },
+        crystalline_archive: {
+            name: 'The Crystalline Archive',
+            icon: '📚',
+            region: 'shattered_spire',
+            description: 'Once the greatest library in the world. Its books are crystal slates, and its knowledge is carved in light.',
+            type: 'exploration',
+            events: ['combat_random', 'lore_discovery', 'find_supplies', 'random_encounter'],
+            narrative: {
+                enter: 'Crystal shelves stretch impossibly high, holding thousands of luminous slates. Each one pulses with faint light — stored knowledge from before the Sundering. Rune wraiths drift between the stacks, ancient scholars who refused to leave their work even in death.',
+                explore: [
+                    'You pick up a crystal slate. It shows a blueprint for a device that could heal the world. The final page is missing.',
+                    'A rune wraith notices you and begins reciting a protective incantation. You\'re not sure if it\'s protecting the books or threatening you.',
+                    'Among the crystal slates, you find one that records the day the spire shattered. The last entry simply reads: "The Architect was right. We should never have tried to unmake what Ruun built."',
+                    'A fractured golem patrols the aisles, mindlessly reshelving shards of broken crystal slates.'
+                ]
+            }
+        },
+        skybridge_outpost: {
+            name: 'Skybridge Outpost',
+            icon: '⚗️',
+            region: 'shattered_spire',
+            description: 'A makeshift camp built by scholars and treasure seekers on a stable platform high above the void.',
+            type: 'village',
+            services: ['blacksmith', 'herbalist'],
+            narrative: {
+                enter: 'Against all odds, a small encampment clings to one of the spire\'s stable platforms. Scholars, rune-seekers, and the occasional mad adventurer have made this precarious perch their base. Rope bridges connect hastily-built shelters, and the wind at this altitude howls like a living thing.',
+                ambient: [
+                    'A scholar argues with a crystal slate as if it were sentient. It might be.',
+                    'Someone is brewing tea from arcane dust. It glows faintly blue.',
+                    'A treasure hunter shows off a crystal shard. "Worth a fortune," they claim. Everyone nods politely.',
+                    'The platform shifts slightly. Everyone grabs something. No one mentions it.'
+                ]
+            },
+            npcs: ['spire_runesmith', 'spire_alchemist'],
+            shops: {
+                blacksmith: {
+                    name: 'Runesmith\'s Forge',
+                    icon: '🔨',
+                    items: [
+                        { item: 'crystal_edge', cost: 420 },
+                        { item: 'runeward_staff', cost: 440 },
+                        { item: 'spire_plate', cost: 400 },
+                        { item: 'mithril_sword', cost: 300 },
+                        { item: 'crystal_shard', cost: 40 }
+                    ]
+                },
+                herbalist: {
+                    name: 'Skybridge Apothecary',
+                    icon: '🌿',
+                    items: [
+                        { item: 'greater_health_potion', cost: 45 },
+                        { item: 'greater_mana_potion', cost: 45 },
+                        { item: 'supreme_health_potion', cost: 90 },
+                        { item: 'elixir_of_power', cost: 55 },
+                        { item: 'antidote', cost: 15 }
+                    ]
+                }
+            }
+        },
+        architects_sanctum: {
+            name: 'The Architect\'s Sanctum',
+            icon: '🏛️',
+            region: 'shattered_spire',
+            description: 'The peak of the Shattered Spire. A throne room suspended in the sky, held aloft by pure mathematical will.',
+            type: 'boss',
+            events: ['boss_fight'],
+            narrative: {
+                enter: 'The final staircase ascends through open sky. Lightning crackles between floating crystal pillars. At the summit, a vast chamber hangs in the void — the Architect\'s personal sanctum, where it once designed worlds on a drafting table made of solidified equations.',
+                preBoss: 'The Architect stands at its drafting table, a being of living crystal and arcane light. It does not turn as you enter. "I know why you are here," it says, its voice the sound of glass singing. "You want to break what I have built. Again." It turns, and where its face should be is a perfect geometric pattern of pure light. "I built this tower to prove that creation can be eternal. And I will prove it — even if I must rebuild it with your bones."'
             }
         }
     }

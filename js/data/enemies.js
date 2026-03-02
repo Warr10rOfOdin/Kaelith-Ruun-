@@ -212,5 +212,94 @@ const ENEMIES = {
         ],
         lootTable: { whisper_of_ruun: 0.5, ancient_key_fragment: 1.0 },
         description: 'The entity that shattered the world. Neither god nor mortal — Ruun is the space between, given hunger and will.'
+    },
+
+    // ---- THE SHATTERED SPIRE ENEMIES ----
+    crystal_revenant: {
+        name: 'Crystal Revenant', icon: '💎', level: 8, area: 'shattered_spire',
+        hp: 75, attack: 14, defense: 8, speed: 4, magicDefense: 6,
+        xpReward: 80, goldReward: [35, 60],
+        behavior: 'defensive',
+        resistances: { fire: -0.3, ice: 0.4, lightning: -0.2, shadow: 0.2 },
+        abilities: [
+            { name: 'Crystal Slash', damage: [12, 18], type: 'physical' },
+            { name: 'Prismatic Burst', damage: [14, 22], type: 'magical', element: 'lightning' },
+            { name: 'Crystal Shell', damage: [0, 0], type: 'buff', buff: 'defense' }
+        ],
+        lootTable: { veil_crystal: 0.4, greater_health_potion: 0.15 },
+        description: 'An ancient warrior encased in living crystal. The spire remembers its defenders.'
+    },
+    rune_wraith: {
+        name: 'Rune Wraith', icon: '👻', level: 9, area: 'shattered_spire',
+        hp: 55, attack: 16, defense: 3, speed: 8, magicDefense: 10,
+        xpReward: 90, goldReward: [40, 65],
+        behavior: 'support',
+        resistances: { fire: 0, ice: 0, lightning: 0.3, shadow: -0.4 },
+        abilities: [
+            { name: 'Rune Bolt', damage: [14, 24], type: 'magical' },
+            { name: 'Silence Rune', damage: [0, 0], type: 'debuff', debuff: 'weaken' },
+            { name: 'Ward of Binding', damage: [0, 0], type: 'debuff', debuff: 'slow' },
+            { name: 'Rune Detonation', damage: [20, 30], type: 'magical', element: 'fire', threshold: 0.4 }
+        ],
+        lootTable: { ruun_shard: 0.2, mana_vial: 0.3 },
+        description: 'A spectral scribe that guards the spire\'s forbidden archives. Its runes still burn with power.'
+    },
+    fractured_golem: {
+        name: 'Fractured Golem', icon: '🗿', level: 9, area: 'shattered_spire',
+        hp: 100, attack: 18, defense: 12, speed: 2, magicDefense: 4,
+        xpReward: 100, goldReward: [45, 75],
+        behavior: 'aggro',
+        resistances: { fire: 0.2, ice: 0, lightning: -0.5, shadow: 0 },
+        abilities: [
+            { name: 'Stone Fist', damage: [16, 24], type: 'physical' },
+            { name: 'Shatter Slam', damage: [20, 32], type: 'physical' },
+            { name: 'Reconstruct', damage: [0, 0], type: 'heal', amount: 15 },
+            { name: 'Avalanche', damage: [25, 40], type: 'physical', threshold: 0.3 }
+        ],
+        lootTable: { granite: 0.4, obsidian: 0.2, iron_ingot: 0.3 },
+        description: 'A guardian construct, cracked and incomplete but no less lethal. Reassembles itself from rubble.'
+    },
+    spire_seraph: {
+        name: 'Spire Seraph', icon: '✨', level: 10, area: 'shattered_spire',
+        hp: 65, attack: 15, defense: 5, speed: 9, magicDefense: 12,
+        xpReward: 110, goldReward: [50, 80],
+        behavior: 'support',
+        resistances: { fire: 0.2, ice: 0.2, lightning: 0.2, shadow: -0.5 },
+        abilities: [
+            { name: 'Radiant Lance', damage: [16, 26], type: 'magical', element: 'lightning' },
+            { name: 'Blinding Light', damage: [0, 0], type: 'debuff', debuff: 'blind' },
+            { name: 'Consecration', damage: [0, 0], type: 'buff', buff: 'all' },
+            { name: 'Judgement Beam', damage: [22, 35], type: 'magical', threshold: 0.35 }
+        ],
+        lootTable: { spectral_thread: 0.25, void_essence: 0.2, greater_mana_potion: 0.2 },
+        description: 'An angelic construct of pure arcane light. Once a protector of the spire\'s highest floors.'
+    },
+
+    // ---- SHATTERED SPIRE BOSS ----
+    the_architect: {
+        name: 'The Architect', icon: '🏛️', level: 12, area: 'shattered_spire',
+        hp: 400, attack: 22, defense: 10, speed: 6, magicDefense: 14,
+        xpReward: 600, goldReward: [250, 500],
+        isBoss: true,
+        behavior: 'defensive',
+        resistances: { fire: 0.2, ice: 0.2, lightning: -0.3, shadow: -0.2 },
+        abilities: [
+            { name: 'Blueprint Strike', damage: [18, 28], type: 'physical' },
+            { name: 'Arcane Schematic', damage: [22, 36], type: 'magical', element: 'lightning' },
+            { name: 'Reconstruct Barrier', damage: [0, 0], type: 'buff', buff: 'defense' },
+            { name: 'Summon Pillars', damage: [0, 0], type: 'buff', buff: 'reflect' },
+            { name: 'Collapse Reality', damage: [35, 55], type: 'magical', threshold: 0.15 }
+        ],
+        phases: [
+            { hpPercent: 1.0, message: '"You stand in my masterwork. Every stone, every rune — mine."' },
+            { hpPercent: 0.65, message: '"The spire obeys my will. Watch."', buff: { defense: 4, magicDefense: 4 },
+              environmental: { type: 'crystal_rain', damage: 5, duration: 99, message: 'Crystal shards rain from the shattered ceiling!' } },
+            { hpPercent: 0.35, message: '"You crack my walls? Then I shall bury you in them!"', buff: { attack: 8 },
+              environmental: { type: 'gravity_flux', effect: 'slow_persistent', message: 'Gravity shifts — the floor pulls at you like quicksand!' } },
+            { hpPercent: 0.12, message: '"NO! I will rebuild! I will ALWAYS rebuild!"', buff: { attack: 6, speed: 4 },
+              environmental: { type: 'arcane_collapse', damage: 10, duration: 99, message: 'The entire spire begins to collapse around you!' } }
+        ],
+        lootTable: { architects_compass: 0.5, spire_keystone: 1.0, supreme_health_potion: 0.6 },
+        description: 'The immortal builder who raised the spire before the Sundering. Driven mad by its destruction, it endlessly rebuilds and destroys.'
     }
 };

@@ -4,6 +4,28 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v0.11.0] — 2026-03-02 — The Shattered Spire
+
+### Added
+- **New endgame region: The Shattered Spire** (level 8-12) — a fractured arcane tower floating above the clouds:
+  - 4 explorable locations: Spire Approach, Crystalline Archive, Skybridge Outpost (village), Architect's Sanctum (boss arena)
+  - 4 new enemies: Crystal Revenant (defensive), Rune Wraith (support), Fractured Golem (aggro), Spire Seraph (support)
+  - **The Architect** boss fight — 400 HP, 4 phases with environmental mechanics (Crystal Rain, Gravity Flux, Arcane Collapse)
+  - 2 new NPCs: Vael the Runesmith (blacksmith) and Thessaly (alchemist/herbalist) at Skybridge Outpost
+  - 6 new items: Crystal Edge (rare sword), Runeward Staff (rare), Spire Plate (rare armor), Seraph Wings (epic armor), Architect's Compass (legendary weapon), Architect's Crown (legendary helmet)
+  - Crystal Shard, Arcane Dust, Spire Keystone resource/quest items
+  - Full map data with procedural terrain, structures, paths, NPC entities, and boss entity placement
+  - Region unlocks after defeating Ruun, the Unraveler
+- **Shattered Spire visual atmosphere**:
+  - Purple-blue crystalline region tint overlay
+  - Enhanced ambient darkness (0.35 base) with deep blue-violet background
+  - Crystal mote ambient particles — gentle upward drift in blue, purple, and cyan
+  - Procedural battlefield background with shattered tower silhouettes, floating crystal shards, crystal veins, and runic floor markings
+- **Shattered Spire weather** — 45% clear, 25% fog, 15% crystal snow, 15% rain
+- **Shattered Spire ambient music** — ethereal triangle-wave tones (E4-B4 range, 850ms tempo)
+
+---
+
 ## [v0.10.0] — 2026-03-01 — Combat Refinement
 
 ### Added

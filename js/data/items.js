@@ -172,6 +172,56 @@ const ITEMS = {
         name: 'Eye of Ruun', icon: '👁️', type: 'resource', stackable: false,
         description: 'The all-seeing eye of Ruun the Unraveler. It still watches.', value: 1000, tier: 3
     },
+    boss_trophy_spire: {
+        name: 'Architect\'s Blueprint', icon: '📜', type: 'resource', stackable: false,
+        description: 'The master blueprint of the Shattered Spire. Reality-warping designs are etched into its surface.', value: 1200, tier: 3
+    },
+
+    // --- Shattered Spire Resources ---
+    crystal_shard: {
+        name: 'Crystal Shard', icon: '💎', type: 'resource', stackable: true,
+        description: 'A fragment of the spire\'s crystalline structure. Hums with residual energy.', value: 35, tier: 3
+    },
+    arcane_dust: {
+        name: 'Arcane Dust', icon: '✨', type: 'resource', stackable: true,
+        description: 'Powdered rune-crystal. Used in advanced enchantments.', value: 45, tier: 3
+    },
+    spire_keystone: {
+        name: 'Spire Keystone', icon: '🔑', type: 'quest', stackable: false,
+        description: 'The keystone that once held the Shattered Spire together. Proof of the Architect\'s defeat.', value: 0
+    },
+
+    // --- Shattered Spire Equipment ---
+    architects_compass: {
+        name: 'Architect\'s Compass', icon: '🧭', type: 'weapon', slot: 'weapon',
+        rarity: 'legendary', description: 'The Architect\'s personal instrument. Bends space to strike from impossible angles.',
+        stats: { attack: 32, magicAttack: 18, speed: 6, critChance: 12 }, value: 1200
+    },
+    crystal_edge: {
+        name: 'Crystal Edge', icon: '⚔️', type: 'weapon', slot: 'weapon',
+        rarity: 'rare', description: 'A blade hewn from living spire crystal. Refracts light into cutting force.',
+        stats: { attack: 24, magicAttack: 8, speed: 3 }, value: 400
+    },
+    runeward_staff: {
+        name: 'Runeward Staff', icon: '🪄', type: 'weapon', slot: 'weapon',
+        rarity: 'rare', description: 'A staff carved from the spire\'s rune pillars. Each rune is a sealed spell.',
+        stats: { attack: 8, magicAttack: 22, magicDefense: 8 }, value: 420
+    },
+    spire_plate: {
+        name: 'Spire Plate', icon: '🛡️', type: 'armor', slot: 'armor',
+        rarity: 'rare', description: 'Armor forged from crystallized spire stone. Nearly unbreakable.',
+        stats: { defense: 18, magicDefense: 8 }, value: 380
+    },
+    seraph_wings: {
+        name: 'Seraph Wings', icon: '🪽', type: 'armor', slot: 'armor',
+        rarity: 'epic', description: 'Light-woven armor from a fallen Spire Seraph. Grants ethereal agility.',
+        stats: { defense: 10, magicDefense: 14, speed: 6 }, value: 550
+    },
+    architects_crown: {
+        name: 'Architect\'s Crown', icon: '👑', type: 'armor', slot: 'helmet',
+        rarity: 'legendary', description: 'The Architect\'s diadem. Whispers blueprints of reality into the wearer\'s mind.',
+        stats: { magicAttack: 12, magicDefense: 10, defense: 5 }, value: 900
+    },
 
     // --- Misc Resources ---
     clay: {

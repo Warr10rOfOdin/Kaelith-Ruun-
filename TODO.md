@@ -4,32 +4,19 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ---
 
-## Current Priority: Audio & Sound Design
+## Current Priority: World & Content Expansion
 
-### Sound Integration
-- [ ] Map Web Audio API sounds to combat actions
-- [ ] Hit impact sounds (light, heavy, critical)
-- [ ] Spell cast sounds per element
-- [ ] Enemy telegraph warning sound
-- [ ] Counter success/fail sounds
-- [ ] Victory/defeat stingers
-
-### Combat Refinement
-- [ ] Boss-specific environmental mechanics
-- [ ] Combat stance system (aggressive/defensive)
+### World Content
+- [ ] Fourth region: The Shattered Spire (endgame zone)
+- [ ] Region-specific random encounters
+- [ ] Rare world bosses with unique loot tables
+- [ ] Environmental puzzles in ruin interiors
 
 ---
 
 ## Backlog
 
-### World Content
-- [ ] Fourth region: The Shattered Spire
-- [ ] Dynamic random encounters
-- [ ] Deeper NPC dialogue and schedules
-- [ ] Environmental puzzles
-
 ### Polish
-- [ ] Screen transition animations
 - [ ] Accessibility options (font size, colorblind)
 - [ ] Performance optimization pass
 - [ ] Update ARCHITECTURE.md and DEVELOPMENT.md to reflect current HTML5/JS codebase
@@ -38,6 +25,11 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ## Recently Completed
 
+- [x] Combat stance system (aggressive/balanced/defensive with damage, crit, MP modifiers) — `combat.js` + `combat.css`
+- [x] Boss environmental mechanics (fire rain, poison fog, void fissures, etc.) — `combat.js` + `enemies.js` + `combat.css`
+- [x] Character Creation visual overhaul (progress dots, stat chips, sprite preview, animated steps) — `main.js` + `style.css` + `index.html`
+- [x] Dialogue/NPC visual overhaul (pixel art portrait, typewriter text, choice arrows) — `dialogue.js` + `style.css`
+- [x] Screen transition animations (scale enter/exit) — `screens.js` + `style.css`
 - [x] Character Sheet visual overhaul (stat bars, icons, ability cards, skill tree) — `progression.js` + `style.css`
 - [x] Journal visual overhaul (quest badges, checkboxes, progress bars) — `progression.js` + `style.css`
 - [x] Achievements visual overhaul (badges, progress bar, sorted display) — `progression.js` + `style.css`

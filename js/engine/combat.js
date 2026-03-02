@@ -24,6 +24,39 @@ const Combat = {
     _comboChain: [],
     _comboChainBonus: 0,
     _discoveredWeaknesses: {},
+    _currentStance: 'balanced',
+    _environmentalHazards: [],
+
+    // Stance definitions: modifiers to damage dealt, damage taken, crit chance, MP cost
+    STANCES: {
+        aggressive: {
+            label: 'Aggressive',
+            icon: '&#9876;',
+            desc: '+25% damage, +15% crit, but +20% damage taken',
+            damageDealt: 1.25,
+            damageTaken: 1.20,
+            critBonus: 15,
+            mpCostMult: 1.0
+        },
+        balanced: {
+            label: 'Balanced',
+            icon: '&#9878;',
+            desc: 'No modifiers — steady and reliable',
+            damageDealt: 1.0,
+            damageTaken: 1.0,
+            critBonus: 0,
+            mpCostMult: 1.0
+        },
+        defensive: {
+            label: 'Defensive',
+            icon: '&#9781;',
+            desc: '-30% damage taken, but -20% damage dealt',
+            damageDealt: 0.80,
+            damageTaken: 0.70,
+            critBonus: -5,
+            mpCostMult: 0.85
+        }
+    },
 
     start(enemyKey, onEnd) {
         const template = ENEMIES[enemyKey];
@@ -75,6 +108,8 @@ const Combat = {
         this._lastAbilityElement = null;
         this._comboChain = [];
         this._comboChainBonus = 0;
+        this._currentStance = 'balanced';
+        this._environmentalHazards = [];
 
         // Ensure player statusEffects array exists
         if (!GameState.player.statusEffects) GameState.player.statusEffects = [];
@@ -223,23 +258,36 @@ const Combat = {
         const actionsDiv = document.getElementById('combat-actions');
         if (!actionsDiv) return;
         const p = GameState.player;
+        const stance = this.STANCES[this._currentStance];
 
         let html = '';
+
+        // Stance selector strip
+        html += `<div class="stance-selector">`;
+        for (const [key, s] of Object.entries(this.STANCES)) {
+            const active = key === this._currentStance ? 'active' : '';
+            html += `<button class="stance-btn ${active}" onclick="Combat.switchStance('${key}')" title="${s.desc}">
+                <span class="stance-icon">${s.icon}</span><span class="stance-label">${s.label}</span>
+            </button>`;
+        }
+        html += `</div>`;
 
         // Basic attack — always available
         html += `<button class="combat-btn attack" onclick="Combat.playerAction('attack')">
             <span class="btn-label">Attack</span>
         </button>`;
 
-        // Abilities with MP cost display
+        // Abilities with MP cost display (modified by stance)
         if (p.abilities && p.abilities.length > 0) {
             p.abilities.forEach((ability, idx) => {
                 if (!ability) return;
-                const canUse = ability.mpCost <= p.mp;
+                const adjustedCost = Math.max(0, Math.floor(ability.mpCost * stance.mpCostMult));
+                const canUse = adjustedCost <= p.mp;
                 const btnType = ability.type === 'buff' ? 'defend' : 'magic';
+                const costLabel = adjustedCost !== ability.mpCost ? `<s style="opacity:0.4;font-size:0.6rem">${ability.mpCost}</s> ${adjustedCost}` : `${adjustedCost}`;
                 html += `<button class="combat-btn ${btnType}" ${!canUse ? 'disabled' : ''} onclick="Combat.playerAction('ability', ${idx})">
                     <span class="btn-label">${ability.name}</span>
-                    <span class="btn-cost">${ability.mpCost} MP</span>
+                    <span class="btn-cost">${costLabel} MP</span>
                 </button>`;
             });
         }
@@ -263,6 +311,15 @@ const Combat = {
         }
 
         actionsDiv.innerHTML = html;
+    },
+
+    switchStance(stanceName) {
+        if (!this.STANCES[stanceName] || this._currentStance === stanceName) return;
+        this._currentStance = stanceName;
+        const s = this.STANCES[stanceName];
+        this.logCombat(`Switched to ${s.label} stance. ${s.desc}`, 'info');
+        if (typeof Audio !== 'undefined') Audio.playMenuSelect();
+        this.renderActions();
     },
 
     enableActions() {
@@ -462,13 +519,17 @@ const Combat = {
 
         let damage = this.calculateDamage(p.attack, this.enemy.defense);
 
+        // Stance damage modifier
+        const stance = this.STANCES[this._currentStance];
+        damage = Math.floor(damage * stance.damageDealt);
+
         // Weaken debuff: 30% damage reduction
         const isWeakened = this.playerBuffs.some(b => b.type === 'weaken');
         if (isWeakened) {
             damage = Math.floor(damage * 0.7);
         }
 
-        const isCrit = Math.random() * 100 < p.critChance;
+        const isCrit = Math.random() * 100 < (p.critChance + stance.critBonus);
 
         // Reflect check
         const hasReflect = this.enemyBuffs.some(b => b.type === 'reflect');
@@ -512,9 +573,14 @@ const Combat = {
     performAbility(idx) {
         const p = GameState.player;
         const ability = p.abilities[idx];
-        if (!ability || ability.mpCost > p.mp) return;
+        if (!ability) return;
 
-        p.mp -= ability.mpCost;
+        // Apply stance MP cost modifier
+        const stance = this.STANCES[this._currentStance];
+        const adjustedCost = Math.max(0, Math.floor(ability.mpCost * stance.mpCostMult));
+        if (adjustedCost > p.mp) return;
+
+        p.mp -= adjustedCost;
 
         if (ability.type === 'buff') {
             this.logCombat(`You activate ${ability.name}!`, 'buff');
@@ -556,6 +622,9 @@ const Combat = {
             } else {
                 damage = this.calculateDamage(baseDamage + Math.floor(p.magicAttack * 0.5), this.enemy.magicDefense);
             }
+
+            // Stance damage modifier
+            damage = Math.floor(damage * stance.damageDealt);
 
             // Elemental resistance/weakness
             const element = this.getAbilityElement(ability);
@@ -614,7 +683,7 @@ const Combat = {
                 this.showPlayerDamageNumber(reflected);
             }
 
-            const isCrit = Math.random() * 100 < p.critChance;
+            const isCrit = Math.random() * 100 < (p.critChance + stance.critBonus);
             if (isCrit) {
                 damage = Math.floor(damage * 1.5);
                 this.logCombat(`CRITICAL! ${ability.name} hits for ${damage} damage!`, 'critical');
@@ -863,6 +932,12 @@ const Combat = {
                 damage = Math.floor(damage * 0.5);
             }
 
+            // Stance damage-taken modifier
+            const stanceMod = this.STANCES[this._currentStance];
+            if (stanceMod) {
+                damage = Math.floor(damage * stanceMod.damageTaken);
+            }
+
             // Counter success: 40% damage reduction + reflect 20% back
             if (this._counterSuccess) {
                 const reflected = Math.floor(damage * 0.2);
@@ -984,6 +1059,9 @@ const Combat = {
             });
         }
 
+        // Process boss environmental hazards
+        this.processEnvironmentalHazards();
+
         this.updateBars();
         this.updateStatusOverlays();
 
@@ -1015,9 +1093,113 @@ const Combat = {
                     this.logCombat(`${this.enemy.name} grows stronger!`, 'info');
                     if (typeof Audio !== 'undefined') Audio.playBossPhase();
                 }
+
+                // Activate environmental hazard
+                if (phases[i].environmental) {
+                    this.activateEnvironmental(phases[i].environmental);
+                }
+
                 break;
             }
         }
+    },
+
+    activateEnvironmental(env) {
+        // Add to active hazards
+        this._environmentalHazards.push({ ...env });
+        this.logCombat(env.message, 'info');
+
+        // Show environmental label on battlefield
+        this.showEnvironmentalLabel(env.type);
+
+        // Screen effects
+        if (env.type === 'fire_rain') {
+            Effects.screenFlash('rgba(200,100,20,0.12)');
+        } else if (env.type === 'poison_fog') {
+            Effects.screenFlash('rgba(50,180,50,0.1)');
+        } else if (env.type === 'void_fissures' || env.type === 'oblivion_field') {
+            Effects.screenFlash('rgba(100,50,180,0.12)');
+        } else if (env.type === 'reality_warp') {
+            Effects.screenFlash('rgba(150,100,200,0.1)');
+        } else if (env.type === 'ash_storm' || env.type === 'quagmire') {
+            Effects.screenFlash('rgba(100,90,70,0.1)');
+        }
+    },
+
+    processEnvironmentalHazards() {
+        if (this._environmentalHazards.length === 0) return;
+
+        this._environmentalHazards = this._environmentalHazards.filter(h => {
+            // Damage-over-time hazards
+            if (h.damage && h.damage > 0) {
+                // Defensive stance reduces environmental damage
+                const stanceMod = this.STANCES[this._currentStance];
+                const envDmg = Math.max(1, Math.floor(h.damage * (stanceMod ? stanceMod.damageTaken : 1)));
+                GameState.player.hp = Math.max(1, GameState.player.hp - envDmg);
+
+                const labels = {
+                    fire_rain: 'Falling embers burn you',
+                    poison_fog: 'Toxic fog sears your lungs',
+                    void_fissures: 'Void energy lashes at you',
+                    oblivion_field: 'Oblivion crushes you'
+                };
+                const label = labels[h.type] || 'Environmental damage';
+                this.logCombat(`${label} for ${envDmg}!`, 'enemy-attack');
+                this.showPlayerDamageNumber(envDmg);
+            }
+
+            // Effect-based hazards
+            if (h.effect === 'blind_chance' && h.chance) {
+                if (Math.random() < h.chance) {
+                    const alreadyBlind = this.playerBuffs.some(b => b.type === 'blind');
+                    if (!alreadyBlind) {
+                        this.playerBuffs.push({ type: 'blind', duration: 1 });
+                        this.logCombat('Ash stings your eyes!', 'enemy-attack');
+                    }
+                }
+            } else if (h.effect === 'slow_persistent') {
+                const alreadySlow = this.playerBuffs.some(b => b.type === 'slow');
+                if (!alreadySlow) {
+                    this.playerBuffs.push({ type: 'slow', duration: 2 });
+                    this.logCombat('The sucking mire drags at your feet!', 'enemy-attack');
+                }
+            } else if (h.effect === 'mp_drain' && h.amount) {
+                const drained = Math.min(GameState.player.mp, h.amount);
+                if (drained > 0) {
+                    GameState.player.mp -= drained;
+                    this.logCombat(`The void drains ${drained} MP!`, 'enemy-attack');
+                }
+            }
+
+            // Decrement duration
+            if (h.duration !== undefined && h.duration !== 99) {
+                h.duration--;
+                return h.duration > 0;
+            }
+            return true; // 99 = permanent for rest of fight
+        });
+    },
+
+    showEnvironmentalLabel(type) {
+        const stage = document.getElementById('combat-stage');
+        if (!stage) return;
+
+        const labels = {
+            fire_rain: '&#128293; FIRE RAIN',
+            ash_storm: '&#127787; ASH STORM',
+            poison_fog: '&#9762; POISON FOG',
+            quagmire: '&#127758; QUAGMIRE',
+            void_fissures: '&#10043; VOID FISSURES',
+            reality_warp: '&#10047; REALITY WARP',
+            oblivion_field: '&#9760; OBLIVION'
+        };
+
+        const label = document.createElement('div');
+        label.className = 'environmental-label';
+        label.innerHTML = labels[type] || type.toUpperCase();
+        stage.appendChild(label);
+
+        setTimeout(() => { if (label.parentNode) label.remove(); }, 2500);
     },
 
     calculateDamage(attackPower, defense) {

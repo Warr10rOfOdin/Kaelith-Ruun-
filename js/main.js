@@ -206,6 +206,9 @@ const Game = {
             }
         });
 
+        // Update progress indicator
+        this.updateProgressIndicator();
+
         // Back button visibility
         const backBtn = document.getElementById('btn-creation-back');
         if (backBtn) {
@@ -238,6 +241,30 @@ const Game = {
         }
     },
 
+    updateProgressIndicator() {
+        const container = document.getElementById('creation-progress');
+        if (!container) return;
+
+        const dots = container.querySelectorAll('.progress-dot');
+        const lines = container.querySelectorAll('.progress-line');
+
+        dots.forEach((dot, i) => {
+            dot.classList.remove('active', 'completed');
+            if (i === this.creationStep) {
+                dot.classList.add('active');
+            } else if (i < this.creationStep) {
+                dot.classList.add('completed');
+            }
+        });
+
+        lines.forEach((line, i) => {
+            line.classList.remove('completed');
+            if (i < this.creationStep) {
+                line.classList.add('completed');
+            }
+        });
+    },
+
     renderRaceOptions() {
         const container = document.getElementById('race-options');
         if (!container) return;
@@ -246,7 +273,19 @@ const Game = {
         for (const [key, race] of Object.entries(RACES)) {
             const card = document.createElement('div');
             card.className = `option-card ${this.selectedRace === key ? 'selected' : ''}`;
-            card.innerHTML = `<span class="card-icon">${race.icon}</span><span class="card-name">${race.name}</span>`;
+
+            // Build stat preview chips
+            let statsHtml = '<div class="card-stats">';
+            for (const [stat, val] of Object.entries(race.stats)) {
+                if (val !== 0) {
+                    const cls = val > 0 ? 'positive' : 'negative';
+                    const sign = val > 0 ? '+' : '';
+                    statsHtml += `<span class="card-stat ${cls}">${stat.toUpperCase()} ${sign}${val}</span>`;
+                }
+            }
+            statsHtml += '</div>';
+
+            card.innerHTML = `<span class="card-icon">${race.icon}</span><span class="card-name">${race.name}</span>${statsHtml}`;
             card.onclick = () => {
                 this.selectedRace = key;
                 this.renderRaceOptions();
@@ -271,7 +310,19 @@ const Game = {
         for (const [key, cls] of Object.entries(CLASSES)) {
             const card = document.createElement('div');
             card.className = `option-card ${this.selectedClass === key ? 'selected' : ''}`;
-            card.innerHTML = `<span class="card-icon">${cls.icon}</span><span class="card-name">${cls.name}</span>`;
+
+            // Build stat preview chips
+            let statsHtml = '<div class="card-stats">';
+            for (const [stat, val] of Object.entries(cls.stats)) {
+                if (val !== 0) {
+                    const clsName = val > 0 ? 'positive' : 'negative';
+                    const sign = val > 0 ? '+' : '';
+                    statsHtml += `<span class="card-stat ${clsName}">${stat.toUpperCase()} ${sign}${val}</span>`;
+                }
+            }
+            statsHtml += '</div>';
+
+            card.innerHTML = `<span class="card-icon">${cls.icon}</span><span class="card-name">${cls.name}</span>${statsHtml}`;
             card.onclick = () => {
                 this.selectedClass = key;
                 this.renderClassOptions();
@@ -307,25 +358,75 @@ const Game = {
 
         const maxHp = 50 + (stats.con * 3) + race.hpBonus;
         const maxMp = 30 + (stats.int * 2) + stats.wis + race.mpBonus;
+        const maxStatVal = Math.max(...Object.values(stats), 15);
+
+        const statIcons = { str: '&#9876;', dex: '&#9884;', int: '&#9733;', wis: '&#9775;', con: '&#9829;', cha: '&#9830;' };
+        const statNames = { str: 'Strength', dex: 'Dexterity', int: 'Intelligence', wis: 'Wisdom', con: 'Constitution', cha: 'Charisma' };
 
         const preview = document.getElementById('char-preview');
         if (!preview) return;
 
+        // Build stat lines with visual bars
+        let statRows = '';
+        for (const [stat, val] of Object.entries(stats)) {
+            const pct = Math.round((val / maxStatVal) * 100);
+            statRows += `
+                <div class="stat-line">
+                    <span class="stat-label"><span class="stat-icon">${statIcons[stat]}</span>${statNames[stat]}</span>
+                    <span>${val}</span>
+                </div>
+            `;
+        }
+
+        // Build abilities list
+        let abilitiesHtml = '';
+        cls.startingAbilities.forEach(a => {
+            abilitiesHtml += `
+                <div class="preview-ability">
+                    <div class="ability-name">${a.name}</div>
+                    <div class="ability-desc">${a.desc}</div>
+                </div>
+            `;
+        });
+
         preview.innerHTML = `
-            <h3>${race.icon} ${name} — ${race.name} ${cls.name} ${cls.icon}</h3>
-            <div class="stat-line"><span>HP</span><span>${maxHp}</span></div>
-            <div class="stat-line"><span>MP</span><span>${maxMp}</span></div>
-            <div class="stat-line"><span>Strength</span><span>${stats.str}</span></div>
-            <div class="stat-line"><span>Dexterity</span><span>${stats.dex}</span></div>
-            <div class="stat-line"><span>Intelligence</span><span>${stats.int}</span></div>
-            <div class="stat-line"><span>Wisdom</span><span>${stats.wis}</span></div>
-            <div class="stat-line"><span>Constitution</span><span>${stats.con}</span></div>
-            <div class="stat-line"><span>Charisma</span><span>${stats.cha}</span></div>
-            <div style="margin-top:1rem;color:var(--text-secondary)">
-                <p><strong>Starting Abilities:</strong></p>
-                ${cls.startingAbilities.map(a => `<p style="padding:0.2rem 0">${a.name} — ${a.desc}</p>`).join('')}
+            <div class="char-preview-header">
+                <div class="preview-name">${name}</div>
+                <div class="preview-subtitle">${race.icon} ${race.name} ${cls.name} ${cls.icon}</div>
             </div>
+            <div class="char-preview-sprite"><canvas id="preview-sprite-canvas" width="64" height="64"></canvas></div>
+            <div class="preview-vitals">
+                <div class="stat-line">
+                    <span class="stat-label"><span class="stat-icon" style="color:var(--hp-color-bright)">&#9829;</span>HP</span>
+                    <span>${maxHp}</span>
+                </div>
+                <div class="preview-bar"><div class="preview-bar-fill hp" style="width:100%"></div></div>
+                <div class="stat-line" style="margin-top:0.3rem">
+                    <span class="stat-label"><span class="stat-icon" style="color:var(--mp-color-bright)">&#9670;</span>MP</span>
+                    <span>${maxMp}</span>
+                </div>
+                <div class="preview-bar"><div class="preview-bar-fill mp" style="width:100%"></div></div>
+            </div>
+            ${statRows}
+            <div class="preview-abilities-label">Starting Abilities</div>
+            ${abilitiesHtml}
         `;
+
+        // Render player sprite on the preview canvas if available
+        if (typeof Sprites !== 'undefined' && Sprites.getPlayer) {
+            try {
+                const canvas = document.getElementById('preview-sprite-canvas');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    const spriteCanvas = Sprites.getPlayer();
+                    if (spriteCanvas) {
+                        ctx.clearRect(0, 0, 64, 64);
+                        ctx.imageSmoothingEnabled = false;
+                        ctx.drawImage(spriteCanvas, 0, 0, 64, 64);
+                    }
+                }
+            } catch(e) { /* sprite not ready */ }
+        }
     },
 
     nextCreationStep() {

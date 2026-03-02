@@ -4,6 +4,51 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v0.10.0] — 2026-03-01 — Combat Refinement
+
+### Added
+- **Combat stance system** — 3 toggleable stances that modify combat stats in real-time:
+  - **Aggressive**: +25% damage dealt, +15% crit chance, but +20% damage taken
+  - **Balanced**: No modifiers — steady and reliable (default)
+  - **Defensive**: -30% damage taken, -20% damage dealt, -15% MP cost on abilities
+  - Stance selector strip above action buttons with icon and label for each stance
+  - Stance modifiers apply to basic attacks, abilities, crits, incoming enemy damage, and MP costs
+  - Can switch stances freely each turn without spending an action
+- **Boss environmental mechanics** — boss-specific hazards that activate at phase transitions:
+  - **The Ashen King**: Fire Rain (5 dmg/turn at 50% HP), Ash Storm (20% blind chance at 20% HP)
+  - **Mother of the Fen**: Poison Fog (3 dmg/turn at 60% HP), Quagmire (persistent slow at 25% HP)
+  - **Ruun, the Unraveler**: Void Fissures (4 dmg/turn at 70% HP), Reality Warp (5 MP drain/turn at 40% HP), Oblivion Field (8 dmg/turn at 15% HP)
+  - Environmental damage is reduced by Defensive stance
+  - Dramatic environmental label appears on battlefield with colored screen flash
+  - Hazards persist for the remainder of the fight
+
+---
+
+## [v0.9.1] — 2026-03-01 — Creation & Dialogue Polish
+
+### Changed
+- **Character Creation** overhauled:
+  - Step progress indicator with dots showing current/completed steps
+  - Animated step transitions with horizontal slide-in effect
+  - Race/class selection cards now show stat modifier chips (+STR, -CON, etc.)
+  - Enhanced description box with styled headings and italic abilities
+  - Character preview redesigned: centered header, sprite canvas preview, visual HP/MP bars, stat icons, ability cards
+  - "Next" button given gold accent styling to stand out
+  - Name input centered with glow-on-focus effect
+- **Dialogue system** overhauled:
+  - NPC portrait now renders pixel art canvas sprite via `Sprites.drawNPC()` with emoji fallback
+  - Typewriter text effect (18ms/char) with blinking cursor, tap-to-skip support
+  - Speaker name and title split into two styled lines
+  - Dialogue box redesigned: gold top border accent, rounded top corners, deeper shadow
+  - Choice buttons now have arrow indicators and active-state animations
+  - Shop items get dedicated name/cost layout with colored price tags
+- **Screen transitions** added:
+  - Scale-based enter/exit animations (scale 0.98→1 in, 1→1.02 out)
+  - Smooth 250ms exit animation before new screen appears
+  - Prevents double-transitions via state lock
+
+---
+
 ## [v0.9.0] — 2026-03-01 — Panel Visual Overhaul
 
 ### Changed

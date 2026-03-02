@@ -83,6 +83,11 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 - [x] Achievements: badge layout, progress bar header, sorted display, stat icons
 - [x] Inventory: labeled equipment grid, rarity glow borders, item detail panel overhaul
 
+### Creation & Dialogue Polish (v0.9.1)
+- [x] Character Creation: step progress dots, stat modifier chips, sprite preview canvas, animated step transitions
+- [x] Dialogue: pixel art NPC portrait rendering, typewriter text effect, choice button arrow indicators
+- [x] Screen transitions: scale-based enter/exit animations with transition lock
+
 ---
 
 ## In Progress
@@ -90,13 +95,14 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 ### Audio & Sound Design
 - [ ] Sound design integration — hit sounds, spell SFX, ambient combat audio
 
+### Combat Refinement (v0.10.0)
+- [x] Combat stance system — aggressive/balanced/defensive with damage, crit, and MP cost modifiers
+- [x] Boss environmental mechanics — unique per-boss hazards (fire rain, poison fog, void fissures, etc.)
+- [x] Stance selector UI strip integrated into combat actions
+
 ---
 
 ## Planned
-
-### Combat Refinement
-- [ ] Boss-specific mechanics — unique per-boss phases with environmental effects
-- [ ] Combat stance system — aggressive/defensive stances that modify stats
 
 ### World & Content Expansion
 - [ ] New region: The Shattered Spire (endgame zone)
@@ -111,7 +117,7 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 - [ ] Ambient soundscapes per region
 - [ ] Combat music with dynamic intensity
 - [ ] UI sound effects
-- [ ] Screen transition animations
+- [x] Screen transition animations
 
 ### Progression & Endgame
 - [ ] New Game+ mode with scaled enemies

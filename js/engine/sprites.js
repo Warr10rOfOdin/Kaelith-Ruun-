@@ -2607,6 +2607,11 @@ const Sprites = {
         this.cache.combat_the_ashen_king = this.drawCombatEnemy('the_ashen_king');
         this.cache.combat_mother_of_the_fen = this.drawCombatEnemy('mother_of_the_fen');
         this.cache.combat_ruun_the_unraveler = this.drawCombatEnemy('ruun_the_unraveler');
+        this.cache.combat_crystal_revenant = this.drawCombatEnemy('crystal_revenant');
+        this.cache.combat_rune_wraith = this.drawCombatEnemy('rune_wraith');
+        this.cache.combat_fractured_golem = this.drawCombatEnemy('fractured_golem');
+        this.cache.combat_spire_seraph = this.drawCombatEnemy('spire_seraph');
+        this.cache.combat_the_architect = this.drawCombatEnemy('the_architect');
     },
 
     getNPC(npcId) {
@@ -3319,6 +3324,11 @@ const Sprites = {
             case 'the_ashen_king': return this.drawCombatAshenKing();
             case 'mother_of_the_fen': return this.drawCombatMotherFen();
             case 'ruun_the_unraveler': return this.drawCombatRuun();
+            case 'crystal_revenant': return this.drawCombatCrystalRevenant();
+            case 'rune_wraith': return this.drawCombatRuneWraith();
+            case 'fractured_golem': return this.drawCombatFracturedGolem();
+            case 'spire_seraph': return this.drawCombatSpireSeraph();
+            case 'the_architect': return this.drawCombatTheArchitect();
             default: return this.drawCombatGenericEnemy();
         }
     },
@@ -4801,6 +4811,350 @@ const Sprites = {
         ctx.fillRect(36, 44, 1, 1); ctx.fillRect(58, 48, 1, 1);
         ctx.fillRect(46, 62, 1, 1); ctx.fillRect(50, 34, 1, 1);
         ctx.globalAlpha = 1;
+        return c;
+    },
+
+    // ── SHATTERED SPIRE ENEMIES ──
+
+    drawCombatCrystalRevenant() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.2)';
+        ctx.beginPath(); ctx.ellipse(32, 72, 18, 5, 0, 0, Math.PI*2); ctx.fill();
+        // Crystal glow aura
+        ctx.fillStyle = 'rgba(60,100,200,0.08)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 26, 32, 0, 0, Math.PI*2); ctx.fill();
+        // Legs — crystalline pillars
+        ctx.fillStyle = '#2a3060';
+        ctx.fillRect(20, 56, 8, 14); ctx.fillRect(36, 56, 8, 14);
+        ctx.fillStyle = '#3a4080';
+        ctx.fillRect(22, 58, 4, 10); ctx.fillRect(38, 58, 4, 10);
+        // Body — faceted crystal torso
+        ctx.fillStyle = '#1a2550';
+        ctx.beginPath();
+        ctx.moveTo(16, 28); ctx.lineTo(32, 22); ctx.lineTo(48, 28);
+        ctx.lineTo(50, 56); ctx.lineTo(14, 56); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#2a3570';
+        ctx.beginPath();
+        ctx.moveTo(18, 30); ctx.lineTo(32, 24); ctx.lineTo(46, 30);
+        ctx.lineTo(44, 52); ctx.lineTo(20, 52); ctx.closePath(); ctx.fill();
+        // Crystal facet highlights
+        ctx.fillStyle = 'rgba(100,160,255,0.2)';
+        ctx.beginPath(); ctx.moveTo(24, 30); ctx.lineTo(32, 26); ctx.lineTo(36, 40); ctx.lineTo(24, 38); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(80,140,255,0.15)';
+        ctx.beginPath(); ctx.moveTo(36, 28); ctx.lineTo(44, 32); ctx.lineTo(42, 46); ctx.lineTo(34, 40); ctx.closePath(); ctx.fill();
+        // Arms — crystalline shards extending outward
+        ctx.fillStyle = '#1a2550';
+        ctx.save(); ctx.translate(12, 34); ctx.rotate(-0.3);
+        ctx.fillRect(-6, -4, 12, 20); ctx.restore();
+        ctx.save(); ctx.translate(52, 34); ctx.rotate(0.3);
+        ctx.fillRect(-6, -4, 12, 20); ctx.restore();
+        ctx.fillStyle = '#2a3570';
+        ctx.save(); ctx.translate(12, 34); ctx.rotate(-0.3);
+        ctx.fillRect(-4, -2, 8, 16); ctx.restore();
+        ctx.save(); ctx.translate(52, 34); ctx.rotate(0.3);
+        ctx.fillRect(-4, -2, 8, 16); ctx.restore();
+        // Head — angular crystal helm
+        ctx.fillStyle = '#1a2550';
+        ctx.beginPath();
+        ctx.moveTo(20, 22); ctx.lineTo(32, 4); ctx.lineTo(44, 22); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#2a3570';
+        ctx.beginPath();
+        ctx.moveTo(22, 20); ctx.lineTo(32, 6); ctx.lineTo(42, 20); ctx.closePath(); ctx.fill();
+        // Eyes — bright blue glow
+        ctx.fillStyle = '#66aaff';
+        ctx.fillRect(26, 14, 4, 3); ctx.fillRect(34, 14, 4, 3);
+        ctx.fillStyle = '#aaddff';
+        ctx.fillRect(27, 14, 2, 1); ctx.fillRect(35, 14, 2, 1);
+        // Eye glow
+        ctx.fillStyle = 'rgba(100,170,255,0.3)';
+        ctx.beginPath(); ctx.arc(28, 15, 5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(36, 15, 5, 0, Math.PI*2); ctx.fill();
+        // Crystal spikes on shoulders
+        ctx.fillStyle = '#4a60aa';
+        ctx.beginPath(); ctx.moveTo(12, 30); ctx.lineTo(8, 18); ctx.lineTo(16, 28); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(52, 30); ctx.lineTo(56, 18); ctx.lineTo(48, 28); ctx.fill();
+        return c;
+    },
+
+    drawCombatRuneWraith() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.beginPath(); ctx.ellipse(32, 74, 14, 3, 0, 0, Math.PI*2); ctx.fill();
+        // Spectral glow
+        ctx.fillStyle = 'rgba(100,60,200,0.06)';
+        ctx.beginPath(); ctx.ellipse(32, 40, 24, 30, 0, 0, Math.PI*2); ctx.fill();
+        // Ethereal body — wispy, translucent
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = '#2a1a4a';
+        ctx.beginPath();
+        ctx.moveTo(22, 30); ctx.quadraticCurveTo(32, 24, 42, 30);
+        ctx.quadraticCurveTo(46, 50, 40, 72);
+        ctx.quadraticCurveTo(32, 76, 24, 72);
+        ctx.quadraticCurveTo(18, 50, 22, 30); ctx.fill();
+        ctx.fillStyle = '#3a2a5a';
+        ctx.beginPath();
+        ctx.moveTo(24, 32); ctx.quadraticCurveTo(32, 26, 40, 32);
+        ctx.quadraticCurveTo(42, 48, 38, 68);
+        ctx.quadraticCurveTo(32, 72, 26, 68);
+        ctx.quadraticCurveTo(22, 48, 24, 32); ctx.fill();
+        ctx.globalAlpha = 1;
+        // Floating runes on body
+        ctx.fillStyle = 'rgba(150,100,255,0.4)';
+        ctx.font = '8px monospace';
+        ctx.fillText('\u2660', 26, 45); ctx.fillText('\u2666', 35, 55);
+        ctx.fillText('\u2663', 30, 38);
+        // Head — hooded spectral face
+        ctx.fillStyle = '#1a1030';
+        ctx.beginPath(); ctx.ellipse(32, 22, 12, 14, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#2a1a40';
+        ctx.beginPath(); ctx.ellipse(32, 20, 10, 12, 0, 0, Math.PI*2); ctx.fill();
+        // Hood point
+        ctx.fillStyle = '#1a1030';
+        ctx.beginPath(); ctx.moveTo(24, 14); ctx.lineTo(32, 2); ctx.lineTo(40, 14); ctx.closePath(); ctx.fill();
+        // Eyes — glowing purple
+        ctx.fillStyle = '#bb66ff';
+        ctx.fillRect(26, 18, 4, 3); ctx.fillRect(34, 18, 4, 3);
+        ctx.fillStyle = '#dd99ff';
+        ctx.fillRect(27, 18, 2, 1); ctx.fillRect(35, 18, 2, 1);
+        // Eye glow
+        ctx.fillStyle = 'rgba(180,100,255,0.25)';
+        ctx.beginPath(); ctx.arc(28, 19, 4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(36, 19, 4, 0, Math.PI*2); ctx.fill();
+        // Floating hands with rune circles
+        ctx.fillStyle = '#2a1a4a';
+        ctx.beginPath(); ctx.ellipse(12, 42, 6, 5, -0.2, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(52, 42, 6, 5, 0.2, 0, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = 'rgba(150,100,255,0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(12, 42, 8, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(52, 42, 8, 0, Math.PI*2); ctx.stroke();
+        return c;
+    },
+
+    drawCombatFracturedGolem() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.beginPath(); ctx.ellipse(32, 74, 22, 6, 0, 0, Math.PI*2); ctx.fill();
+        // Legs — massive stone pillars
+        ctx.fillStyle = '#2a2a38';
+        ctx.fillRect(14, 56, 14, 18); ctx.fillRect(36, 56, 14, 18);
+        ctx.fillStyle = '#3a3a48';
+        ctx.fillRect(16, 58, 10, 14); ctx.fillRect(38, 58, 10, 14);
+        // Body — massive stone torso with crystal cracks
+        ctx.fillStyle = '#2a2a38';
+        ctx.fillRect(8, 22, 48, 36);
+        ctx.fillStyle = '#3a3a48';
+        ctx.fillRect(10, 24, 44, 32);
+        // Crystal fracture lines
+        ctx.strokeStyle = 'rgba(100,160,255,0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(20, 26); ctx.lineTo(28, 38); ctx.lineTo(22, 52); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(44, 28); ctx.lineTo(38, 42); ctx.lineTo(42, 54); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(30, 30); ctx.lineTo(34, 44); ctx.stroke();
+        // Crystal glow from cracks
+        ctx.fillStyle = 'rgba(80,140,255,0.15)';
+        ctx.fillRect(24, 34, 6, 8); ctx.fillRect(36, 38, 5, 6);
+        // Arms — huge stone appendages
+        ctx.fillStyle = '#2a2a38';
+        ctx.fillRect(0, 26, 10, 24); ctx.fillRect(54, 26, 10, 24);
+        ctx.fillStyle = '#3a3a48';
+        ctx.fillRect(2, 28, 6, 20); ctx.fillRect(56, 28, 6, 20);
+        // Fists
+        ctx.fillStyle = '#2a2a38';
+        ctx.fillRect(-2, 48, 14, 10); ctx.fillRect(52, 48, 14, 10);
+        ctx.fillStyle = '#3a3a48';
+        ctx.fillRect(0, 50, 10, 6); ctx.fillRect(54, 50, 10, 6);
+        // Head — blocky stone head
+        ctx.fillStyle = '#2a2a38';
+        ctx.fillRect(18, 4, 28, 20);
+        ctx.fillStyle = '#3a3a48';
+        ctx.fillRect(20, 6, 24, 16);
+        // Eyes — crystal energy
+        ctx.fillStyle = '#44aaff';
+        ctx.fillRect(24, 10, 5, 4); ctx.fillRect(35, 10, 5, 4);
+        ctx.fillStyle = '#88ccff';
+        ctx.fillRect(25, 10, 3, 2); ctx.fillRect(36, 10, 3, 2);
+        // Crystal protruding from head
+        ctx.fillStyle = '#4a60aa';
+        ctx.beginPath(); ctx.moveTo(28, 6); ctx.lineTo(32, -4); ctx.lineTo(36, 6); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(100,160,255,0.3)';
+        ctx.beginPath(); ctx.moveTo(30, 6); ctx.lineTo(32, -2); ctx.lineTo(34, 6); ctx.closePath(); ctx.fill();
+        return c;
+    },
+
+    drawCombatSpireSeraph() {
+        const W = 64, H = 80;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.beginPath(); ctx.ellipse(32, 76, 14, 3, 0, 0, Math.PI*2); ctx.fill();
+        // Ethereal glow
+        ctx.fillStyle = 'rgba(80,180,255,0.06)';
+        ctx.beginPath(); ctx.ellipse(32, 38, 28, 34, 0, 0, Math.PI*2); ctx.fill();
+        // Wings — crystalline, translucent
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = '#3a5080';
+        // Left wing
+        ctx.beginPath();
+        ctx.moveTo(18, 30); ctx.quadraticCurveTo(-4, 10, 2, 40);
+        ctx.quadraticCurveTo(6, 55, 18, 50); ctx.closePath(); ctx.fill();
+        // Right wing
+        ctx.beginPath();
+        ctx.moveTo(46, 30); ctx.quadraticCurveTo(68, 10, 62, 40);
+        ctx.quadraticCurveTo(58, 55, 46, 50); ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = '#6a8acc';
+        ctx.beginPath();
+        ctx.moveTo(20, 32); ctx.quadraticCurveTo(0, 14, 6, 38);
+        ctx.quadraticCurveTo(10, 48, 20, 46); ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(44, 32); ctx.quadraticCurveTo(64, 14, 58, 38);
+        ctx.quadraticCurveTo(54, 48, 44, 46); ctx.closePath(); ctx.fill();
+        ctx.globalAlpha = 1;
+        // Body — slender angelic form
+        ctx.fillStyle = '#1a2844';
+        ctx.beginPath();
+        ctx.moveTo(24, 28); ctx.lineTo(32, 24); ctx.lineTo(40, 28);
+        ctx.lineTo(38, 64); ctx.quadraticCurveTo(32, 72, 26, 64); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#2a3858';
+        ctx.beginPath();
+        ctx.moveTo(26, 30); ctx.lineTo(32, 26); ctx.lineTo(38, 30);
+        ctx.lineTo(36, 60); ctx.quadraticCurveTo(32, 66, 28, 60); ctx.closePath(); ctx.fill();
+        // Head — haloed
+        ctx.fillStyle = '#1a2844';
+        ctx.beginPath(); ctx.ellipse(32, 18, 8, 10, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#2a3858';
+        ctx.beginPath(); ctx.ellipse(32, 17, 6, 8, 0, 0, Math.PI*2); ctx.fill();
+        // Halo — crystal ring
+        ctx.strokeStyle = 'rgba(100,200,255,0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.ellipse(32, 8, 10, 3, 0, 0, Math.PI*2); ctx.stroke();
+        ctx.strokeStyle = 'rgba(100,200,255,0.2)';
+        ctx.beginPath(); ctx.ellipse(32, 8, 12, 4, 0, 0, Math.PI*2); ctx.stroke();
+        // Eyes — bright cyan
+        ctx.fillStyle = '#44ddff';
+        ctx.fillRect(28, 16, 3, 2); ctx.fillRect(33, 16, 3, 2);
+        ctx.fillStyle = '#88eeff';
+        ctx.fillRect(29, 16, 1, 1); ctx.fillRect(34, 16, 1, 1);
+        // Hands holding crystal orb
+        ctx.fillStyle = '#1a2844';
+        ctx.beginPath(); ctx.ellipse(28, 48, 4, 4, 0, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(36, 48, 4, 4, 0, 0, Math.PI*2); ctx.fill();
+        // Crystal orb
+        ctx.fillStyle = 'rgba(60,180,255,0.3)';
+        ctx.beginPath(); ctx.arc(32, 50, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(100,200,255,0.5)';
+        ctx.beginPath(); ctx.arc(32, 50, 4, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(200,240,255,0.6)';
+        ctx.fillRect(30, 48, 2, 2);
+        return c;
+    },
+
+    drawCombatTheArchitect() {
+        const W = 80, H = 96;
+        const c = this.mkCanvas(W, H); const ctx = c.getContext('2d');
+        // Boss-sized — larger canvas
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.beginPath(); ctx.ellipse(40, 88, 28, 7, 0, 0, Math.PI*2); ctx.fill();
+        // Arcane aura
+        ctx.fillStyle = 'rgba(60,80,200,0.06)';
+        ctx.beginPath(); ctx.ellipse(40, 44, 36, 40, 0, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = 'rgba(100,60,200,0.04)';
+        ctx.beginPath(); ctx.ellipse(40, 44, 30, 34, 0, 0, Math.PI*2); ctx.fill();
+        // Floating crystal shards orbiting
+        ctx.fillStyle = '#4a60bb';
+        ctx.save(); ctx.translate(10, 30); ctx.rotate(0.5);
+        ctx.fillRect(-3, -6, 6, 12); ctx.restore();
+        ctx.save(); ctx.translate(70, 25); ctx.rotate(-0.4);
+        ctx.fillRect(-3, -5, 6, 10); ctx.restore();
+        ctx.save(); ctx.translate(14, 60); ctx.rotate(0.8);
+        ctx.fillRect(-2, -4, 4, 8); ctx.restore();
+        ctx.save(); ctx.translate(66, 58); ctx.rotate(-0.6);
+        ctx.fillRect(-2, -4, 4, 8); ctx.restore();
+        // Legs — armored crystalline
+        ctx.fillStyle = '#1a1a3a';
+        ctx.fillRect(24, 66, 12, 20); ctx.fillRect(44, 66, 12, 20);
+        ctx.fillStyle = '#2a2a4a';
+        ctx.fillRect(26, 68, 8, 16); ctx.fillRect(46, 68, 8, 16);
+        // Crystal knee guards
+        ctx.fillStyle = '#3a50aa';
+        ctx.fillRect(24, 72, 12, 3); ctx.fillRect(44, 72, 12, 3);
+        // Body — grand armored robe
+        ctx.fillStyle = '#1a1a3a';
+        ctx.beginPath();
+        ctx.moveTo(16, 30); ctx.lineTo(40, 22); ctx.lineTo(64, 30);
+        ctx.lineTo(60, 68); ctx.lineTo(20, 68); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#2a2a4a';
+        ctx.beginPath();
+        ctx.moveTo(20, 32); ctx.lineTo(40, 24); ctx.lineTo(60, 32);
+        ctx.lineTo(56, 64); ctx.lineTo(24, 64); ctx.closePath(); ctx.fill();
+        // Central crystal emblem
+        ctx.fillStyle = '#4a60bb';
+        ctx.beginPath();
+        ctx.moveTo(36, 36); ctx.lineTo(40, 30); ctx.lineTo(44, 36);
+        ctx.lineTo(40, 42); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(100,160,255,0.4)';
+        ctx.beginPath();
+        ctx.moveTo(37, 35); ctx.lineTo(40, 31); ctx.lineTo(43, 35);
+        ctx.lineTo(40, 40); ctx.closePath(); ctx.fill();
+        // Architect's rune lines on robe
+        ctx.strokeStyle = 'rgba(100,140,255,0.2)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 4; i++) {
+            ctx.beginPath();
+            ctx.moveTo(28 + i * 8, 44); ctx.lineTo(26 + i * 8, 62); ctx.stroke();
+        }
+        // Arms — outstretched with power
+        ctx.fillStyle = '#1a1a3a';
+        ctx.fillRect(4, 32, 14, 22); ctx.fillRect(62, 32, 14, 22);
+        ctx.fillStyle = '#2a2a4a';
+        ctx.fillRect(6, 34, 10, 18); ctx.fillRect(64, 34, 10, 18);
+        // Gauntlets
+        ctx.fillStyle = '#3a50aa';
+        ctx.fillRect(4, 52, 14, 6); ctx.fillRect(62, 52, 14, 6);
+        // Head — tall ornate crown/helm
+        ctx.fillStyle = '#1a1a3a';
+        ctx.fillRect(24, 4, 32, 22);
+        ctx.fillStyle = '#2a2a4a';
+        ctx.fillRect(26, 6, 28, 18);
+        // Crown spires
+        ctx.fillStyle = '#3a50aa';
+        ctx.beginPath(); ctx.moveTo(26, 6); ctx.lineTo(24, -4); ctx.lineTo(30, 6); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(38, 6); ctx.lineTo(40, -8); ctx.lineTo(42, 6); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(50, 6); ctx.lineTo(56, -4); ctx.lineTo(54, 6); ctx.fill();
+        // Crown gem
+        ctx.fillStyle = '#66aaff';
+        ctx.beginPath(); ctx.arc(40, -4, 3, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#aaddff';
+        ctx.fillRect(39, -5, 2, 2);
+        // Face visor
+        ctx.fillStyle = '#0a0a2a';
+        ctx.fillRect(28, 12, 24, 8);
+        // Eyes — blazing blue
+        ctx.fillStyle = '#44aaff';
+        ctx.fillRect(30, 14, 6, 4); ctx.fillRect(44, 14, 6, 4);
+        ctx.fillStyle = '#88ddff';
+        ctx.fillRect(32, 14, 3, 2); ctx.fillRect(46, 14, 3, 2);
+        // Eye glow
+        ctx.fillStyle = 'rgba(68,170,255,0.3)';
+        ctx.beginPath(); ctx.arc(33, 16, 6, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(47, 16, 6, 0, Math.PI*2); ctx.fill();
+        // Floating blueprint/schematic above hand
+        ctx.fillStyle = 'rgba(100,140,255,0.15)';
+        ctx.fillRect(2, 26, 10, 8);
+        ctx.strokeStyle = 'rgba(100,160,255,0.3)';
+        ctx.lineWidth = 0.5;
+        ctx.strokeRect(2, 26, 10, 8);
+        ctx.beginPath(); ctx.moveTo(4, 28); ctx.lineTo(10, 28); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(4, 30); ctx.lineTo(8, 30); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(4, 32); ctx.lineTo(10, 32); ctx.stroke();
         return c;
     },
 

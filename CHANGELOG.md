@@ -4,6 +4,25 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v0.12.0] — 2026-03-06 — Massive Content & Systems Update
+
+### Added
+- **30+ new items** for the Shattered Spire tier:
+  - 5 resources: Resonance Crystal, Aether Dust, Starforged Ingot, Runic Parchment, Crystallized Mana
+  - 6 weapons: Crystal Rapier, Runebound Warhammer, Aether Longbow, Starforged Greatsword (legendary), Spellweaver Focus, Voidthorn Daggers
+  - 4 armor: Crystal Mail, Starforged Plate (legendary), Resonance Robes, Spire Warden's Plate
+  - 2 helmets, 2 boots, 2 offhand, 3 accessories, 4 consumables, 4 food items
+  - Legendary loot tier and Shattered Spire resource tables
+- **Tech Tree Tier 5 — Spire Ascendant**: 30+ new recipes, unlocks after all 4 bosses + Arcane Forge
+- **6 new buildings**: Arcane Forge (upgradeable to Astral Forge), Crystal Garden (upgradeable to Conservatory), War Room, Observatory, Enchanting Altar, Trophy Hall (upgradeable)
+- **3 new side quests**: The Shattered Archive, The Crystal Corruption (moral choice), Skybridge Under Siege
+- **Main quest stage 5**: The Architect's Design
+- **5 new enemy combat sprites**: Crystal Revenant, Rune Wraith, Fractured Golem, Spire Seraph, The Architect (boss, 80x96)
+- **Enhanced VFX system**: burst particles, loot sparkle, boss entrance, status popups, item acquired notifications, screen shake, combo flash
+- **CSS visual overhaul**: notification types, equipment rarity glow with legendary shimmer, tech tree panel, building cards, HUD bar pulse, tooltip system, combat status/combo/boss VFX
+
+---
+
 ## [v0.11.0] — 2026-03-02 — The Shattered Spire
 
 ### Added

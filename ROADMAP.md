@@ -109,6 +109,15 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 - [x] Purple-blue crystalline visual atmosphere (tint, lighting, particles, battlefield)
 - [x] Region-specific weather and ambient music
 
+### Massive Content & Systems Update (v0.12.0)
+- [x] 30+ new Spire-tier items (weapons, armor, accessories, consumables, food, resources)
+- [x] Tech Tree Tier 5 — Spire Ascendant with 30+ new crafting recipes
+- [x] 6 new buildings: Arcane Forge, Crystal Garden, War Room, Observatory, Enchanting Altar, Trophy Hall
+- [x] 3 new side quests + main quest stage 5 for Shattered Spire
+- [x] 5 new enemy combat sprites (Crystal Revenant, Rune Wraith, Fractured Golem, Spire Seraph, The Architect)
+- [x] Enhanced VFX system: burst particles, loot sparkle, boss entrance, screen shake, combo flash, status popups
+- [x] CSS visual overhaul: notification types, equipment rarity glow, tech tree panel, building cards, HUD pulse, tooltips
+
 ---
 
 ## Planned

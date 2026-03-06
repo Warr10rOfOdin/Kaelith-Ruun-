@@ -1545,6 +1545,167 @@
     to { opacity: 0; transform: translate(-50%, -60%) scale(0.9); }
 }
 
+/* ---- ENHANCED VFX: Status Popups ---- */
+.status-popup {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+    pointer-events: none;
+    z-index: 20;
+    animation: statusPopFloat 1.2s ease-out forwards;
+}
+
+@keyframes statusPopFloat {
+    0% { opacity: 0; transform: translateX(-50%) translateY(0) scale(0.5); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(-8px) scale(1.2); }
+    30% { transform: translateX(-50%) translateY(-15px) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-50px) scale(0.8); }
+}
+
+/* ---- ENHANCED VFX: Combo Flash ---- */
+.combo-flash {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: 1.8rem;
+    color: var(--accent-gold);
+    text-shadow: 0 0 15px rgba(201,168,76,0.6), 0 0 30px rgba(201,168,76,0.3);
+    letter-spacing: 0.15em;
+    pointer-events: none;
+    z-index: 25;
+    animation: comboFlashIn 1s ease-out forwards;
+}
+.combo-flash.big {
+    font-size: 2.2rem;
+    color: #ff8844;
+    text-shadow: 0 0 20px rgba(255,136,68,0.7), 0 0 40px rgba(255,100,30,0.4);
+}
+.combo-flash.mega {
+    font-size: 2.8rem;
+    color: #ff4488;
+    text-shadow: 0 0 25px rgba(255,68,136,0.8), 0 0 50px rgba(255,40,100,0.5);
+}
+
+@keyframes comboFlashIn {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(3); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(0.9); }
+    35% { transform: translate(-50%, -50%) scale(1.1); }
+    50% { transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -60%) scale(0.7); }
+}
+
+/* ---- ENHANCED VFX: Boss Entrance ---- */
+.boss-entrance-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.7);
+    z-index: 998;
+    pointer-events: none;
+    animation: bossEntranceFade 2.5s ease forwards;
+}
+.boss-entrance-name {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #ff3333;
+    text-shadow: 0 0 30px rgba(255,50,50,0.6), 0 0 60px rgba(255,20,20,0.3);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    animation: bossNameSlam 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.boss-entrance-subtitle {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: rgba(255,200,200,0.6);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+    animation: bossSubFade 0.8s 0.4s ease forwards;
+    opacity: 0;
+}
+@keyframes bossEntranceFade {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
+}
+@keyframes bossNameSlam {
+    0% { opacity: 0; transform: scale(3) translateY(-20px); }
+    60% { opacity: 1; transform: scale(0.95) translateY(0); }
+    100% { transform: scale(1) translateY(0); }
+}
+@keyframes bossSubFade {
+    to { opacity: 1; }
+}
+
+/* ---- ENHANCED VFX: Loot Sparkle ---- */
+.loot-sparkle {
+    position: fixed;
+    width: 4px;
+    height: 4px;
+    background: var(--accent-gold);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1000;
+    box-shadow: 0 0 6px var(--accent-gold), 0 0 12px rgba(201,168,76,0.4);
+    animation: sparkleAnim 0.8s ease-out forwards;
+}
+@keyframes sparkleAnim {
+    0% { opacity: 0; transform: scale(0); }
+    30% { opacity: 1; transform: scale(1.5); }
+    100% { opacity: 0; transform: scale(0) translateY(-20px); }
+}
+
+/* ---- ENHANCED VFX: Item Acquired ---- */
+.item-acquired-notif {
+    background: linear-gradient(135deg, rgba(30,30,50,0.95) 0%, rgba(20,20,40,0.95) 100%);
+    border: 1px solid var(--accent-gold);
+    border-left: 3px solid var(--accent-gold);
+    color: var(--text-primary);
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    margin-bottom: 0.3rem;
+    animation: itemAcqSlide 0.4s ease-out, notifFade 2.8s 0.2s ease forwards;
+    box-shadow: 0 0 15px rgba(201,168,76,0.15);
+}
+.item-acquired-icon {
+    margin-right: 0.3rem;
+}
+@keyframes itemAcqSlide {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* ---- ENHANCED DAMAGE NUMBER: Absorb/Shield ---- */
+.damage-number.absorb {
+    color: #66ccff;
+    font-size: 1.3rem;
+    text-shadow: 0 0 8px rgba(100,200,255,0.6), 0 2px 4px rgba(0,0,0,0.8);
+    right: 8%;
+    top: 18%;
+}
+
+.damage-number.miss {
+    color: #888888;
+    font-size: 1.2rem;
+    font-style: italic;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    right: 8%;
+    top: 18%;
+}
+
 /* Tablet+ */
 @media (min-width: 600px) {
     #combat-arena { padding: 0.5rem; }

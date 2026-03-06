@@ -141,6 +141,38 @@ const TECH_TREE = {
                 'void_tonic_craft', 'elixir_of_restoration_craft'
             ]
         }
+    },
+
+    // ── TIER 5: Spire Ascendant ──
+    // Requires: The Architect defeated + arcane forge
+    tier_5: {
+        name: 'Spire Ascendant',
+        icon: '💠',
+        description: 'Having conquered the Shattered Spire and restored the Arcane Forge, you unlock the secrets of starforged crafting and crystal cultivation.',
+        requirements: {
+            bosses: ['the_ashen_king', 'mother_of_the_fen', 'ruun_the_unraveler', 'the_architect'],
+            buildings: ['forge', 'workshop', 'herbalist_bench', 'arcane_forge'],
+            minBuildings: 10
+        },
+        unlocks: {
+            buildings: ['crystal_garden', 'war_room', 'observatory', 'enchanting_altar', 'trophy_hall'],
+            recipes: [
+                'starforged_ingot_craft', 'crystallized_mana_craft',
+                'crystal_rapier_craft', 'runebound_hammer_craft', 'aether_bow_craft',
+                'starforged_greatsword_craft', 'spellweaver_focus_craft', 'voidthorn_daggers_craft',
+                'crystal_mail_craft', 'starforged_plate_craft', 'resonance_robes_craft',
+                'spire_wardens_plate_craft',
+                'crystal_circlet_craft', 'starforged_helm_craft',
+                'aether_striders_craft', 'crystal_greaves_craft',
+                'resonance_shield_craft', 'tome_of_the_architect_craft',
+                'crystal_heart_pendant_craft', 'ring_of_resonance_craft', 'amulet_of_the_architect_craft',
+                'aether_elixir_craft', 'crystal_salve_craft', 'starforged_tonic_craft',
+                'resonance_bomb_craft',
+                'spire_stew_craft', 'crystal_wine_craft',
+                'placeable_crystal_lamp_craft', 'placeable_runic_pillar_craft',
+                'placeable_banner_spire_craft'
+            ]
+        }
     }
 };
 
@@ -148,7 +180,7 @@ const TECH_TREE = {
 const TechTree = {
     getUnlockedTier() {
         let highestTier = 0;
-        for (let i = 0; i <= 4; i++) {
+        for (let i = 0; i <= 5; i++) {
             const tier = TECH_TREE[`tier_${i}`];
             if (this.meetsRequirements(tier.requirements)) {
                 highestTier = i;
@@ -196,7 +228,7 @@ const TechTree = {
 
     getUnlockedRecipes() {
         const recipes = new Set();
-        for (let i = 0; i <= 4; i++) {
+        for (let i = 0; i <= 5; i++) {
             const tier = TECH_TREE[`tier_${i}`];
             if (this.meetsRequirements(tier.requirements)) {
                 if (tier.unlocks.recipes) {
@@ -209,7 +241,7 @@ const TechTree = {
 
     getUnlockedBuildings() {
         const buildings = new Set();
-        for (let i = 0; i <= 4; i++) {
+        for (let i = 0; i <= 5; i++) {
             const tier = TECH_TREE[`tier_${i}`];
             if (this.meetsRequirements(tier.requirements)) {
                 if (tier.unlocks.buildings) {
@@ -231,7 +263,7 @@ const TechTree = {
     // Get info for the tech tree UI panel
     getTierInfo() {
         const tiers = [];
-        for (let i = 0; i <= 4; i++) {
+        for (let i = 0; i <= 5; i++) {
             const tier = TECH_TREE[`tier_${i}`];
             const unlocked = this.meetsRequirements(tier.requirements);
             tiers.push({

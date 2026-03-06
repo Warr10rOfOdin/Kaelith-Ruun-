@@ -1118,6 +1118,223 @@ const ITEMS = {
     ruun_codex_page: {
         name: 'Ruun Codex Page', icon: '📜', type: 'quest', stackable: true,
         description: 'A page from the legendary Ruun Codex.', value: 0
+    },
+    architects_blueprint: {
+        name: 'Architect\'s Blueprints', icon: '📋', type: 'quest',
+        description: 'Detailed schematics from the Architect\'s personal collection. Could restore the Arcane Forge.', value: 0
+    },
+    corrupted_crystal_sample: {
+        name: 'Corrupted Crystal', icon: '💜', type: 'quest', stackable: true,
+        description: 'A crystal tainted by residual void corruption. Thessaly needs these for research.', value: 0
+    },
+
+    // ═══════════════════════════════════════════
+    // SPIRE RESOURCES (Tier 4)
+    // ═══════════════════════════════════════════
+
+    resonance_crystal: {
+        name: 'Resonance Crystal', icon: '💠', type: 'resource', stackable: true,
+        description: 'A crystal that hums at a frequency only the soul can hear. Used in arcane construction.', value: 45, tier: 4
+    },
+    aether_dust: {
+        name: 'Aether Dust', icon: '✨', type: 'resource', stackable: true,
+        description: 'Fine crystalline powder that floats against gravity. Essential for enchanting.', value: 55, tier: 4
+    },
+    starforged_ingot: {
+        name: 'Starforged Ingot', icon: '⭐', type: 'resource', stackable: true,
+        description: 'Metal smelted with resonance crystals. Rings like a bell when struck.', value: 200, tier: 4
+    },
+    runic_parchment: {
+        name: 'Runic Parchment', icon: '📜', type: 'resource', stackable: true,
+        description: 'Ancient paper that resists fire and time. Runes inscribed upon it glow faintly.', value: 35, tier: 3
+    },
+    crystallized_mana: {
+        name: 'Crystallized Mana', icon: '🔮', type: 'resource', stackable: true,
+        description: 'Raw magical energy compressed into solid form. Pulses with inner light.', value: 70, tier: 4
+    },
+
+    // ═══════════════════════════════════════════
+    // SPIRE WEAPONS
+    // ═══════════════════════════════════════════
+
+    crystal_rapier: {
+        name: 'Crystal Rapier', icon: '🗡️', type: 'weapon', slot: 'weapon', rarity: 'rare',
+        description: 'A blade of living crystal that resonates with each strike, building in power.',
+        stats: { attack: 22, speed: 8, critChance: 15 }, value: 280, tier: 4
+    },
+    runebound_hammer: {
+        name: 'Runebound Warhammer', icon: '🔨', type: 'weapon', slot: 'weapon', rarity: 'rare',
+        description: 'A massive hammer inscribed with crushing runes. Shatters stone and bone alike.',
+        stats: { attack: 30, defense: 4 }, value: 310, tier: 4
+    },
+    aether_bow: {
+        name: 'Aether Longbow', icon: '🏹', type: 'weapon', slot: 'weapon', rarity: 'epic',
+        description: 'A bow strung with crystallized light. Arrows materialize from pure energy.',
+        stats: { attack: 26, magicAttack: 12, speed: 6, critChance: 10 }, value: 420, tier: 4
+    },
+    starforged_greatsword: {
+        name: 'Starforged Greatsword', icon: '⚔️', type: 'weapon', slot: 'weapon', rarity: 'legendary',
+        description: 'A colossal blade of starforged metal. Its edge never dulls and its weight feels like purpose.',
+        stats: { attack: 38, magicAttack: 10, critChance: 8, defense: 3 }, value: 650, tier: 4
+    },
+    spellweaver_focus: {
+        name: 'Spellweaver Focus', icon: '🔮', type: 'weapon', slot: 'weapon', rarity: 'epic',
+        description: 'A crystalline orb that amplifies magical resonance. Spells cast through it split and multiply.',
+        stats: { magicAttack: 28, magicDefense: 8, speed: 4 }, value: 480, tier: 4
+    },
+    voidthorn_daggers: {
+        name: 'Voidthorn Daggers', icon: '🗡️', type: 'weapon', slot: 'weapon', rarity: 'epic',
+        description: 'Twin daggers grown from crystallized void thorns. They bite through armor like paper.',
+        stats: { attack: 24, speed: 12, critChance: 18 }, value: 440, tier: 4
+    },
+
+    // ═══════════════════════════════════════════
+    // SPIRE ARMOR
+    // ═══════════════════════════════════════════
+
+    crystal_mail: {
+        name: 'Crystal Mail', icon: '🛡️', type: 'armor', slot: 'armor', rarity: 'rare',
+        description: 'Interlocking crystal scales that refract incoming blows. Light as cloth, hard as diamond.',
+        stats: { defense: 18, magicDefense: 10, speed: 2 }, value: 320, tier: 4
+    },
+    starforged_plate: {
+        name: 'Starforged Plate', icon: '🛡️', type: 'armor', slot: 'armor', rarity: 'legendary',
+        description: 'Full plate armor of starforged metal. Constellations slowly orbit across its surface.',
+        stats: { defense: 28, magicDefense: 12, maxHP: 30 }, value: 700, tier: 4
+    },
+    resonance_robes: {
+        name: 'Resonance Robes', icon: '👘', type: 'armor', slot: 'armor', rarity: 'epic',
+        description: 'Robes woven from aether-infused silk. They amplify the wearer\'s magical harmonics.',
+        stats: { magicDefense: 20, magicAttack: 8, maxMP: 25 }, value: 460, tier: 4
+    },
+    spire_wardens_plate: {
+        name: 'Spire Warden\'s Plate', icon: '🛡️', type: 'armor', slot: 'armor', rarity: 'epic',
+        description: 'Armor worn by the ancient guardians of the Spire. Runes of protection glow along every seam.',
+        stats: { defense: 24, magicDefense: 14, maxHP: 15 }, value: 520, tier: 4
+    },
+
+    // ═══════════════════════════════════════════
+    // SPIRE HELMETS
+    // ═══════════════════════════════════════════
+
+    crystal_circlet: {
+        name: 'Crystal Circlet', icon: '👑', type: 'helmet', slot: 'helmet', rarity: 'rare',
+        description: 'A circlet of woven crystal that enhances mental clarity and magical perception.',
+        stats: { magicDefense: 8, magicAttack: 6, speed: 3 }, value: 200, tier: 4
+    },
+    starforged_helm: {
+        name: 'Starforged Helm', icon: '⛑️', type: 'helmet', slot: 'helmet', rarity: 'legendary',
+        description: 'A full helm of starforged metal with a visor shaped like a rising sun.',
+        stats: { defense: 14, magicDefense: 8, maxHP: 20 }, value: 550, tier: 4
+    },
+
+    // ═══════════════════════════════════════════
+    // SPIRE BOOTS
+    // ═══════════════════════════════════════════
+
+    aether_striders: {
+        name: 'Aether Striders', icon: '👢', type: 'boots', slot: 'boots', rarity: 'epic',
+        description: 'Boots infused with crystallized aether. The wearer\'s steps barely touch the ground.',
+        stats: { speed: 10, defense: 6, magicDefense: 6 }, value: 380, tier: 4
+    },
+    crystal_greaves: {
+        name: 'Crystal Greaves', icon: '👢', type: 'boots', slot: 'boots', rarity: 'rare',
+        description: 'Greaves of interlocking crystal plates. Light and durable.',
+        stats: { defense: 8, speed: 5, magicDefense: 4 }, value: 220, tier: 4
+    },
+
+    // ═══════════════════════════════════════════
+    // SPIRE OFFHAND
+    // ═══════════════════════════════════════════
+
+    resonance_shield: {
+        name: 'Resonance Shield', icon: '🛡️', type: 'offhand', slot: 'offhand', rarity: 'epic',
+        description: 'A shield of crystallized sound that deflects blows and spells alike with harmonic force.',
+        stats: { defense: 16, magicDefense: 12 }, value: 400, tier: 4
+    },
+    tome_of_the_architect: {
+        name: 'Tome of the Architect', icon: '📖', type: 'offhand', slot: 'offhand', rarity: 'legendary',
+        description: 'The personal spellbook of the Architect. Its pages rewrite themselves as you read.',
+        stats: { magicAttack: 14, magicDefense: 10, maxMP: 20 }, value: 600, tier: 4
+    },
+
+    // ═══════════════════════════════════════════
+    // SPIRE ACCESSORIES
+    // ═══════════════════════════════════════════
+
+    crystal_heart_pendant: {
+        name: 'Crystal Heart Pendant', icon: '💎', type: 'accessory', slot: 'accessory', rarity: 'epic',
+        description: 'A pendant containing a beating crystal heart. Pulses with restorative energy.',
+        stats: { maxHP: 25, maxMP: 15, defense: 3 }, value: 350, tier: 4
+    },
+    ring_of_resonance: {
+        name: 'Ring of Resonance', icon: '💍', type: 'accessory', slot: 'accessory', rarity: 'rare',
+        description: 'A ring that vibrates in harmony with the spire. Enhances all magical abilities.',
+        stats: { magicAttack: 8, magicDefense: 6, critChance: 5 }, value: 280, tier: 4
+    },
+    amulet_of_the_architect: {
+        name: 'Amulet of the Architect', icon: '📿', type: 'accessory', slot: 'accessory', rarity: 'legendary',
+        description: 'An amulet that bends reality in small ways. Time moves differently for the wearer.',
+        stats: { speed: 8, magicAttack: 10, magicDefense: 8, critChance: 8 }, value: 700, tier: 4
+    },
+
+    // ═══════════════════════════════════════════
+    // SPIRE CONSUMABLES
+    // ═══════════════════════════════════════════
+
+    aether_elixir: {
+        name: 'Aether Elixir', icon: '🧪', type: 'consumable', stackable: true,
+        description: 'Liquid crystallized mana. Restores a massive amount of MP.',
+        effect: { restoreMP: 80 }, value: 65, tier: 4
+    },
+    crystal_salve: {
+        name: 'Crystal Salve', icon: '💊', type: 'consumable', stackable: true,
+        description: 'A healing paste made from ground resonance crystals. Heals and shields.',
+        effect: { heal: 60, shield: 30 }, value: 55, tier: 4
+    },
+    starforged_tonic: {
+        name: 'Starforged Tonic', icon: '🧪', type: 'consumable', stackable: true,
+        description: 'A shimmering draught that temporarily enhances all combat stats.',
+        effect: { buff: { stat: 'all', amount: 5, duration: 10 } }, value: 120, tier: 4,
+        buff: { id: 'starforged', name: 'Starforged Power', icon: '⭐', stat: 'all', amount: 5, duration: 10 }
+    },
+    resonance_bomb: {
+        name: 'Resonance Bomb', icon: '💣', type: 'consumable', stackable: true,
+        description: 'A crystal sphere that detonates with concussive harmonic force. Deals damage and stuns.',
+        effect: { damage: 40, stun: 1 }, value: 75, tier: 4
+    },
+
+    // ═══════════════════════════════════════════
+    // SPIRE FOOD
+    // ═══════════════════════════════════════════
+
+    crystal_berry: {
+        name: 'Crystal Berry', icon: '🫐', type: 'food', stackable: true,
+        description: 'Berries that grow on crystal vines. Sweet with a faint electric tingle.',
+        effect: { heal: 15, restoreMP: 10 }, value: 12, tier: 3,
+        survivalEffect: { fatigue: -5, morale: 3 }
+    },
+    aether_mushroom: {
+        name: 'Aether Mushroom', icon: '🍄', type: 'food', stackable: true,
+        description: 'A luminescent mushroom from the Spire\'s crystalline caves. Tastes like starlight.',
+        effect: { restoreMP: 25 }, value: 18, tier: 3,
+        survivalEffect: { fatigue: -8, morale: 5 }
+    },
+    spire_stew: {
+        name: 'Spire Stew', icon: '🍲', type: 'food', stackable: true,
+        description: 'A hearty stew made from crystal berries, aether mushrooms, and slow-cooked meat. Incredibly nourishing.',
+        effect: { heal: 70, restoreMP: 30 },
+        buff: { id: 'spire_nourished', name: 'Spire Nourished', icon: '🍲', stat: 'magicAttack', amount: 4, duration: 12 },
+        value: 50, tier: 4,
+        survivalEffect: { fatigue: -20, morale: 10, temperature: 10 }
+    },
+    crystal_wine: {
+        name: 'Crystal Wine', icon: '🍷', type: 'food', stackable: true,
+        description: 'Wine fermented from crystal berries. Sharpens the mind but warms the blood.',
+        effect: { restoreMP: 40 },
+        buff: { id: 'crystal_clarity', name: 'Crystal Clarity', icon: '🍷', stat: 'magicDefense', amount: 5, duration: 10 },
+        value: 40, tier: 4,
+        survivalEffect: { fatigue: -15, morale: 8 }
     }
 };
 
@@ -1137,6 +1354,11 @@ const RESOURCE_TABLES = {
         common: ['stone', 'iron_ore', 'shadow_silk', 'hardwood', 'granite'],
         uncommon: ['veil_crystal', 'flame_essence', 'mithril_ore', 'obsidian', 'shadow_hide'],
         rare: ['void_ore', 'void_essence', 'spectral_thread', 'gem_ruby', 'gem_amethyst', 'ruun_shard']
+    },
+    shattered_spire: {
+        common: ['stone', 'granite', 'crystal_shard', 'iron_ore', 'hardwood'],
+        uncommon: ['arcane_dust', 'resonance_crystal', 'mithril_ore', 'runic_parchment', 'obsidian'],
+        rare: ['aether_dust', 'crystallized_mana', 'starforged_ingot', 'gem_sapphire', 'gem_amethyst']
     }
 };
 
@@ -1161,5 +1383,10 @@ const LOOT_TABLES = {
         consumables: ['greater_health_potion', 'elixir_of_power', 'void_tonic'],
         equipment: ['mantle_of_the_hollow', 'void_crown', 'void_striders', 'amulet_of_the_void'],
         goldRange: [80, 250]
+    },
+    legendary: {
+        consumables: ['starforged_tonic', 'crystal_salve', 'aether_elixir', 'elixir_of_restoration'],
+        equipment: ['starforged_greatsword', 'starforged_plate', 'starforged_helm', 'architects_compass', 'architects_crown', 'tome_of_the_architect', 'amulet_of_the_architect'],
+        goldRange: [200, 500]
     }
 };

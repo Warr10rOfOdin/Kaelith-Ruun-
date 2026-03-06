@@ -54,6 +54,19 @@ const QUESTS = {
                 ],
                 xpReward: 500,
                 onComplete: 'Ruun falls. Reality shudders, then holds. The world is still broken — but it will no longer unravel. For the first time in a thousand years, there is hope. What comes next is up to you.'
+            },
+            {
+                id: 'shattered_spire',
+                name: 'The Architect\'s Design',
+                description: 'Beyond the Void Sanctum lies the Shattered Spire — the place where reality was first broken. The Architect awaits, ready to reshape what remains.',
+                objectives: [
+                    { id: 'reach_spire', text: 'Reach the Shattered Spire', completed: false },
+                    { id: 'explore_archive', text: 'Explore the Crystalline Archive', completed: false },
+                    { id: 'ally_outpost', text: 'Gain allies at Skybridge Outpost', completed: false },
+                    { id: 'defeat_architect', text: 'Defeat the Architect', completed: false }
+                ],
+                xpReward: 750,
+                onComplete: 'The Architect falls, and the Spire shudders but holds. The fractures in reality begin to mend, crystal by crystal. You have not just saved the world — you have begun to rebuild it.'
             }
         ]
     },
@@ -156,6 +169,51 @@ const QUESTS = {
             xpReward: 220,
             itemReward: 'voidtouched_blade',
             onComplete: 'The Crimson Fang has been brought to justice. The trade routes are safe once more.'
+        },
+        spire_expedition: {
+            name: 'The Shattered Archive',
+            type: 'side',
+            description: 'The Crystalline Archive holds ancient knowledge, but its guardians have gone mad. Retrieve the Architect\'s blueprints before they are lost forever.',
+            objectives: [
+                { id: 'enter_archive', text: 'Enter the Crystalline Archive', completed: false },
+                { id: 'defeat_guardians', text: 'Defeat 3 Crystal Revenants', completed: false },
+                { id: 'find_blueprints', text: 'Find the Architect\'s Blueprints', completed: false },
+                { id: 'return_blueprints', text: 'Return to Vael the Runesmith', completed: false }
+            ],
+            xpReward: 350,
+            itemReward: 'resonance_shield',
+            onComplete: 'Vael studies the blueprints with trembling hands. "With these, I can restore the Arcane Forge to its full glory. You\'ve given this spire a second chance."'
+        },
+        crystal_corruption: {
+            name: 'The Crystal Corruption',
+            type: 'side',
+            description: 'Thessaly has discovered that the Spire\'s crystals are slowly being corrupted by a void tendril that survived Ruun\'s defeat. Find and destroy the source.',
+            objectives: [
+                { id: 'speak_thessaly', text: 'Speak to Thessaly about the corruption', completed: false },
+                { id: 'collect_samples', text: 'Collect 5 corrupted crystal samples', completed: false },
+                { id: 'find_tendril', text: 'Locate the Void Tendril', completed: false },
+                { id: 'destroy_tendril', text: 'Destroy or purify the Void Tendril', completed: false }
+            ],
+            xpReward: 400,
+            choices: {
+                destroy: { text: 'Destroy the tendril utterly, eliminating the corruption.', xpReward: 400, karmaChange: 1, itemReward: 'crystallized_mana' },
+                purify: { text: 'Purify and harness the tendril\'s energy for the Spire.', xpReward: 350, karmaChange: -1, itemReward: 'amulet_of_the_architect' }
+            },
+            onComplete: 'The crystal corruption has been dealt with. Thessaly records your actions in her research journal, noting the implications for the Spire\'s future.'
+        },
+        skybridge_defense: {
+            name: 'Skybridge Under Siege',
+            type: 'side',
+            description: 'Fractured Golems are marching on Skybridge Outpost. Help the residents fortify their defenses and repel the assault.',
+            objectives: [
+                { id: 'fortify_bridge', text: 'Help fortify the Skybridge', completed: false },
+                { id: 'set_traps', text: 'Set crystal resonance traps', completed: false },
+                { id: 'repel_wave1', text: 'Repel the first wave of golems', completed: false },
+                { id: 'defeat_commander', text: 'Defeat the Golem Commander', completed: false }
+            ],
+            xpReward: 380,
+            itemReward: 'spire_wardens_plate',
+            onComplete: 'The Skybridge holds. The residents cheer as the last golem crumbles. Vael presents you with a suit of ancient Warden\'s armor, restored from the Spire\'s vaults.'
         }
     }
 };

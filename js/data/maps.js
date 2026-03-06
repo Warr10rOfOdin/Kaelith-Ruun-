@@ -971,6 +971,54 @@ const BUILDINGS = {
         size: { w: 3, h: 3 },
         provides: 'map_reveal',
         roomBonus: { type: 'warning', amount: 1 }
+    },
+    arcane_forge: {
+        name: 'Arcane Forge', icon: '🔮', description: 'A forge powered by resonance crystals. Craft Spire-tier equipment and enchant existing gear.',
+        cost: { granite: 15, resonance_crystal: 8, mithril_ingot: 5, aether_dust: 3 },
+        size: { w: 3, h: 3 },
+        provides: 'crafting_arcane',
+        roomBonus: { type: 'arcane_craft', amount: 1.0 },
+        adjacency: { forge: { bonus: 'resonance', desc: '+15% enchant power', amount: 0.15 }, workshop: { bonus: 'precision', desc: '+5% double craft', amount: 0.05 } }
+    },
+    crystal_garden: {
+        name: 'Crystal Garden', icon: '💎', description: 'A garden of cultivated resonance crystals. Slowly grows rare crystalline materials.',
+        cost: { resonance_crystal: 10, granite: 8, aether_dust: 5 },
+        size: { w: 3, h: 3 },
+        provides: 'crystal_farming',
+        roomBonus: { type: 'crystal_growth', amount: 1.0 },
+        adjacency: { garden: { bonus: 'harmony', desc: '+20% crystal yield', amount: 0.2 }, herbalist_bench: { bonus: 'infusion', desc: 'Crystals gain alchemical properties', amount: 1 } }
+    },
+    war_room: {
+        name: 'War Room', icon: '🗺️', description: 'A tactical command center. Reveals full map and provides combat intelligence bonuses.',
+        cost: { hardwood: 20, iron_ingot: 10, runic_parchment: 5 },
+        size: { w: 3, h: 3 },
+        provides: 'tactics',
+        roomBonus: { type: 'combat_bonus', amount: 0.10 },
+        adjacency: { lookout: { bonus: 'intel', desc: 'Enemy weaknesses revealed at fight start', amount: 1 }, training_dummy: { bonus: 'drills', desc: '+10% XP from combat', amount: 0.1 } }
+    },
+    observatory: {
+        name: 'Observatory', icon: '🔭', description: 'A spire-top observatory. Track celestial patterns for stat bonuses that change with the time of day.',
+        cost: { granite: 15, resonance_crystal: 5, mithril_ingot: 3, aether_dust: 4 },
+        size: { w: 3, h: 3 },
+        provides: 'celestial',
+        roomBonus: { type: 'celestial_bonus', amount: 1.0 },
+        adjacency: { lookout: { bonus: 'starlight', desc: 'Night vision in all regions', amount: 1 } }
+    },
+    enchanting_altar: {
+        name: 'Enchanting Altar', icon: '✨', description: 'An ancient altar restored with Spire crystals. Enchant equipment with permanent stat bonuses.',
+        cost: { obsidian: 10, resonance_crystal: 8, crystallized_mana: 5, void_essence: 3 },
+        size: { w: 3, h: 3 },
+        provides: 'enchanting',
+        roomBonus: { type: 'enchant_power', amount: 1.0 },
+        adjacency: { arcane_forge: { bonus: 'attunement', desc: '+1 enchant slot on crafted items', amount: 1 }, herbalist_bench: { bonus: 'infusion', desc: 'Potions can be used as enchant catalysts', amount: 1 } }
+    },
+    trophy_hall: {
+        name: 'Trophy Hall', icon: '🏆', description: 'Display the trophies of fallen bosses. Each trophy grants a permanent passive buff.',
+        cost: { hardwood: 15, granite: 12, iron_ingot: 8 },
+        size: { w: 3, h: 3 },
+        provides: 'trophies',
+        roomBonus: { type: 'trophy_bonus', amount: 1.0 },
+        adjacency: { house: { bonus: 'pride', desc: '+10 morale', amount: 10 }, training_dummy: { bonus: 'inspiration', desc: '+5% damage vs bosses', amount: 0.05 } }
     }
 };
 
@@ -1085,6 +1133,51 @@ const BUILDING_UPGRADES = {
                 description: 'Bigger farm. +3 crop slots.',
                 cost: { wood: 12, stone: 8, ember_root: 6, iron_ingot: 3 },
                 effect: 'farm_expand'
+            }
+        }
+    },
+    arcane_forge: {
+        maxLevel: 3,
+        levels: {
+            2: {
+                name: 'Resonant Forge',
+                description: 'Crystal-tuned forge. +15% enchantment success rate.',
+                cost: { resonance_crystal: 10, starforged_ingot: 3, aether_dust: 5 },
+                effect: 'enchant_boost_15'
+            },
+            3: {
+                name: 'Astral Forge',
+                description: 'Ultimate forge. Can craft legendary Starforged equipment.',
+                cost: { starforged_ingot: 8, crystallized_mana: 5, aether_dust: 10 },
+                effect: 'legendary_craft'
+            }
+        }
+    },
+    crystal_garden: {
+        maxLevel: 3,
+        levels: {
+            2: {
+                name: 'Resonant Garden',
+                description: 'Attuned crystals. +1 crystal slot, 30% faster growth.',
+                cost: { resonance_crystal: 8, aether_dust: 4, granite: 6 },
+                effect: 'crystal_growth_boost'
+            },
+            3: {
+                name: 'Crystalline Conservatory',
+                description: 'Rare crystals can grow here. Chance for crystallized mana.',
+                cost: { crystallized_mana: 3, resonance_crystal: 12, aether_dust: 8 },
+                effect: 'rare_crystal_chance'
+            }
+        }
+    },
+    trophy_hall: {
+        maxLevel: 2,
+        levels: {
+            2: {
+                name: 'Grand Trophy Hall',
+                description: 'Expanded hall. Boss trophies grant doubled passive buffs.',
+                cost: { hardwood: 20, granite: 15, starforged_ingot: 3 },
+                effect: 'trophy_double'
             }
         }
     }

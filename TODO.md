@@ -4,10 +4,17 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ---
 
-## Current Priority: World & Content Expansion
+## Current Priority: Content & Systems Polish
 
 ### World Content
-- [x] Fourth region: The Shattered Spire (endgame zone) — `enemies.js` + `items.js` + `world.js` + `npcs.js` + `maps.js` + `sprites.js` + `worldmap.js` + `audio.js`
+- [x] Fourth region: The Shattered Spire (endgame zone) — all data + visuals + audio
+- [x] 30+ Spire-tier items (weapons, armor, accessories, consumables, food, resources)
+- [x] Tech Tree Tier 5 — Spire Ascendant, 30+ recipes
+- [x] 6 new buildings with upgrades and adjacency bonuses
+- [x] 3 new side quests + main quest stage 5
+- [x] 5 new enemy combat sprites
+- [x] Enhanced VFX system (particles, boss entrance, screen shake, combos)
+- [x] CSS visual enhancements (rarity glow, notifications, tech tree, tooltips)
 - [ ] Region-specific random encounters
 - [ ] Rare world bosses with unique loot tables
 - [ ] Environmental puzzles in ruin interiors
@@ -25,7 +32,8 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ## Recently Completed
 
-- [x] The Shattered Spire — full endgame region with 4 enemies, boss, 2 NPCs, 6 items, 4 locations, map data, visual atmosphere, weather, ambient music — `enemies.js` + `items.js` + `world.js` + `npcs.js` + `maps.js` + `sprites.js` + `worldmap.js` + `audio.js`
+- [x] Massive Content Update v0.12.0 — 30+ items, 6 buildings, tech tier 5, 3 side quests, 5 enemy sprites, VFX system, CSS overhaul
+- [x] The Shattered Spire v0.11.0 — full endgame region with 4 enemies, boss, 2 NPCs, 6 items, 4 locations, map data, visual atmosphere, weather, ambient music
 - [x] Combat stance system (aggressive/balanced/defensive with damage, crit, MP modifiers) — `combat.js` + `combat.css`
 - [x] Boss environmental mechanics (fire rain, poison fog, void fissures, etc.) — `combat.js` + `enemies.js` + `combat.css`
 - [x] Character Creation visual overhaul (progress dots, stat chips, sprite preview, animated steps) — `main.js` + `style.css` + `index.html`

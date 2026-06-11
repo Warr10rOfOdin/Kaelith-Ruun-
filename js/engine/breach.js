@@ -141,6 +141,27 @@ const SANCTUM_UPGRADES = {
     resolve: { name: 'Resolve', icon: '🕯️', desc: '+1 revive per run (1 HP)',  per: 1,    max: 1, baseCost: 600 }
 };
 
+// ── Materials that drop in each realm (feed the camp economy) ──
+const BREACH_MATERIALS = {
+    ashen_wastes: ['wood', 'stone', 'iron_ore', 'coal', 'ember_root', 'hide'],
+    hollowfen: ['wood', 'bog_fiber', 'stone', 'veil_crystal', 'hide', 'mithril_ore'],
+    void_sanctum: ['void_essence', 'shadow_silk', 'bone', 'void_ore', 'stone'],
+    shattered_spire: ['crystal_shard', 'arcane_dust', 'granite', 'mithril_ore', 'stone']
+};
+
+// ── Camp buildings → permanent run bonuses ──
+// The camp IS the meta-progression: every structure you raise
+// and upgrade carries into the Breach.
+const CAMP_RUN_BONUSES = {
+    shelter: { stat: 'hp', perLevel: 15, label: '+15 max HP / level' },
+    forge: { stat: 'dmg', perLevel: 0.06, label: '+6% damage / level' },
+    workshop: { stat: 'haste', perLevel: 0.05, label: '+5% attack speed / level' },
+    training_dummy: { stat: 'speed', perLevel: 0.08, label: '+8% move speed' },
+    house: { stat: 'xp', perLevel: 0.10, label: '+10% run XP' },
+    lookout: { stat: 'gold', perLevel: 0.10, label: '+10% run gold' },
+    ward_stones: { stat: 'armor', perLevel: 1, label: '-1 damage taken / level, grants a revive' }
+};
+
 // ════════════════════════════════════════════
 // META PROGRESSION (persists between runs)
 // ════════════════════════════════════════════
@@ -211,9 +232,46 @@ const Breach = {
     camX: 0, camY: 0, shake: 0,
 
     player: null,
-    enemies: [], projectiles: [], gems: [], coins: [], effects: [], texts: [],
+    enemies: [], projectiles: [], gems: [], coins: [], mats: [], effects: [], texts: [],
+    runMats: {},
+    rations: 0, _rationCd: 0,
     boss: null,
     props: [],
+
+    // ── Food / rations helpers ──
+    isFood(item) {
+        if (!item || item.type !== 'consumable' || !item.effect) return false;
+        if (item.effect.type === 'heal' && (item.effect.stat === 'hp' || item.effect.stat === 'both')) return true;
+        if (typeof item.effect.heal === 'number') return true;
+        return false;
+    },
+
+    foodHealAmount(item) {
+        const e = item.effect || {};
+        return e.amount || e.hpAmount || e.heal || 20;
+    },
+
+    countRations() {
+        if (!GameState.player) return 0;
+        const total = GameState.player.inventory.reduce((n, inv) => {
+            const item = ITEMS[inv.key];
+            return n + (item && this.isFood(item) ? inv.quantity : 0);
+        }, 0);
+        return Math.min(3, total);
+    },
+
+    eatRation() {
+        if (!GameState.player) return 0;
+        for (const inv of GameState.player.inventory) {
+            const item = ITEMS[inv.key];
+            if (item && this.isFood(item)) {
+                const heal = this.foodHealAmount(item);
+                GameState.removeFromInventory(inv.key, 1);
+                return { heal, name: item.name, icon: item.icon };
+            }
+        }
+        return null;
+    },
 
     spawnTimer: 0, eliteTimer: 0,
     kills: 0, goldRun: 0,
@@ -294,7 +352,23 @@ const Breach = {
     startFromSetup() {
         const meta = BreachMeta.load();
         this.closeSetup();
+        // Unified save: the camp survivor IS the breach runner
+        if (typeof Hub !== 'undefined') Hub.ensurePlayer(meta.lastClass);
         this.start(meta.lastClass, meta.lastRegion);
+    },
+
+    // ── Camp → run bonuses (the camp is the meta-progression) ──
+    campBonuses() {
+        const out = { hp: 0, dmg: 0, haste: 0, speed: 0, xp: 0, gold: 0, armor: 0, revive: 0 };
+        const b = GameState.base;
+        if (!b || !b.buildings) return out;
+        for (const [bld, def] of Object.entries(CAMP_RUN_BONUSES)) {
+            if (!b.buildings[bld]) continue;
+            const lvl = typeof Base !== 'undefined' ? Base.getBuildingLevel(bld) : 1;
+            out[def.stat] += def.perLevel * Math.max(1, lvl);
+        }
+        if (b.buildings.ward_stones) out.revive = 1;
+        return out;
     },
 
     // ────────────────────────────────────────
@@ -314,32 +388,40 @@ const Breach = {
             }
         } catch (e) { /* sprite fallbacks cover us */ }
 
-        // Meta bonuses
-        const up = (k) => BreachMeta.upgradeLevel(k) * SANCTUM_UPGRADES[k].per;
-        const maxHp = 100 + up('vigor');
+        // Camp bonuses — buildings raised at the camp empower every run
+        const camp = this.campBonuses();
+        const maxHp = 100 + camp.hp;
 
         this.player = {
             x: 0, y: 0, r: 13,
             hp: maxHp, maxHp,
-            speed: 148 * (1 + up('fleet')),
+            speed: 148 * (1 + camp.speed),
             facing: { x: 1, y: 0 }, dir: 'down', moving: false,
             walkTimer: 0, walkFrame: 0,
             iframes: 0,
             level: 1, xp: 0, xpNext: 6,
             weapons: {},   // key -> { lvl, t, angle }
             passives: {},  // key -> lvl
-            metaDmg: 1 + up('power'),
-            metaCd: 1 / (1 + up('haste')),
-            metaGold: 1 + up('fortune'),
-            revives: BreachMeta.upgradeLevel('resolve'),
+            metaDmg: 1 + camp.dmg,
+            metaCd: 1 / (1 + camp.haste),
+            metaGold: 1 + camp.gold,
+            metaXp: 1 + camp.xp,
+            armor: camp.armor,
+            revives: camp.revive,
             classKey
         };
+
+        // Rations: food grown and cooked at camp keeps you alive out here.
+        // Auto-eaten when HP drops low (up to 3 per run).
+        this.rations = this.countRations();
+        this._rationCd = 0;
         this.player.weapons[cls.weapon] = { lvl: 1, t: 0, angle: 0 };
         this.player.passives[cls.perk] = 1;
         if (cls.perk === 'vitality') { this.player.maxHp += 20; this.player.hp += 20; }
 
         this.enemies = []; this.projectiles = []; this.gems = [];
-        this.coins = []; this.effects = []; this.texts = [];
+        this.coins = []; this.mats = []; this.effects = []; this.texts = [];
+        this.runMats = {};
         this.boss = null;
         this.time = 0; this.kills = 0; this.goldRun = 0;
         this.spawnTimer = 0.5; this.eliteTimer = 45;
@@ -646,6 +728,34 @@ const Breach = {
                 this.goldRun += c.v;
             }
         }
+        for (let i = this.mats.length - 1; i >= 0; i--) {
+            const m = this.mats[i];
+            const dx = p.x - m.x, dy = p.y - m.y;
+            const d = Math.hypot(dx, dy) || 1;
+            if (d < magnetR) m.pull = Math.min(620, (m.pull || 120) + 900 * dt);
+            if (m.pull) { m.x += dx / d * m.pull * dt; m.y += dy / d * m.pull * dt; }
+            if (d < p.r + 8) {
+                this.mats.splice(i, 1);
+                this.runMats[m.key] = (this.runMats[m.key] || 0) + 1;
+                const item = ITEMS[m.key];
+                this.texts.push({ x: p.x, y: p.y - 26, v: `+1 ${item ? item.icon : '▪'}`, t: 0, color: '#cfc8b8', label: true });
+            }
+        }
+
+        // ── auto-eat a ration when badly hurt (food from the camp farm) ──
+        if (this._rationCd > 0) this._rationCd -= dt;
+        if (p.hp > 0 && p.hp < p.maxHp * 0.35 && this.rations > 0 && this._rationCd <= 0) {
+            const meal = this.eatRation();
+            if (meal) {
+                this.rations--;
+                this._rationCd = 4;
+                p.hp = Math.min(p.maxHp, p.hp + meal.heal);
+                this.texts.push({ x: p.x, y: p.y - 36, v: `${meal.icon} +${meal.heal}`, t: 0, color: '#7be3a0', label: true });
+                this.effects.push({ kind: 'pop', x: p.x, y: p.y, t: 0, dur: 0.3, color: '#7be3a0', r: 18 });
+            } else {
+                this.rations = 0;
+            }
+        }
 
         // ── transient effects/texts ──
         for (let i = this.effects.length - 1; i >= 0; i--) {
@@ -921,6 +1031,21 @@ const Breach = {
             } else if (Math.random() < 0.14) {
                 this.coins.push({ x: e.x, y: e.y, v: 2 + Math.floor(Math.random() * 4) });
             }
+            // Materials for the camp — the reason you're out here
+            const matTable = BREACH_MATERIALS[this.region.key];
+            if (matTable && (e.elite || Math.random() < 0.16)) {
+                // rare materials sit at the end of each realm's table
+                const rare = Math.random() < 0.18;
+                const idx = rare ? matTable.length - 1 : Math.floor(Math.random() * (matTable.length - 1));
+                const drops = e.elite ? 2 + Math.floor(Math.random() * 2) : 1;
+                for (let i = 0; i < drops; i++) {
+                    this.mats.push({
+                        x: e.x + Math.random() * 26 - 13,
+                        y: e.y + Math.random() * 26 - 13,
+                        key: matTable[e.elite && i === 0 ? matTable.length - 1 : idx]
+                    });
+                }
+            }
             if (e.isBoss) {
                 this.shake = 14;
                 for (let i = 0; i < 14; i++) {
@@ -933,7 +1058,7 @@ const Breach = {
 
     hurtPlayer(dmg) {
         const p = this.player;
-        const armor = (p.passives.warding || 0) * BREACH_PASSIVES.warding.per;
+        const armor = (p.passives.warding || 0) * BREACH_PASSIVES.warding.per + (p.armor || 0);
         const final = Math.max(1, Math.round(dmg - armor));
         p.hp -= final;
         p.iframes = 0.65;
@@ -970,7 +1095,7 @@ const Breach = {
 
     gainXp(v) {
         const p = this.player;
-        const mult = 1 + (p.passives.insight || 0) * BREACH_PASSIVES.insight.per;
+        const mult = (1 + (p.passives.insight || 0) * BREACH_PASSIVES.insight.per) * (p.metaXp || 1);
         p.xp += v * mult;
         while (p.xp >= p.xpNext) {
             p.xp -= p.xpNext;
@@ -1136,7 +1261,6 @@ const Breach = {
         const meta = BreachMeta.load();
         const p = this.player;
         const goldEarned = Math.floor(this.goldRun * p.metaGold * (1 + (p.passives.greed || 0) * BREACH_PASSIVES.greed.per));
-        meta.gold += goldEarned;
         meta.stats.runs++;
         meta.stats.kills += this.kills;
         if (!won) meta.stats.deaths++;
@@ -1146,15 +1270,33 @@ const Breach = {
         }
         BreachMeta.save();
 
+        // ── bank everything into the camp save ──
+        let matsOverflow = false;
+        if (GameState.player) {
+            GameState.player.gold += goldEarned;
+            GameState.trackStat('goldEarned', goldEarned);
+            GameState.trackStat('enemiesKilled', this.kills);
+            for (const [key, qty] of Object.entries(this.runMats)) {
+                if (!GameState.addToInventory(key, qty)) {
+                    if (typeof Homestead !== 'undefined') Homestead.addToStockpile(key, qty);
+                    matsOverflow = true;
+                }
+            }
+            // a run costs a day: crops grow, plots dry, golems mine, sprites reap
+            GameState.advanceDay();
+            if (typeof Homestead !== 'undefined') Homestead.tickGrowth(5 + Math.floor(this.time / 40));
+            GameState.save();
+        }
+
         if (!won && typeof Audio !== 'undefined') { try { Audio.playDefeat(); } catch (e) {} }
 
         const el = document.getElementById('breach-results');
-        if (!el) return this.exitToTitle();
+        if (!el) return this.exitToHub();
 
         const title = won ? 'REALM CLEARED' : (abandoned ? 'RETREAT' : 'YOU HAVE FALLEN');
         const sub = won
             ? `${this.region.name} is silent. The Breach seals behind you… for now.`
-            : (abandoned ? 'You slip back through the Breach, lighter of pride.' : 'The swarm closes over you. But death is never the end here.');
+            : (abandoned ? 'You slip back to camp, lighter of pride but heavier of pack.' : 'The swarm closes over you. What you carried still makes it home.');
 
         let html = `<div class="bresults-inner ${won ? 'won' : ''}">`;
         html += `<div class="bresults-title">${title}</div>`;
@@ -1166,11 +1308,26 @@ const Breach = {
         html += `<div class="bstat"><span>⏱</span><strong>${this.fmtTime(this.time)}</strong><em>survived</em></div>`;
         html += `<div class="bstat"><span>☠</span><strong>${this.kills}</strong><em>slain</em></div>`;
         html += `<div class="bstat"><span>⭐</span><strong>${p.level}</strong><em>level</em></div>`;
-        html += `<div class="bstat gold"><span>🪙</span><strong>+${goldEarned}</strong><em>gold banked</em></div>`;
+        html += `<div class="bstat gold"><span>🪙</span><strong>+${goldEarned}</strong><em>gold</em></div>`;
         html += `</div>`;
+
+        // the haul — materials brought home for the camp
+        const matEntries = Object.entries(this.runMats);
+        if (matEntries.length > 0) {
+            html += `<div class="bresults-haul-label">THE HAUL</div>`;
+            html += `<div class="bresults-haul">`;
+            matEntries.forEach(([key, qty]) => {
+                const item = ITEMS[key];
+                html += `<span class="mine-loot-chip">${item ? item.icon : '▪'} ${item ? item.name : key} ×${qty}</span>`;
+            });
+            html += `</div>`;
+            if (matsOverflow) html += `<div class="bresults-note">Packs full — overflow stored in the camp stockpile.</div>`;
+        }
+        html += `<div class="bresults-note">A day passes at camp. The fields grow, the golems dig.</div>`;
+
         html += `<div class="bresults-actions">`;
         html += `<button class="bstart-btn" onclick="Breach.retry()">⚔ RUN IT BACK</button>`;
-        html += `<button class="action-btn" onclick="Breach.exitToTitle()" style="width:100%">Return to the Dark</button>`;
+        html += `<button class="action-btn" onclick="Breach.exitToHub()" style="width:100%">🏕️ Return to Camp</button>`;
         html += `</div></div>`;
         el.innerHTML = html;
         el.classList.remove('hidden');
@@ -1182,12 +1339,13 @@ const Breach = {
         this.start(meta.lastClass, meta.lastRegion);
     },
 
-    exitToTitle() {
+    exitToHub() {
         this.running = false;
         this.state = 'idle';
         if (this._raf) cancelAnimationFrame(this._raf);
         this.hideOverlays();
-        ScreenManager.showScreen('title');
+        if (typeof Hub !== 'undefined' && GameState.player) Hub.enter();
+        else ScreenManager.showScreen('title');
         if (typeof Game !== 'undefined' && Game.updateTitleMeta) Game.updateTitleMeta();
         if (typeof Audio !== 'undefined') { try { Audio.stopAmbient && Audio.stopAmbient(); } catch (e) {} }
     },
@@ -1226,6 +1384,7 @@ const Breach = {
         set('bhud-timer', this.fmtTime(this.time));
         set('bhud-kills', `☠ ${this.kills}`);
         set('bhud-gold', `🪙 ${this.goldRun}`);
+        set('bhud-rations', `🍖 ${this.rations}`);
 
         // boss bar
         const bossBar = document.getElementById('bhud-boss');
@@ -1370,6 +1529,21 @@ const Breach = {
             ctx.strokeStyle = '#a87b1d';
             ctx.lineWidth = 1.5;
             ctx.stroke();
+        }
+        // material drops — small bright crates
+        for (const m of this.mats) {
+            ctx.save();
+            ctx.translate(m.x, m.y);
+            ctx.fillStyle = '#b08d57';
+            ctx.fillRect(-5, -5, 10, 10);
+            ctx.strokeStyle = '#5e4426';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(-5, -5, 10, 10);
+            ctx.beginPath();
+            ctx.moveTo(-5, 0); ctx.lineTo(5, 0);
+            ctx.moveTo(0, -5); ctx.lineTo(0, 5);
+            ctx.stroke();
+            ctx.restore();
         }
 
         // enemies (y-sorted with player)

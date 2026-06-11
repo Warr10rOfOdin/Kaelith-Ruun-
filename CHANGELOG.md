@@ -4,6 +4,26 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v1.1.0] — 2026-06-11 — ONE WORLD
+
+**The two halves are now one game.** Breach combat and the survival camp share a single save, a single economy, and a single loop:
+
+> Fight in the Breach → haul home materials → mine, craft, farm, and build at camp → every structure and meal makes the next run stronger → each run costs a day, and the camp lives on without you.
+
+### Added
+- **The Camp hub** (`js/engine/hub.js`) — the new home screen between runs: day/season strip, resource readout, facility cards (The Depths, Forge & Craft, The Fields, Build, Industry, Storehouse) with live badges (crops ready, stockpile waiting), and your active run bonuses at a glance
+- **Materials drop in the Breach**: every realm drops its own resources (Ashen: wood/stone/iron/coal · Hollowfen: bog fiber/veil crystal/mithril · Void: essence/shadow silk/void ore · Spire: crystal/arcane dust) — elites guarantee drops with rare-material bias; the haul banks into your camp inventory at run's end
+- **Buildings ARE the meta-progression** (replaces the abstract gold shop): Shelter +15 HP/level, Forge +6% damage/level, Workshop +5% attack speed/level, Training Grounds +8% move speed, House +10% XP, Lookout +10% gold, Ward Stones −1 damage taken/level **and a once-per-run revive**
+- **Rations**: food grown in your fields and cooked at your benches is auto-eaten when your run HP drops below 35% (up to 3 per run, shown in the HUD) — farming literally keeps you alive
+- **The day cycle binds it together**: every run advances one camp day — plots dry, saplings mature, golems mine the Depths, harvest sprites reap, seasons turn
+- Buildings can now be raised directly from the hub (no tile placement needed)
+- Title screen reduced to a single **RISE** button — one game, one flow
+
+### Removed
+- Sanctum gold shop (folded into buildings); separate Story/Breach mode split
+
+---
+
 ## [v1.0.0] — 2026-06-11 — THE BREACH
 
 **The game has been rebuilt around a brand-new core.** Kaelith Ruun is now a real-time action roguelite, designed mobile-first for one thumb. The original turn-based RPG lives on as Story Mode.

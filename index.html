@@ -36,18 +36,12 @@
             <h1 class="game-title">Kaelith Ruun</h1>
             <p class="subtitle">Shattered Realms</p>
             <div class="title-menu">
-                <button id="btn-breach" class="menu-btn breach-cta">⚔ Enter the Breach</button>
-                <button id="btn-sanctum" class="menu-btn">Sanctum</button>
-                <button id="btn-story" class="menu-btn">Story Mode</button>
-                <div id="story-menu" class="story-submenu hidden">
-                    <button id="btn-new-game" class="menu-btn">New Journey</button>
-                    <button id="btn-continue" class="menu-btn" disabled>Continue</button>
-                    <button id="btn-lore" class="menu-btn">World Lore</button>
-                </div>
+                <button id="btn-rise" class="menu-btn breach-cta">⚔ RISE</button>
+                <button id="btn-lore" class="menu-btn">World Lore</button>
             </div>
             <div id="title-meta" class="title-meta"></div>
             <div id="save-info" class="save-info hidden"></div>
-            <p class="version-info">v1.0.0 — The Breach</p>
+            <p class="version-info">v1.1.0 — One World</p>
             <p id="install-prompt" class="install-hint hidden">Tap to install as app</p>
         </div>
 
@@ -192,15 +186,12 @@
                 </button>
             </div>
 
-            <!-- Bottom Sheet Panel -->
-            <div id="side-panel-backdrop" class="hidden"></div>
-            <div id="side-panel" class="hidden">
-                <div class="sheet-grip" id="sheet-grip">
-                    <span></span>
-                    <button id="side-panel-close" class="side-panel-close" aria-label="Close panel" onclick="Game.closePanel()">&#10005;</button>
-                </div>
-                <div id="side-panel-content"></div>
-            </div>
+            <!-- Bottom Sheet Panel lives at container level (shared with the hub) -->
+        </div>
+
+        <!-- THE CAMP — Unified Hub -->
+        <div id="hub-screen" class="screen">
+            <div class="hub-scroll" id="hub-content"></div>
         </div>
 
         <!-- THE BREACH — Action Mode -->
@@ -217,6 +208,7 @@
                     <div class="bhud-side">
                         <span id="bhud-kills">☠ 0</span>
                         <span id="bhud-gold">🪙 0</span>
+                        <span id="bhud-rations">🍖 0</span>
                     </div>
                 </div>
                 <div class="bhud-xp-wrap"><div id="bhud-xp-fill"></div></div>
@@ -244,6 +236,16 @@
         <div id="sanctum-overlay" class="breach-overlay hidden"></div>
         <div id="joy-base"></div>
         <div id="joy-knob"></div>
+
+        <!-- Bottom Sheet Panel — shared by the camp hub and story screens -->
+        <div id="side-panel-backdrop" class="hidden"></div>
+        <div id="side-panel" class="hidden">
+            <div class="sheet-grip" id="sheet-grip">
+                <span></span>
+                <button id="side-panel-close" class="side-panel-close" aria-label="Close panel" onclick="Game.closePanel()">&#10005;</button>
+            </div>
+            <div id="side-panel-content"></div>
+        </div>
 
         <!-- Combat Screen -->
         <div id="combat-screen" class="screen">
@@ -320,6 +322,7 @@
     <script src="js/engine/base.js"></script>
     <script src="js/engine/homestead.js"></script>
     <script src="js/engine/breach.js"></script>
+    <script src="js/engine/hub.js"></script>
     <script src="js/ui/screens.js"></script>
     <script src="js/ui/hud.js"></script>
     <script src="js/ui/actions.js"></script>

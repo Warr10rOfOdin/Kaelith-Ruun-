@@ -118,25 +118,20 @@ const Game = {
         const newGameBtn = document.getElementById('btn-new-game');
         const continueBtn = document.getElementById('btn-continue');
         const loreBtn = document.getElementById('btn-lore');
-        const breachBtn = document.getElementById('btn-breach');
-        const sanctumBtn = document.getElementById('btn-sanctum');
-        const storyBtn = document.getElementById('btn-story');
+        const riseBtn = document.getElementById('btn-rise');
 
-        if (breachBtn) {
-            breachBtn.onclick = () => {
+        if (riseBtn) {
+            riseBtn.onclick = () => {
                 if (typeof Audio !== 'undefined') Audio.ensure();
-                Breach.openSetup();
-            };
-        }
-
-        if (sanctumBtn) {
-            sanctumBtn.onclick = () => this.showSanctum();
-        }
-
-        if (storyBtn) {
-            storyBtn.onclick = () => {
-                const menu = document.getElementById('story-menu');
-                if (menu) menu.classList.toggle('hidden');
+                // Existing camp → straight home. Fresh world → pick a vessel
+                // and dive; the camp is founded when you return.
+                if (GameState.hasSave()) {
+                    if (!GameState.player) GameState.load();
+                    if (typeof WorldMap !== 'undefined' && WorldMap.stopLoop) WorldMap.stopLoop();
+                    Hub.enter();
+                } else {
+                    Breach.openSetup();
+                }
             };
         }
 
@@ -179,11 +174,17 @@ const Game = {
         if (!el || typeof BreachMeta === 'undefined') return;
         const meta = BreachMeta.load();
         const cleared = Object.keys(meta.cleared || {}).length;
-        if (meta.stats.runs === 0) {
-            el.innerHTML = 'The Breach awaits its first challenger.';
+        if (meta.stats.runs === 0 && !GameState.hasSave()) {
+            el.innerHTML = 'A shattered world. A camp to build. A Breach to brave.';
             return;
         }
-        el.innerHTML = `<strong>🪙 ${meta.gold}</strong> &nbsp;·&nbsp; ${meta.stats.runs} runs &nbsp;·&nbsp; ${meta.stats.kills} slain &nbsp;·&nbsp; ${cleared}/4 realms cleared`;
+        const days = (() => {
+            try {
+                const s = JSON.parse(localStorage.getItem('kaelith_ruun_save'));
+                return s && s.survival ? s.survival.dayCount + 1 : 1;
+            } catch (e) { return 1; }
+        })();
+        el.innerHTML = `Day <strong>${days}</strong> &nbsp;·&nbsp; ${meta.stats.runs} runs &nbsp;·&nbsp; ${meta.stats.kills} slain &nbsp;·&nbsp; ${cleared}/4 realms cleared`;
     },
 
     showSanctum() {
@@ -666,9 +667,19 @@ const Game = {
         const backdrop = document.getElementById('side-panel-backdrop');
         if (sidePanel) sidePanel.classList.add('hidden');
         if (backdrop) backdrop.classList.add('hidden');
-        this.setActiveTab('explore');
-        if (typeof Exploration !== 'undefined') Exploration.updateActions();
+        if (GameState.currentScreen === 'hub') {
+            // Refresh the camp hub so badges/resources reflect what you just did
+            if (typeof Hub !== 'undefined') Hub.render();
+        } else {
+            this.setActiveTab('explore');
+            if (typeof Exploration !== 'undefined') Exploration.updateActions();
+        }
         if (typeof NativeBridge !== 'undefined') NativeBridge.hapticLight();
+    },
+
+    handleHubSettings() {
+        if (typeof Settings !== 'undefined') Settings.render();
+        this.openPanel();
     },
 
     showBaseMenu() {

@@ -527,7 +527,7 @@
     }
 
     /* Side panel becomes right sidebar on desktop */
-    #game-screen #side-panel {
+    #side-panel {
         top: 0;
         bottom: 0;
         left: auto;
@@ -542,11 +542,18 @@
         animation: sidebarSlideIn 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
     }
 
-    #game-screen .sheet-grip {
+    /* No drag-grip on desktop, but keep the close button it hosts */
+    .sheet-grip {
+        cursor: default;
+        touch-action: auto;
+        padding: 0.3rem 0;
+    }
+
+    .sheet-grip > span {
         display: none;
     }
 
-    #game-screen #side-panel-backdrop {
+    #side-panel-backdrop {
         background: rgba(4, 3, 8, 0.3);
     }
 

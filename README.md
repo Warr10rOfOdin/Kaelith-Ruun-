@@ -1,6 +1,6 @@
 # Kaelith Ruun — Shattered Realms
 
-A dark fantasy **action roguelite** built mobile-first as a PWA. One thumb, a hundred enemies, and the Breach between you and four broken realms. No frameworks, no dependencies.
+A dark fantasy **survival action roguelite** built mobile-first as a PWA. Fight through the Breach, haul materials home, and build a camp that makes every run stronger. No frameworks, no dependencies.
 
 ## Play
 
@@ -8,16 +8,20 @@ A dark fantasy **action roguelite** built mobile-first as a PWA. One thumb, a hu
 - **Desktop**: Open `index.html` in any modern browser (WASD to move)
 - **Offline**: Works fully offline once loaded (service worker caches all assets)
 
-## THE BREACH — Core Mode
+## THE LOOP
 
-- **One-thumb action**: drag anywhere to move — your weapons fire themselves
-- **6 weapons × 5 ranks** with real geometry: arc slashes, seeking bolts, dagger fans, sweeping soul orbs, lifestealing lashes, ember eruptions
-- **Level-up drafts**: vacuum XP gems, pick 1-of-3 power cards, build a 4-weapon + 4-boon loadout every run
-- **5 classes, 4 realms, 4 bosses**: clear the realm boss at 5:00 to breach into the next
-- **Elites, gold, and the Sanctum**: bank gold from every run and buy permanent power between runs
-- Damage numbers, knockback, screen shake, magnet pickups, boss banners — full game-feel
+**⚔ The Breach** — one-thumb real-time action: drag to move, weapons fire themselves. 6 weapons × 5 ranks, 8 boons, level-up drafts every level, elites, and a realm boss at 5:00. Enemies drop **gold and materials** — wood, stone, ore, essence — unique to each of the 4 realms.
 
-## Story Mode (the original RPG)
+**🏕️ The Camp** — everything you haul home feeds the survival economy:
+- **The Depths** — push-your-luck expedition mining with depth tiers, gems, gas pockets, and pickaxe progression
+- **Forge & Craft** — smelt ore, craft tools and gear from your haul
+- **The Fields** — plot farming with soil quality, watering, seasons, crossbreeding — and the food you grow is **auto-eaten as rations** when runs go badly
+- **Build** — every structure carries into the Breach: Shelter = max HP, Forge = damage, Workshop = attack speed, Ward Stones = armor + a revive…
+- **Industry** — automate it all: irrigation, mining golems, harvest sprites
+
+**Each run costs a day.** Crops grow, plots dry, golems dig, seasons turn — the camp lives while you fight.
+
+## Legacy Story Content
 
 - **Mobile-First Design** — Built for phones with touch-friendly UI, safe area support for notched devices, and a native-feeling tab bar
 - **PWA / Installable** — Add to home screen on iOS and Android for a full-screen app experience with offline play

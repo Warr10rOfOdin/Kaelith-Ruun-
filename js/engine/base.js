@@ -169,7 +169,8 @@ const Base = {
         return true;
     },
 
-    // Place a building at the player's facing tile
+    // Place a building at the player's facing tile (story camp), or
+    // raise it directly from the hub (unified camp — no tile placement)
     placeBuilding(buildingId) {
         const bld = BUILDINGS[buildingId];
         if (!bld) return;
@@ -183,6 +184,25 @@ const Base = {
         }
         if (!this.canAfford(bld.cost)) {
             Notifications.show('Not enough resources!', 'red');
+            return;
+        }
+
+        // Hub flow: not walking the camp map → build immediately
+        const onCampMap = typeof WorldMap !== 'undefined' && WorldMap.running && WorldMap.currentMap === 'player_camp';
+        if (!onCampMap) {
+            for (const [res, qty] of Object.entries(bld.cost)) {
+                GameState.removeFromInventory(res, qty);
+            }
+            GameState.base.buildings[buildingId] = true;
+            if (buildingId === 'storage') GameState.MAX_INVENTORY_SIZE += 20;
+
+            Narrative.addStory(`You raise a ${bld.name} at the camp. ${bld.description}`);
+            Notifications.show(`${bld.name} built!`, 'gold');
+            GameState.trackStat('buildingsBuilt');
+            if (typeof Audio !== 'undefined') Audio.playBuild();
+            HUD.update();
+            GameState.save();
+            this.showBuildPanel();
             return;
         }
 

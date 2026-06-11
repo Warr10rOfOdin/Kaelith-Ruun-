@@ -220,7 +220,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 12;
+    z-index: 40;
     background: linear-gradient(0deg, rgba(6, 4, 10, 0.88) 0%, rgba(14, 12, 20, 0.78) 100%);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
@@ -229,18 +229,14 @@
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* ---- SIDE PANEL (overlay — dark fantasy) ---- */
-#game-screen #side-panel {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 50;
-    background: linear-gradient(180deg, rgba(8, 6, 14, 0.96) 0%, rgba(12, 10, 18, 0.94) 100%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-left: 1px solid rgba(100, 70, 30, 0.15);
+/* ---- SIDE PANEL (bottom sheet on mobile) ----
+   Base sheet styles live in style.css; here we only pin
+   z-order relative to the game screen overlays. The bottom
+   nav (z-index 40) stays tappable above the open sheet. */
+
+@keyframes sidebarSlideIn {
+    from { transform: translateX(40px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
 /* ---- WORLD MAP (Travel Panel) ---- */
@@ -532,9 +528,26 @@
 
     /* Side panel becomes right sidebar on desktop */
     #game-screen #side-panel {
+        top: 0;
+        bottom: 0;
         left: auto;
+        right: 0;
+        height: auto;
         width: 380px;
-        border-left: 1px solid rgba(58, 58, 82, 0.5);
+        border-radius: 0;
+        border-top: none;
+        border-left: 1px solid rgba(120, 95, 50, 0.25);
+        padding-top: 0.5rem;
+        padding-bottom: 1rem;
+        animation: sidebarSlideIn 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    #game-screen .sheet-grip {
+        display: none;
+    }
+
+    #game-screen #side-panel-backdrop {
+        background: rgba(4, 3, 8, 0.3);
     }
 
     #floating-narrative {

@@ -111,10 +111,20 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 
 ---
 
+### Echoes of Ruun — Design/UX Overhaul (v0.12.0)
+- [x] Echoes of Ruun permanent boon system — 16 echoes across War/Ward/Wisdom facets
+- [x] Boss echo offerings (pick 1 of 3) and Resonant Shrine events (pick 1 of 2)
+- [x] Region-specific choice-driven events (7 events across 4 regions)
+- [x] Navigation consolidated to 5 tabs with SVG icons + Menu hub
+- [x] Bottom sheet panel system with drag-to-dismiss
+- [x] Design token system v2 (palette, surfaces, radii, elevation)
+- [x] Accessibility: large text + reduced motion
+
+---
+
 ## Planned
 
 ### World & Content Expansion
-- [ ] Region-specific random events and encounters
 - [ ] Dynamic NPC schedules and deeper dialogue trees
 - [ ] Crafting specializations tied to class
 - [ ] Rare world bosses with unique loot tables
@@ -136,7 +146,7 @@ Development roadmap for Kaelith Ruun — Shattered Realms.
 
 ### Technical
 - [ ] Performance profiling and optimization pass
-- [ ] Accessibility improvements (font scaling, colorblind modes)
+- [x] Accessibility improvements (font scaling, reduced motion) — colorblind modes still planned
 - [ ] Localization framework
 - [ ] Analytics integration (opt-in)
 - [ ] Cloud save sync

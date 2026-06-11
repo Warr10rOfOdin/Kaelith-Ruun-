@@ -13,13 +13,16 @@ A dark fantasy text RPG built mobile-first as a PWA. Installable on phones, play
 - **Mobile-First Design** — Built for phones with touch-friendly UI, safe area support for notched devices, and a native-feeling tab bar
 - **PWA / Installable** — Add to home screen on iOS and Android for a full-screen app experience with offline play
 - **Character Creation** — 6 unique races (Human, Aelvar, Durgan, Revathi, Ashborn, Hollow) and 5 classes (Voidblade, Runecaster, Duskwalker, Soulwarden, Bloodweaver)
-- **Turn-Based Combat** — Tactical combat with abilities, items, buffs, debuffs, and multi-phase boss fights
-- **Three Regions** — The Ashen Wastes, The Hollowfen, and The Void Sanctum, each with unique enemies and a boss
+- **Turn-Based Combat** — Tactical combat with abilities, stances, combos, counters, items, buffs, debuffs, and multi-phase boss fights
+- **Echoes of Ruun** — Permanent boon system: attune fragments of the Shattering from boss kills and Resonant Shrines across three facets (War, Ward, Wisdom)
+- **Four Regions** — The Ashen Wastes, The Hollowfen, The Void Sanctum, and The Shattered Spire, each with unique enemies, region events, and a boss
+- **Region Events** — Choice-driven encounters with real risk/reward decisions unique to each region
 - **NPC Dialogue** — Branching conversations with merchants, witches, and ghosts
 - **Inventory & Equipment** — Loot, equip, and trade gear with rarity tiers
 - **Quest System** — Main storyline with tracked objectives plus side quests
 - **Deep Lore** — A fully realized dark fantasy world with interconnected history
 - **Save System** — Progress saved to localStorage automatically
+- **Accessibility** — Large text mode and reduced-motion support
 
 ## App Store Deployment
 

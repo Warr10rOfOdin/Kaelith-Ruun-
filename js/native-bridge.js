@@ -70,11 +70,7 @@ const NativeBridge = {
             // If a side panel is open, close it
             const sidePanel = document.getElementById('side-panel');
             if (sidePanel && !sidePanel.classList.contains('hidden')) {
-                sidePanel.classList.add('hidden');
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                const exploreTab = document.querySelector('.nav-tab[data-tab="explore"]');
-                if (exploreTab) exploreTab.classList.add('active');
-                Exploration.updateActions();
+                if (typeof Game !== 'undefined' && Game.closePanel) Game.closePanel();
                 return;
             }
 

@@ -40,7 +40,7 @@
                 <button id="btn-lore" class="menu-btn">World Lore</button>
             </div>
             <div id="save-info" class="save-info hidden"></div>
-            <p class="version-info">v0.11.0 — The Shattered Spire</p>
+            <p class="version-info">v0.12.0 — Echoes of Ruun</p>
             <p id="install-prompt" class="install-hint hidden">Tap to install as app</p>
         </div>
 
@@ -163,43 +163,35 @@
 
             <!-- Bottom Navigation (compact overlay) -->
             <div id="bottom-nav">
-                <button class="nav-tab active" data-tab="explore">
-                    <span class="tab-icon">&#x2694;&#xFE0F;</span>
+                <button class="nav-tab active" data-tab="explore" aria-label="Explore">
+                    <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="15.5,8.5 13.5,13.5 8.5,15.5 10.5,10.5" fill="currentColor" stroke="none"/></svg></span>
                     <span class="tab-label">Explore</span>
                 </button>
-                <button class="nav-tab" data-tab="inventory">
-                    <span class="tab-icon">&#x1F392;</span>
+                <button class="nav-tab" data-tab="inventory" aria-label="Items">
+                    <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1.2 12.5a1.5 1.5 0 0 1-1.5 1.5H8.7a1.5 1.5 0 0 1-1.5-1.5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span>
                     <span class="tab-label">Items</span>
                 </button>
-                <button class="nav-tab" data-tab="character">
-                    <span class="tab-icon">&#x1F464;</span>
-                    <span class="tab-label">Stats</span>
+                <button class="nav-tab" data-tab="character" aria-label="Hero">
+                    <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c1.2-3.8 4-6 7.5-6s6.3 2.2 7.5 6"/></svg></span>
+                    <span class="tab-label">Hero</span>
                 </button>
-                <button class="nav-tab" data-tab="base">
-                    <span class="tab-icon">&#x1F3E0;</span>
-                    <span class="tab-label">Base</span>
-                </button>
-                <button class="nav-tab" data-tab="map">
-                    <span class="tab-icon">&#x1F5FA;&#xFE0F;</span>
+                <button class="nav-tab" data-tab="map" aria-label="Map">
+                    <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4z"/><path d="M9 4v13M15 6.5v13"/></svg></span>
                     <span class="tab-label">Map</span>
                 </button>
-                <button class="nav-tab" data-tab="journal">
-                    <span class="tab-icon">&#x1F4DC;</span>
-                    <span class="tab-label">Quests</span>
-                </button>
-                <button class="nav-tab" data-tab="achievements">
-                    <span class="tab-icon">&#x2B50;</span>
-                    <span class="tab-label">Feats</span>
-                </button>
-                <button class="nav-tab" data-tab="settings">
-                    <span class="tab-icon">&#x2699;&#xFE0F;</span>
-                    <span class="tab-label">Settings</span>
+                <button class="nav-tab" data-tab="menu" aria-label="Menu">
+                    <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></span>
+                    <span class="tab-label">Menu</span>
                 </button>
             </div>
 
-            <!-- Side Panel (slides over) -->
+            <!-- Bottom Sheet Panel -->
+            <div id="side-panel-backdrop" class="hidden"></div>
             <div id="side-panel" class="hidden">
-                <button id="side-panel-close" class="side-panel-close" onclick="document.getElementById('side-panel').classList.add('hidden')">Back</button>
+                <div class="sheet-grip" id="sheet-grip">
+                    <span></span>
+                    <button id="side-panel-close" class="side-panel-close" aria-label="Close panel" onclick="Game.closePanel()">&#10005;</button>
+                </div>
                 <div id="side-panel-content"></div>
             </div>
         </div>
@@ -266,6 +258,7 @@
     <script src="js/data/maps.js"></script>
     <script src="js/data/tech.js"></script>
     <script src="js/engine/state.js"></script>
+    <script src="js/engine/echoes.js"></script>
     <script src="js/engine/audio.js"></script>
     <script src="js/engine/narrative.js"></script>
     <script src="js/engine/combat.js"></script>

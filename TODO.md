@@ -8,7 +8,7 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ### World Content
 - [x] Fourth region: The Shattered Spire (endgame zone) — `enemies.js` + `items.js` + `world.js` + `npcs.js` + `maps.js` + `sprites.js` + `worldmap.js` + `audio.js`
-- [ ] Region-specific random encounters
+- [x] Region-specific random encounters (choice-driven region events) — `exploration.js` + `style.css`
 - [ ] Rare world bosses with unique loot tables
 - [ ] Environmental puzzles in ruin interiors
 
@@ -17,13 +17,19 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 ## Backlog
 
 ### Polish
-- [ ] Accessibility options (font size, colorblind)
+- [ ] Colorblind accessibility mode
 - [ ] Performance optimization pass
 - [ ] Update ARCHITECTURE.md and DEVELOPMENT.md to reflect current HTML5/JS codebase
 
 ---
 
 ## Recently Completed
+
+- [x] Echoes of Ruun permanent boon system (16 echoes, 3 facets, boss offerings + Resonant Shrines) — `echoes.js` + `combat.js` + `exploration.js` + `progression.js` + `state.js`
+- [x] Navigation overhaul: 5-tab nav with SVG icons + Menu hub — `index.html` + `main.js` + `style.css`
+- [x] Bottom sheet panels with drag-to-dismiss and backdrop — `index.html` + `main.js` + `touch.js` + `style.css` + `map.css`
+- [x] Design system v2: rebuilt tokens (palette, surfaces, radii, elevation) — `style.css` + `map.css` + `combat.css`
+- [x] Accessibility options: text size + reduced motion — `settings.js` + `style.css`
 
 - [x] The Shattered Spire — full endgame region with 4 enemies, boss, 2 NPCs, 6 items, 4 locations, map data, visual atmosphere, weather, ambient music — `enemies.js` + `items.js` + `world.js` + `npcs.js` + `maps.js` + `sprites.js` + `worldmap.js` + `audio.js`
 - [x] Combat stance system (aggressive/balanced/defensive with damage, crit, MP modifiers) — `combat.js` + `combat.css`

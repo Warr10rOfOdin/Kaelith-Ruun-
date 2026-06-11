@@ -177,6 +177,26 @@ const Progression = {
         });
         html += '</div>';
 
+        // Echoes of Ruun
+        html += '<div class="stat-group"><h4><span class="group-icon">&#10043;</span> Echoes of Ruun</h4>';
+        const playerEchoes = (p.echoes || []).filter(k => typeof ECHOES !== 'undefined' && ECHOES[k]);
+        if (playerEchoes.length > 0) {
+            playerEchoes.forEach(key => {
+                const e = ECHOES[key];
+                const facet = Echoes.FACETS[e.facet];
+                html += `<div class="ability-card echo-card rarity-${e.rarity}">`;
+                html += '<div class="ability-header">';
+                html += `<span class="ability-name">${e.icon} ${e.name}</span>`;
+                html += `<span class="echo-facet-tag" style="color:${facet.color}">${facet.name}</span>`;
+                html += '</div>';
+                html += `<div class="ability-desc">${e.desc}</div>`;
+                html += '</div>';
+            });
+        } else {
+            html += '<div style="color:var(--text-dim);font-size:0.78rem;font-style:italic">No echoes attuned. Defeat region bosses or find Resonant Shrines to attune fragments of the Shattering.</div>';
+        }
+        html += '</div>';
+
         // Skill Tree
         if (cls.skillTree && cls.skillTree.length > 0) {
             html += '<div class="stat-group"><h4><span class="group-icon">&#9878;</span> Skill Tree</h4>';

@@ -25,7 +25,9 @@ const Settings = {
         sfxVolume: 70,
         screenShake: true,
         showFPS: false,
-        particleDensity: 'high'  // 'low', 'medium', 'high'
+        particleDensity: 'high',  // 'low', 'medium', 'high'
+        textSize: 'normal',       // 'normal', 'large'
+        reducedMotion: false
     },
 
     // Currently rebinding
@@ -33,6 +35,17 @@ const Settings = {
 
     init() {
         this.load();
+        this.applyAccessibility();
+    },
+
+    // Apply accessibility preferences as body classes (consumed by CSS)
+    applyAccessibility() {
+        const body = document.body;
+        if (!body) return;
+        body.classList.toggle('pref-large-text', this.values.textSize === 'large');
+        const systemReduced = typeof window.matchMedia === 'function' &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        body.classList.toggle('pref-reduced-motion', this.values.reducedMotion || systemReduced);
     },
 
     load() {
@@ -130,10 +143,27 @@ const Settings = {
             <button onclick="Settings.cycleParticles()" class="action-btn" style="padding:0.2rem 0.6rem;font-size:0.8rem">${this.values.particleDensity.toUpperCase()}</button>
         </div>`;
 
+        // Accessibility
+        html += '</div><div style="margin-bottom:1.5rem">';
+        html += '<p style="color:var(--accent-gold-dim);margin-bottom:0.5rem;font-size:0.9rem">Accessibility</p>';
+
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0">
+            <span style="font-size:0.85rem">Text Size</span>
+            <button onclick="Settings.toggleTextSize()" class="action-btn" style="padding:0.2rem 0.6rem;font-size:0.8rem">${this.values.textSize === 'large' ? 'LARGE' : 'NORMAL'}</button>
+        </div>`;
+
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0">
+            <span style="font-size:0.85rem">Reduced Motion</span>
+            <button onclick="Settings.toggleReducedMotion()" class="action-btn" style="padding:0.2rem 0.6rem;font-size:0.8rem">${this.values.reducedMotion ? 'ON' : 'OFF'}</button>
+        </div>`;
+
         // Audio controls
         const audioEnabled = typeof Audio !== 'undefined' ? Audio.enabled : false;
         const sfxVol = typeof Audio !== 'undefined' ? Math.round(Audio.sfxVolume * 100) : 50;
         const musicVol = typeof Audio !== 'undefined' ? Math.round(Audio.musicVolume * 100) : 30;
+
+        html += '</div><div style="margin-bottom:1.5rem">';
+        html += '<p style="color:var(--accent-gold-dim);margin-bottom:0.5rem;font-size:0.9rem">Audio</p>';
 
         html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0">
             <span style="font-size:0.85rem">Sound</span>
@@ -192,6 +222,20 @@ const Settings = {
         const idx = order.indexOf(this.values.particleDensity);
         this.values.particleDensity = order[(idx + 1) % order.length];
         this.save();
+        this.render();
+    },
+
+    toggleTextSize() {
+        this.values.textSize = this.values.textSize === 'large' ? 'normal' : 'large';
+        this.save();
+        this.applyAccessibility();
+        this.render();
+    },
+
+    toggleReducedMotion() {
+        this.values.reducedMotion = !this.values.reducedMotion;
+        this.save();
+        this.applyAccessibility();
         this.render();
     },
 

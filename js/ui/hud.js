@@ -40,6 +40,18 @@ const HUD = {
         const hudGold = document.getElementById('hud-gold');
         if (hudGold) hudGold.textContent = `Gold: ${p.gold}`;
 
+        // Hunger bar (survival)
+        if (GameState.survival && typeof GameState.survival.hunger === 'number') {
+            const hunger = GameState.survival.hunger;
+            const hungerBar = document.getElementById('hunger-bar');
+            const hungerText = document.getElementById('hunger-text');
+            if (hungerBar) {
+                hungerBar.style.width = `${Math.min(100, Math.max(0, hunger))}%`;
+                hungerBar.classList.toggle('starving', hunger <= 20);
+            }
+            if (hungerText) hungerText.textContent = `🍖 ${Math.floor(hunger)}`;
+        }
+
         // Stamina bar (updates frequently via game loop)
         if (typeof WorldMap !== 'undefined') {
             const stPercent = WorldMap.maxStamina > 0

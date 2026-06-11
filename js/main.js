@@ -123,14 +123,10 @@ const Game = {
         if (riseBtn) {
             riseBtn.onclick = () => {
                 if (typeof Audio !== 'undefined') Audio.ensure();
-                // Existing camp → straight home. Fresh world → pick a vessel
-                // and dive; the camp is founded when you return.
                 if (GameState.hasSave()) {
-                    if (!GameState.player) GameState.load();
-                    if (typeof WorldMap !== 'undefined' && WorldMap.stopLoop) WorldMap.stopLoop();
-                    Hub.enter();
+                    if (GameState.load()) this.enterWorld(false);
                 } else {
-                    Breach.openSetup();
+                    this.openClassPick();
                 }
             };
         }
@@ -167,24 +163,81 @@ const Game = {
     },
 
     // =========================================
+    // OPEN WORLD ENTRY
+    // =========================================
+    openClassPick() {
+        const el = document.getElementById('breach-setup');
+        if (!el) return;
+        let html = `<div class="bsetup-panel">`;
+        html += `<div class="bsetup-title">Kaelith Ruun</div>`;
+        html += `<div class="bsetup-sub">You wake in the ashes of a shattered world. Who were you?</div>`;
+        html += `<div class="bclass-grid">`;
+        for (const [key, cls] of Object.entries(BREACH_CLASSES)) {
+            const w = BREACH_WEAPONS[cls.weapon];
+            html += `<button class="bclass-card ${key === 'voidblade' ? 'selected' : ''}" data-class="${key}"
+                onclick="document.querySelectorAll('.bclass-card').forEach(c=>c.classList.toggle('selected',c.dataset.class==='${key}'))">
+                <span class="bclass-icon">${cls.icon}</span>
+                <span class="bclass-name">${cls.name}</span>
+                <span class="bclass-weapon">${w.icon} ${w.name}</span>
+                <span class="bclass-perk">${cls.perkText}</span>
+            </button>`;
+        }
+        html += `</div>`;
+        html += `<button class="bstart-btn" onclick="Game.startNewWorld()">🌒 AWAKEN</button>`;
+        html += `</div>`;
+        el.innerHTML = html;
+        el.classList.remove('hidden');
+    },
+
+    startNewWorld() {
+        const sel = document.querySelector('.bclass-card.selected');
+        const classKey = sel ? sel.dataset.class : 'voidblade';
+        const setup = document.getElementById('breach-setup');
+        if (setup) setup.classList.add('hidden');
+
+        GameState.initialize('Survivor', 'human', classKey);
+        GameState.currentLocation = 'player_camp';
+        GameState.currentRegion = 'ashen_wastes';
+        GameState.save();
+        this.enterWorld(true);
+    },
+
+    enterWorld(isNew) {
+        ScreenManager.showScreen('game');
+        HUD.update();
+        if (isNew) {
+            Narrative.clear();
+            Narrative.addSystem('— You Awaken —');
+            Narrative.addStory('Ash on your tongue, a dying fire beside you, and a circle of ground that is — for now — yours. This is your camp. Everything else wants you dead.');
+            Narrative.addSystem('Gather wood and stone. Build. Eat. Survive the nights. Your weapons strike on their own — keep moving.');
+        } else {
+            Narrative.addSystem('You return to the shattered world...');
+        }
+        this.startWorldMap();
+        this.startPlayTimeTracking();
+        if (typeof Audio !== 'undefined') Audio.startAmbient(GameState.currentRegion);
+    },
+
+    // =========================================
     // THE BREACH — title meta + Sanctum shop
     // =========================================
     updateTitleMeta() {
         const el = document.getElementById('title-meta');
-        if (!el || typeof BreachMeta === 'undefined') return;
-        const meta = BreachMeta.load();
-        const cleared = Object.keys(meta.cleared || {}).length;
-        if (meta.stats.runs === 0 && !GameState.hasSave()) {
-            el.innerHTML = 'A shattered world. A camp to build. A Breach to brave.';
+        if (!el) return;
+        if (!GameState.hasSave()) {
+            el.innerHTML = 'A shattered world. Survive it. Tame it.';
             return;
         }
-        const days = (() => {
-            try {
-                const s = JSON.parse(localStorage.getItem('kaelith_ruun_save'));
-                return s && s.survival ? s.survival.dayCount + 1 : 1;
-            } catch (e) { return 1; }
-        })();
-        el.innerHTML = `Day <strong>${days}</strong> &nbsp;·&nbsp; ${meta.stats.runs} runs &nbsp;·&nbsp; ${meta.stats.kills} slain &nbsp;·&nbsp; ${cleared}/4 realms cleared`;
+        try {
+            const s = JSON.parse(localStorage.getItem('kaelith_ruun_save'));
+            const days = s && s.survival ? s.survival.dayCount + 1 : 1;
+            const kills = s && s.stats ? (s.stats.enemiesKilled || 0) : 0;
+            const lvl = s && s.player ? s.player.level : 1;
+            const bosses = s && s.bossesDefeated ? s.bossesDefeated.length : 0;
+            el.innerHTML = `Day <strong>${days}</strong> &nbsp;·&nbsp; Lv ${lvl} &nbsp;·&nbsp; ${kills} slain &nbsp;·&nbsp; ${bosses}/4 bosses felled`;
+        } catch (e) {
+            el.innerHTML = '';
+        }
     },
 
     showSanctum() {

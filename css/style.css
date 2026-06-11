@@ -862,6 +862,14 @@ body {
     background: linear-gradient(90deg, #6a6a10, #aaaa33);
     box-shadow: 0 0 6px rgba(170, 170, 50, 0.2);
 }
+.hunger-bar {
+    background: linear-gradient(90deg, #7a4a1a, #c47a33);
+    box-shadow: 0 0 6px rgba(196, 122, 51, 0.25);
+}
+.hunger-bar.starving {
+    animation: pulse 0.9s ease-in-out infinite;
+    background: linear-gradient(90deg, #8b2e2e, #cf4b4b);
+}
 
 .bar-text {
     position: absolute;

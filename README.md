@@ -1,27 +1,23 @@
 # Kaelith Ruun — Shattered Realms
 
-A dark fantasy **survival action roguelite** built mobile-first as a PWA. Fight through the Breach, haul materials home, and build a camp that makes every run stronger. No frameworks, no dependencies.
+An **open-world survival RPG** in a dark fantasy pixel-art world, built mobile-first as a PWA. Walk the shattered realms, fight what hunts you in real time, gather, mine, craft, farm, terraform, and build a camp that keeps you alive. No frameworks, no dependencies.
 
 ## Play
 
-- **Mobile**: Open in your phone's browser and tap "Add to Home Screen" to install as an app
-- **Desktop**: Open `index.html` in any modern browser (WASD to move)
-- **Offline**: Works fully offline once loaded (service worker caches all assets)
+- **Mobile**: Open in your phone's browser and tap "Add to Home Screen" — D-pad to move
+- **Desktop**: Open `index.html` in any modern browser (WASD to move, E to interact)
+- **Offline**: Works fully offline once loaded
 
-## THE LOOP
+## ONE WORLD
 
-**⚔ The Breach** — one-thumb real-time action: drag to move, weapons fire themselves. 6 weapons × 5 ranks, 8 boons, level-up drafts every level, elites, and a realm boss at 5:00. Enemies drop **gold and materials** — wood, stone, ore, essence — unique to each of the 4 realms.
+- **Live combat in the open world** — enemies spawn and hunt you across the maps; your weapons auto-fire at the nearest threat while you position. 6 weapons × 5 ranks, 6 boons, drafted permanently on every level-up. Nights are dangerous.
+- **Survival** — hunger drains as you travel; eat what you farm, cook, and loot or starve. Death sends you home to camp, lighter of gold. Each dawn the world ticks: crops grow, golems dig, seasons turn.
+- **Gather & mine** — chop trees, break rocks, harvest veins in the world; build the Mineshaft and descend the push-your-luck expedition mine (depth tiers, gems, gas pockets, pickaxe gating).
+- **Craft & build** — smelt ore at the forge, craft tools/gear/potions, raise 15+ structures, upgrade them, terraform your camp's terrain tile by tile (paths, soil, ponds, tree groves).
+- **Farm** — real plots with soil quality, watering, seasonal preferences, harvest quality, and crossbreeding hybrids; automate with irrigation, golems, and harvest sprites.
+- **4 realms, 4 bosses** — fought live where they stand; victories unlock regions and Echo attunements (16 permanent boons).
 
-**🏕️ The Camp** — everything you haul home feeds the survival economy:
-- **The Depths** — push-your-luck expedition mining with depth tiers, gems, gas pockets, and pickaxe progression
-- **Forge & Craft** — smelt ore, craft tools and gear from your haul
-- **The Fields** — plot farming with soil quality, watering, seasons, crossbreeding — and the food you grow is **auto-eaten as rations** when runs go badly
-- **Build** — every structure carries into the Breach: Shelter = max HP, Forge = damage, Workshop = attack speed, Ward Stones = armor + a revive…
-- **Industry** — automate it all: irrigation, mining golems, harvest sprites
-
-**Each run costs a day.** Crops grow, plots dry, golems dig, seasons turn — the camp lives while you fight.
-
-## Legacy Story Content
+## World &amp; Systems
 
 - **Mobile-First Design** — Built for phones with touch-friendly UI, safe area support for notched devices, and a native-feeling tab bar
 - **PWA / Installable** — Add to home screen on iOS and Android for a full-screen app experience with offline play

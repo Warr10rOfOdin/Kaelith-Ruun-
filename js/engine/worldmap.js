@@ -113,6 +113,9 @@ const WorldMap = {
         this.mapData = map;
         this.terrain = map.terrain.map(row => row.split(''));
 
+        // Live combat doesn't follow you between maps
+        if (typeof WorldCombat !== 'undefined') WorldCombat.clear();
+
         // Player position (tile coords → pixel coords)
         const startX = entryX !== undefined ? entryX : map.playerStart.x;
         const startY = entryY !== undefined ? entryY : map.playerStart.y;
@@ -231,6 +234,9 @@ const WorldMap = {
         // Weather system
         this.updateWeather(dt);
 
+        // Live world combat: roaming enemies, weapons, hunger, pickups
+        if (typeof WorldCombat !== 'undefined') WorldCombat.update(dt);
+
         // Update stamina bar in HUD (fast path, every frame)
         if (typeof HUD !== 'undefined' && HUD.updateStamina) HUD.updateStamina();
     },
@@ -286,6 +292,7 @@ const WorldMap = {
         }
 
         let speedMult = this.isSprinting ? this.sprintMultiplier : 1.0;
+        if (typeof WorldCombat !== 'undefined') speedMult *= WorldCombat.playerSpeedMult();
         // Laid paths at camp are quicker underfoot
         const underCh = this.getTerrainChar(Math.floor(this.px / this.TS), Math.floor(this.py / this.TS));
         if (underCh === 'p') speedMult *= 1.12;
@@ -760,6 +767,9 @@ const WorldMap = {
         // ── Pass 9: Particles ──
         Sprites.drawParticles(ctx, this.camX, this.camY);
         Sprites.drawAmbientParticles(ctx, this.camX, this.camY);
+
+        // ── Pass 9b: Live combat — enemies, projectiles, damage numbers ──
+        if (typeof WorldCombat !== 'undefined') WorldCombat.draw(ctx);
 
         // Restore zoom transform before post-processing (these work in screen space)
         ctx.restore();
@@ -1535,20 +1545,16 @@ const WorldMap = {
                 break;
 
             case 'enemy_spawn': {
+                // A nest — kicking it pours live enemies into the world
                 const enemies = entity.enemies || [];
                 const enemyKey = enemies[Math.floor(Math.random() * enemies.length)];
-                if (enemyKey && ENEMIES[enemyKey]) {
-                    Narrative.addFlavor('You engage the enemy!');
-                    setTimeout(() => {
-                        Combat.start(enemyKey, (result) => {
-                            if (result === 'victory') {
-                                const key = `${x},${y}`;
-                                const removedKey = `${this.currentMap}:${key}`;
-                                this.removedEntities[removedKey] = true;
-                                delete this.entityMap[key];
-                            }
-                        });
-                    }, 300);
+                if (enemyKey && ENEMIES[enemyKey] && typeof WorldCombat !== 'undefined') {
+                    Narrative.addFlavor('You kick the nest — they pour out!');
+                    WorldCombat.engage(enemyKey, 2 + Math.floor(Math.random() * 2));
+                    const key = `${x},${y}`;
+                    const removedKey = `${this.currentMap}:${key}`;
+                    this.removedEntities[removedKey] = true;
+                    delete this.entityMap[key];
                 }
                 break;
             }
@@ -1567,27 +1573,36 @@ const WorldMap = {
                     Narrative.addStory(locData.narrative.preBoss);
                 }
 
-                setTimeout(() => {
-                    Combat.start(entity.id, (result) => {
-                        if (result === 'victory') {
-                            const mapData = MAPS[this.currentMap];
-                            if (mapData && mapData.regionUnlock) {
-                                const ru = mapData.regionUnlock;
-                                if (ru.unlocks && WORLD.regions[ru.unlocks]) {
-                                    GameState.unlockRegion(ru.unlocks);
-                                    Narrative.addStory(`A new path opens. ${WORLD.regions[ru.unlocks].name} is now accessible.`);
-                                    if (typeof Notifications !== 'undefined') {
-                                        Notifications.show(`Region Unlocked: ${WORLD.regions[ru.unlocks].name}!`, 'gold');
-                                    }
+                if (typeof WorldCombat !== 'undefined') {
+                    const mapKey = this.currentMap;
+                    WorldCombat.startBoss(entity.id, () => {
+                        if (!GameState.bossesDefeated.includes(entity.id)) {
+                            GameState.bossesDefeated.push(entity.id);
+                        }
+                        const mapData = MAPS[mapKey];
+                        if (mapData && mapData.regionUnlock) {
+                            const ru = mapData.regionUnlock;
+                            if (ru.unlocks && WORLD.regions[ru.unlocks]) {
+                                GameState.unlockRegion(ru.unlocks);
+                                Narrative.addStory(`A new path opens. ${WORLD.regions[ru.unlocks].name} is now accessible.`);
+                                if (typeof Notifications !== 'undefined') {
+                                    Notifications.show(`Region Unlocked: ${WORLD.regions[ru.unlocks].name}!`, 'gold');
                                 }
                             }
-                            const key = `${x},${y}`;
-                            const removedKey = `${this.currentMap}:${key}`;
-                            this.removedEntities[removedKey] = true;
-                            delete this.entityMap[key];
                         }
+                        const key = `${x},${y}`;
+                        this.removedEntities[`${mapKey}:${key}`] = true;
+                        delete this.entityMap[key];
+                        // Bosses release a fragment of the Shattering
+                        if (typeof Echoes !== 'undefined' && Echoes.available().length > 0) {
+                            setTimeout(() => Echoes.showOffering(3,
+                                'The Shattering Resonates',
+                                `${boss.name}'s death releases a fragment — attune one Echo`,
+                                null), 1400);
+                        }
+                        GameState.save();
                     });
-                }, 1000);
+                }
                 break;
             }
 
@@ -1855,31 +1870,9 @@ const WorldMap = {
     },
 
     // ---- RANDOM ENCOUNTERS ----
-    checkRandomEncounter() {
-        const locData = WORLD.locations[this.currentMap];
-        if (!locData || locData.type === 'village' || locData.type === 'base' || locData.type === 'npc') return;
-        if (!this.isMoving) return;
-
-        // 4% chance per check (every 2 seconds of movement)
-        if (Math.random() < 0.04) {
-            const region = WORLD.regions[GameState.currentRegion];
-            if (!region || !region.enemies || !region.enemies.length) return;
-
-            const playerLevel = GameState.player.level;
-            const validEnemies = region.enemies.filter(key => {
-                const e = ENEMIES[key];
-                return e && e.level <= playerLevel + 2;
-            });
-
-            const pool = validEnemies.length > 0 ? validEnemies : [region.enemies[0]];
-            const enemyKey = pool[Math.floor(Math.random() * pool.length)];
-
-            if (enemyKey && ENEMIES[enemyKey]) {
-                Narrative.addFlavor('A hostile presence emerges...');
-                setTimeout(() => Combat.start(enemyKey), 400);
-            }
-        }
-    },
+    // Enemies now live in the world (WorldCombat handles spawning);
+    // the old fade-to-combat-screen encounters are gone.
+    checkRandomEncounter() {},
 
     // ---- ACTIONS ----
     updateActions() {

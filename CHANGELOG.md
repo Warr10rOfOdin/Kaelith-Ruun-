@@ -4,6 +4,31 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v2.0.0] — 2026-06-11 — THE SHATTERED WILDS
+
+**Kaelith Ruun is now a true open-world survival RPG.** No separate combat screens, no arena mode, no menu hub — one continuous world where you walk, fight, gather, build, farm, and survive.
+
+### Added — Live world combat (`js/engine/wildcombat.js`)
+- **Enemies roam the open world** and hunt you in real time — packs spawn off-screen on wild maps, elites prowl on a timer, and **nights are dangerous** (faster spawns, bigger packs)
+- **Your weapons fight for you**: the 6-weapon system (arc slashes, seeking bolts, dagger fans, sweeping soul orbs, lifestealing lashes, ember novas) now fires in-world, auto-aiming at the nearest threat while you steer, dodge, and position
+- **Kills feed the RPG directly**: XP floats off corpses into your real character level; **level-ups draft permanent weapon and boon ranks** (up to 4 weapons + 4 boons, 5 ranks each, then raw attributes)
+- **Loot drops on the ground**: gold, region materials (wood/stone/ore/essence per realm), and creature loot, all magnetized to you
+- **Bosses are fought live in the world** — walk up to the Ashen King and fight him where he stands; victory unlocks regions and offers Echo attunements as before
+- Enemy nests (`enemy_spawn` entities) now pour live enemies into the world when disturbed; camp raids and event ambushes spawn real attackers
+- Damage numbers, knockback, hit-flash, death pops, mini HP bars, terrain-aware enemy pathing — full game-feel inside the existing pixel-art world renderer
+
+### Added — Survival
+- **Hunger**: a new survival meter that drains with time and sprinting (HUD bar included). Food is auto-eaten when you're hungry; with an empty larder you **starve** — and starvation kills
+- **Real-time days**: the day/night cycle now drives the world — each dawn advances the camp day (crops grow, plots dry, golems mine, sprites harvest, seasons turn), and crops also grow continuously while you wander
+- **Death is survival, not game over**: you wake at camp at half HP, missing 10% of your gold
+
+### Changed
+- The fade-to-black turn-based combat screen is gone from the flow entirely
+- Title screen: one button — **RISE**. New survivors pick a class (starting weapon + perk) and wake at their camp with nothing but a fire
+- The camp is in the world again: walk it, build on its tiles, terraform it, plant fields, descend the mineshaft — everything from the Homestead update, now under one sky
+
+---
+
 ## [v1.1.0] — 2026-06-11 — ONE WORLD
 
 **The two halves are now one game.** Breach combat and the survival camp share a single save, a single economy, and a single loop:

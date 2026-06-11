@@ -160,7 +160,7 @@ const Exploration = {
 
     triggerRandomCombat() {
         const region = WORLD.regions[GameState.currentRegion];
-        if (!region || !region.enemies || !region.enemies.length) {
+        if (!region || !region.enemies || !region.enemies.length || typeof WorldCombat === 'undefined') {
             Narrative.addSystem('The area seems peaceful... for now.');
             return;
         }
@@ -180,10 +180,8 @@ const Exploration = {
             return;
         }
 
-        Narrative.addFlavor(`A hostile presence makes itself known...`);
-        setTimeout(() => {
-            Combat.start(enemyKey);
-        }, 600);
+        Narrative.addFlavor('A hostile presence makes itself known...');
+        WorldCombat.engage(enemyKey, 1 + Math.floor(Math.random() * 2));
     },
 
     findSupplies() {
@@ -297,34 +295,44 @@ const Exploration = {
 
     challengeBoss(bossKey) {
         const boss = ENEMIES[bossKey];
-        if (!boss) return;
+        if (!boss || typeof WorldCombat === 'undefined') return;
 
         Narrative.showBossIntro(GameState.currentLocation);
 
         setTimeout(() => {
-            Combat.start(bossKey, (result) => {
-                if (result === 'victory') {
-                    Narrative.addSeparator();
-                    Narrative.addStory(`The ${boss.name} is vanquished. A weight lifts from this place.`);
-
-                    // Check for region unlocks
-                    if (bossKey === 'the_ashen_king') {
-                        Narrative.addStory('With the Ashen King fallen, the southern path clears. The Hollowfen awaits.');
-                        Notifications.show('New Region Unlocked: The Hollowfen!', 'gold');
-                    } else if (bossKey === 'mother_of_the_fen') {
-                        Narrative.addStory('As the Mother falls, the swamp begins to recede. A rift opens in the sky above — the Void Sanctum beckons.');
-                        Notifications.show('New Region Unlocked: The Void Sanctum!', 'gold');
-                    } else if (bossKey === 'ruun_the_unraveler') {
-                        Narrative.addSeparator();
-                        Narrative.addStory('Ruun dissolves into nothing. The void screams, then falls silent. Reality shudders... and holds.');
-                        Narrative.addStory('The cracks in the sky begin to close. The whispers fade. For the first time in a thousand years, the world feels... whole.');
-                        Narrative.addStory('You have done what no one believed possible. The Unraveler is no more. Kaelith Ruun will endure.');
-                        Narrative.addSystem('CONGRATULATIONS — You have completed the main story of Kaelith Ruun: Shattered Realms.');
-                        Notifications.show('You have saved Kaelith Ruun!', 'gold');
-                    }
+            WorldCombat.startBoss(bossKey, () => {
+                if (!GameState.bossesDefeated.includes(bossKey)) {
+                    GameState.bossesDefeated.push(bossKey);
                 }
+                Narrative.addSeparator();
+                Narrative.addStory(`The ${boss.name} is vanquished. A weight lifts from this place.`);
+
+                // Region unlocks
+                if (bossKey === 'the_ashen_king') {
+                    GameState.unlockRegion('hollowfen');
+                    Narrative.addStory('With the Ashen King fallen, the southern path clears. The Hollowfen awaits.');
+                    Notifications.show('New Region Unlocked: The Hollowfen!', 'gold');
+                } else if (bossKey === 'mother_of_the_fen') {
+                    GameState.unlockRegion('void_sanctum');
+                    Narrative.addStory('As the Mother falls, the swamp begins to recede. A rift opens in the sky above — the Void Sanctum beckons.');
+                    Notifications.show('New Region Unlocked: The Void Sanctum!', 'gold');
+                } else if (bossKey === 'ruun_the_unraveler') {
+                    Narrative.addSeparator();
+                    Narrative.addStory('Ruun dissolves into nothing. The void screams, then falls silent. Reality shudders... and holds.');
+                    Narrative.addStory('You have done what no one believed possible. The Unraveler is no more. Kaelith Ruun will endure.');
+                    Notifications.show('You have saved Kaelith Ruun!', 'gold');
+                }
+
+                // Bosses release a fragment of the Shattering
+                if (typeof Echoes !== 'undefined' && Echoes.available().length > 0) {
+                    setTimeout(() => Echoes.showOffering(3,
+                        'The Shattering Resonates',
+                        `${boss.name}'s death releases a fragment — attune one Echo`,
+                        null), 1400);
+                }
+                GameState.save();
             });
-        }, 1500);
+        }, 1200);
     },
 
     showTravel() {
@@ -720,27 +728,14 @@ const Exploration = {
         };
         Narrative.addFlavor(raidText[GameState.currentRegion] || 'Raiders attack your camp!');
 
-        // Pick a raider from the region
+        // Raiders pour into the world
         const raidEnemy = region.enemies[Math.floor(Math.random() * region.enemies.length)];
-
-        setTimeout(() => {
-            if (typeof Combat !== 'undefined') {
-                Combat.start(raidEnemy, (result) => {
-                    if (result === 'victory') {
-                        Narrative.addStory('You drive off the attackers! Your camp is safe... for now.');
-                        if (GameState.survival) GameState.survival.morale = Math.min(100, GameState.survival.morale + 8);
-                        // Bonus loot from raids
-                        const gold = 10 + Math.floor(Math.random() * 30);
-                        GameState.player.gold += gold;
-                        Narrative.addLoot(`You recover ${gold} gold from the raiders.`);
-                    } else {
-                        Narrative.addSystem('The raiders ransack your supplies before retreating.');
-                        if (GameState.survival) GameState.survival.morale = Math.max(0, GameState.survival.morale - 15);
-                    }
-                    GameState.updateThreatLevel();
-                    HUD.update();
-                });
-            }
-        }, 1200);
+        if (typeof WorldCombat !== 'undefined') {
+            setTimeout(() => {
+                WorldCombat.engage(raidEnemy, 3, { silent: true });
+                Notifications.show('🏕️ RAID! Defend your camp!', 'red');
+                GameState.updateThreatLevel();
+            }, 900);
+        }
     }
 };

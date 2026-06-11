@@ -41,7 +41,7 @@
             </div>
             <div id="title-meta" class="title-meta"></div>
             <div id="save-info" class="save-info hidden"></div>
-            <p class="version-info">v1.1.0 — One World</p>
+            <p class="version-info">v2.0.0 — The Shattered Wilds</p>
             <p id="install-prompt" class="install-hint hidden">Tap to install as app</p>
         </div>
 
@@ -117,6 +117,11 @@
                     <div class="bar-container">
                         <div id="stamina-bar" class="resource-bar stamina-bar">
                             <span id="stamina-text" class="bar-text"></span>
+                        </div>
+                    </div>
+                    <div class="bar-container">
+                        <div id="hunger-bar" class="resource-bar hunger-bar">
+                            <span id="hunger-text" class="bar-text"></span>
                         </div>
                     </div>
                 </div>
@@ -219,7 +224,6 @@
                 </div>
             </div>
             <button id="breach-pause-btn" aria-label="Pause" onclick="Breach.pause()">❚❚</button>
-            <div id="breach-boss-banner"></div>
         </div>
 
         <!-- Breach overlays -->
@@ -234,6 +238,7 @@
             </div>
         </div>
         <div id="sanctum-overlay" class="breach-overlay hidden"></div>
+        <div id="breach-boss-banner"></div>
         <div id="joy-base"></div>
         <div id="joy-knob"></div>
 
@@ -322,6 +327,7 @@
     <script src="js/engine/base.js"></script>
     <script src="js/engine/homestead.js"></script>
     <script src="js/engine/breach.js"></script>
+    <script src="js/engine/wildcombat.js"></script>
     <script src="js/engine/hub.js"></script>
     <script src="js/ui/screens.js"></script>
     <script src="js/ui/hud.js"></script>

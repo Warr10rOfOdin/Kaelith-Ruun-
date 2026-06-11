@@ -345,7 +345,7 @@ const GameState = {
 
         // Initialize survival
         this.survival = {
-            temperature: 50, fatigue: 0, morale: 70,
+            temperature: 50, fatigue: 0, morale: 70, hunger: 85,
             season: 'summer', seasonDay: 0, dayCount: 0
         };
         this.activeBuffs = [];
@@ -396,6 +396,11 @@ const GameState = {
         const baseMaxMp = 30 + (p.stats.int * 2) + p.stats.wis + (race ? race.mpBonus : 0) + ((p.level - 1) * (cls.mpPerLevel + Math.floor(p.stats.int * 0.3)));
         p.maxHp = baseMaxHp + bHp;
         p.maxMp = baseMaxMp + bMp;
+
+        // Vitality boons (world combat drafts) add permanent max HP
+        if (p.combat && p.combat.boons && p.combat.boons.vitality) {
+            p.maxHp += p.combat.boons.vitality * 20;
+        }
 
         // Apply enchantment bonuses
         if (p.enchantments) {
@@ -705,10 +710,11 @@ const GameState = {
             // Load survival systems (v4)
             if (s.survival) {
                 this.survival = Object.assign({
-                    temperature: 50, fatigue: 0, morale: 70,
+                    temperature: 50, fatigue: 0, morale: 70, hunger: 85,
                     season: 'summer', seasonDay: 0, dayCount: 0
                 }, s.survival);
             }
+            if (typeof this.survival.hunger !== 'number') this.survival.hunger = 85;
             this.activeBuffs = s.activeBuffs || [];
             this.discoveredRecipes = s.discoveredRecipes || null;
             this.campNPCs = s.campNPCs || [];

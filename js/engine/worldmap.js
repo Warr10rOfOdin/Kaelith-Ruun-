@@ -140,6 +140,12 @@ const WorldMap = {
         GameState.currentRegion = MAP_REGIONS[mapKey] || 'ashen_wastes';
         GameState.playerMapPos = { x: Math.floor(this.px / this.TS), y: Math.floor(this.py / this.TS) };
 
+        // Restore camp state: placed buildings + terraformed tiles
+        if (map.isCamp) {
+            if (typeof Base !== 'undefined' && Base.updateCampTiles) Base.updateCampTiles();
+            if (typeof Homestead !== 'undefined') Homestead.applyTerraformOverrides();
+        }
+
         // Show location name for first visit
         const locData = WORLD.locations[mapKey];
         if (locData && !GameState.visitedLocations.includes(mapKey)) {
@@ -279,7 +285,10 @@ const WorldMap = {
             this.facing = dy > 0 ? 'down' : 'up';
         }
 
-        const speedMult = this.isSprinting ? this.sprintMultiplier : 1.0;
+        let speedMult = this.isSprinting ? this.sprintMultiplier : 1.0;
+        // Laid paths at camp are quicker underfoot
+        const underCh = this.getTerrainChar(Math.floor(this.px / this.TS), Math.floor(this.py / this.TS));
+        if (underCh === 'p') speedMult *= 1.12;
         const speed = this.moveSpeed * speedMult * dt;
         const newX = this.px + dx * speed;
         const newY = this.py + dy * speed;
@@ -1429,9 +1438,13 @@ const WorldMap = {
                 }
             }
         } else if (this.mapData && this.mapData.isCamp) {
-            const campCh = this.getTerrainChar(fx, fy);
-            if (campCh === 'B' || campCh === '.' || campCh === 'p' || campCh === 'g' || campCh === 'w' || campCh === 'h') {
-                promptText = 'Build';
+            if (typeof Homestead !== 'undefined' && Homestead.activeTool && Homestead.TOOLS[Homestead.activeTool]) {
+                promptText = Homestead.TOOLS[Homestead.activeTool].prompt;
+            } else {
+                const campCh = this.getTerrainChar(fx, fy);
+                if (campCh === 'B' || campCh === '.' || campCh === 'p' || campCh === 'g' || campCh === 'w' || campCh === 'h') {
+                    promptText = 'Build';
+                }
             }
         }
 
@@ -1494,6 +1507,11 @@ const WorldMap = {
                 this.fish(fx, fy, weapon);
                 return;
             }
+        }
+
+        // Terraforming tool (camp only, takes priority over building)
+        if (this.mapData && this.mapData.isCamp && typeof Homestead !== 'undefined' && Homestead.activeTool) {
+            if (Homestead.applyTool(fx, fy)) return;
         }
 
         // Building spot (legacy) or free building in camp
@@ -1596,6 +1614,13 @@ const WorldMap = {
                 break;
             }
 
+            case 'building': {
+                if (typeof Base !== 'undefined' && entity.id) {
+                    Base.useBuilding(entity.id);
+                }
+                break;
+            }
+
             case 'campfire': {
                 Narrative.addFlavor('The fire crackles warmly. You rest for a moment.');
                 const healAmt = Math.floor(GameState.player.maxHp * 0.2);
@@ -1664,17 +1689,31 @@ const WorldMap = {
         this.removedResources[removedKey] = true;
         this.terrain[y][x] = '.';
 
-        // Respawn after 50 seconds
-        setTimeout(() => {
-            delete this.removedResources[removedKey];
-            if (this.currentMap === removedKey.split(':')[0]) {
-                const origMap = MAPS[this.currentMap];
-                if (origMap) {
-                    const origChar = origMap.terrain[y] ? origMap.terrain[y][x] : '.';
-                    this.terrain[y][x] = origChar;
+        // Terraformed features (planted trees etc.) are consumed for
+        // good — the override is removed and nothing respawns.
+        const consumedOverride = typeof Homestead !== 'undefined' &&
+            Homestead.onResourceGathered(this.currentMap, x, y);
+
+        if (!consumedOverride) {
+            // Respawn after 50 seconds
+            setTimeout(() => {
+                delete this.removedResources[removedKey];
+                if (this.currentMap === removedKey.split(':')[0]) {
+                    // A terraform override takes precedence over the original map tile
+                    const override = typeof Homestead !== 'undefined'
+                        ? Homestead.getOverride(this.currentMap, x, y) : null;
+                    if (override) {
+                        this.terrain[y][x] = override.ch;
+                        return;
+                    }
+                    const origMap = MAPS[this.currentMap];
+                    if (origMap) {
+                        const origChar = origMap.terrain[y] ? origMap.terrain[y][x] : '.';
+                        this.terrain[y][x] = origChar;
+                    }
                 }
-            }
-        }, 50 * 1000);
+            }, 50 * 1000);
+        }
 
         // Tick farming / turn counter
         GameState.turnCount++;

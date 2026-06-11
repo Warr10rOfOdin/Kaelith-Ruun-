@@ -17,6 +17,10 @@ A dark fantasy text RPG built mobile-first as a PWA. Installable on phones, play
 - **Echoes of Ruun** — Permanent boon system: attune fragments of the Shattering from boss kills and Resonant Shrines across three facets (War, Ward, Wisdom)
 - **Four Regions** — The Ashen Wastes, The Hollowfen, The Void Sanctum, and The Shattered Spire, each with unique enemies, region events, and a boss
 - **Region Events** — Choice-driven encounters with real risk/reward decisions unique to each region
+- **The Depths** — Expedition mining: descend a push-your-luck mine with depth tiers, gems, gas pockets, and pickaxe progression
+- **Living Soil** — Plot-based farming with soil quality, watering, seasons, harvest quality, and crop crossbreeding
+- **Terraforming** — Permanently reshape your camp: paths, tilled soil, ponds, and renewable tree groves
+- **Industry** — Automate through development: irrigation, mining golems, and harvest sprites
 - **NPC Dialogue** — Branching conversations with merchants, witches, and ghosts
 - **Inventory & Equipment** — Loot, equip, and trade gear with rarity tiers
 - **Quest System** — Main storyline with tracked objectives plus side quests

@@ -4,6 +4,44 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v0.13.0] — 2026-06-11 — The Homestead
+
+A ground-up overhaul of mining, farming, base building, and the land itself — plus automation through development. New engine: `js/engine/homestead.js`.
+
+### Added
+- **THE DEPTHS — expedition mining**: build a **Mineshaft** at camp and descend a real mine:
+  - Push-your-luck runs: a wall of 12 cells per depth level, a limited lantern-oil strike budget, and a shaft cell to crack open before you can go deeper
+  - Cell types: stone, ore veins (locked by pickaxe tier), crystal clusters, gem pockets, support beams (+oil), relics, and hidden rubble that may conceal gems — or gas pockets that explode for depth-scaled damage
+  - Depth bands: Lv 1–7 stone/iron/coal · Lv 8–15 granite/mithril/gems · Lv 16+ obsidian/void ore/relics (Ruun shards at Lv 20+)
+  - Persistent deepest-reach progression; Mineshaft upgrades (Timbered Shaft, Deep Winch) add oil and let you start at depth 5/15
+  - Rich strikes (crit mining) scaling with pickaxe tier; mining costs time and fatigue; overflow goes to the camp stockpile
+- **LIVING SOIL — plot-based farming**: every plot is now real:
+  - Soil quality (★–★★★) that improves with repeated cultivation
+  - Daily watering (rain counts!), fertilizer (+30% growth, better quality), seasonal preferences per crop, pond and greenhouse bonuses
+  - Harvest quality rolls — Silver (+1 yield) and Gold (×2 yield) based on soil, watering consistency, and fertilizer
+  - **Crossbreeding**: crops planted side by side can hybridize at harvest — discover **Cinderfruit** (ember root × voidberry) and **Glimmercap** (starfruit × veil mushroom), both plantable and potent
+  - Fertilizer recipe at the herb bench
+- **TERRAFORMING**: permanently reshape your camp, tile by tile:
+  - Lay stone paths (12% faster walking), till soil (each tile = +1 farm plot, max +8), dig ponds (crop growth bonus + camp fishing), plant saplings that grow into harvestable trees in 3 days (renewable forestry), and clear/restore land
+  - Select a tool, face a tile, press action — edits persist in the save forever
+- **INDUSTRY — automation through development**:
+  - **Irrigation Network** (Tier 2): plots never dry out
+  - **Golem Foundry** (Tier 3): forge up to 3 **Cinder Golems** that mine the depths daily at your deepest reach (cap Lv 12), depositing ore and gems into the stockpile
+  - **Sprite Totem** (Tier 4): harvest sprites reap every mature crop daily and replant the same seed when supplies allow
+  - Camp **Stockpile** with collect-all; passive output and overflow accumulate while you adventure
+- 4 new buildings, Mineshaft upgrade track, sapling tile, fertilizer + 2 hybrid food items
+
+### Fixed
+- Placed camp buildings now restore when walking back into camp (previously only on session load)
+- Buildings can now actually be used by interacting with them (the `building` entity type had no interaction handler)
+- Resource respawns respect terraformed tiles
+
+### Changed
+- Old abstract crop list migrated automatically into the new plot system on load
+- Camp menu reorganized: The Depths, Living Soil, Terraform, and Industry panels
+
+---
+
 ## [v0.12.0] — 2026-06-11 — Echoes of Ruun
 
 A full design, gameplay, UI, and UX overhaul.

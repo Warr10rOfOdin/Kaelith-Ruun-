@@ -36,8 +36,9 @@ const TECH_TREE = {
             minBuildings: 2
         },
         unlocks: {
-            buildings: ['forge', 'workshop', 'farm', 'herbalist_bench', 'training_dummy'],
+            buildings: ['forge', 'workshop', 'farm', 'herbalist_bench', 'training_dummy', 'mineshaft'],
             recipes: [
+                'fertilizer_craft',
                 'iron_sword', 'iron_axe_craft', 'iron_pickaxe_craft', 'iron_sickle_craft',
                 'iron_hammer_craft', 'iron_fishing_rod_craft', 'iron_dagger_craft',
                 'iron_mace_craft', 'chainmail_vest_craft', 'iron_helm_craft', 'iron_boots_craft',
@@ -63,7 +64,7 @@ const TECH_TREE = {
             minBuildings: 4
         },
         unlocks: {
-            buildings: ['ward_stones', 'house', 'lookout'],
+            buildings: ['ward_stones', 'house', 'lookout', 'irrigation_network'],
             recipes: [
                 'flame_blade', 'shadow_daggers', 'fen_staff', 'war_hammer_craft',
                 'bog_leather', 'warden_plate', 'composite_bow_craft',
@@ -96,6 +97,7 @@ const TECH_TREE = {
             minBuildings: 6
         },
         unlocks: {
+            buildings: ['golem_foundry'],
             recipes: [
                 'mithril_ingot_craft', 'mithril_sword_craft', 'mithril_daggers_craft',
                 'mithril_maul_craft', 'mithril_staff_craft', 'mithril_bow_craft',
@@ -128,6 +130,7 @@ const TECH_TREE = {
             minBuildings: 8
         },
         unlocks: {
+            buildings: ['sprite_totem'],
             recipes: [
                 'void_ingot_craft',
                 'void_blade_craft', 'void_stiletto_craft', 'void_crusher_craft',

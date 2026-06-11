@@ -153,6 +153,9 @@ const GameState = {
                 Notifications.show(`Season changed: ${s.season.charAt(0).toUpperCase() + s.season.slice(1)}`, 'gold');
             }
         }
+
+        // Homestead daily tick: plots dry, saplings grow, golems mine, sprites harvest
+        if (typeof Homestead !== 'undefined') Homestead.processDay();
     },
 
     // Get survival stat modifiers for combat/exploration
@@ -330,7 +333,12 @@ const GameState = {
         this.recalculateStats();
 
         this.questProgress = { main: { stage: 0, objectives: {} }, side: {} };
-        this.base = { buildings: {}, crops: [], placeables: [] };
+        this.base = {
+            buildings: {}, crops: [], placeables: [], placedBuildings: [],
+            plots: [], terraform: {},
+            mine: { maxDepth: 0, totalMined: 0, runs: 0 },
+            automation: { golems: 0, stockpile: {} }
+        };
         this.currentRegion = 'ashen_wastes';
         this.currentLocation = 'ruined_outpost';
         this.playerMapPos = null;
@@ -666,6 +674,23 @@ const GameState = {
             if (!this.base.placeables) this.base.placeables = [];
             if (!this.base.placedBuildings) this.base.placedBuildings = [];
             if (!this.base.buildingLevels) this.base.buildingLevels = {};
+            // Homestead (v5): plots, terraform, mine, automation
+            if (!this.base.plots) this.base.plots = [];
+            if (!this.base.terraform) this.base.terraform = {};
+            if (!this.base.mine) this.base.mine = { maxDepth: 0, totalMined: 0, runs: 0 };
+            if (!this.base.automation) this.base.automation = { golems: 0, stockpile: {} };
+            if (!this.base.automation.stockpile) this.base.automation.stockpile = {};
+            // Migrate legacy crop list into the plot system
+            if (this.base.crops && this.base.crops.length > 0) {
+                this.base.crops.forEach(c => {
+                    this.base.plots.push({
+                        soil: 1, watered: false, fertilized: false,
+                        crop: c.type, growth: c.growth || 0,
+                        harvests: 0, wateredTurns: 0, totalTurns: 0
+                    });
+                });
+                this.base.crops = [];
+            }
             if (!this.player.enchantments) this.player.enchantments = {};
             this.MAX_INVENTORY_SIZE = s.maxInventorySize || 40;
 

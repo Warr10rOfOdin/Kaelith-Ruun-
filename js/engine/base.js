@@ -253,6 +253,16 @@ const Base = {
             case 'farm':
                 this.showFarmPanel();
                 break;
+            case 'mineshaft':
+                if (typeof Homestead !== 'undefined') Homestead.showMinePanel();
+                break;
+            case 'irrigation_network':
+                Narrative.addFlavor('Water murmurs through the stone channels, feeding every bed in the camp.');
+                break;
+            case 'golem_foundry':
+            case 'sprite_totem':
+                if (typeof Homestead !== 'undefined') Homestead.showIndustryPanel();
+                break;
             case 'shelter':
             case 'house':
                 this.restAtShelter();
@@ -623,177 +633,14 @@ const Base = {
     },
 
     // ---- FARMING ----
+    // The farming system lives in the Homestead engine (Living Soil).
+    // These shims keep legacy call sites working.
     showFarmPanel() {
-        const panel = document.getElementById('side-panel-content');
-        const sidePanel = document.getElementById('side-panel');
-        if (!panel || !sidePanel) return;
-        sidePanel.classList.remove('hidden');
-
-        if (!GameState.base) GameState.base = { buildings: {}, crops: [], placeables: [] };
-        if (!GameState.base.crops) GameState.base.crops = [];
-
-        const hasGarden = GameState.base.buildings.garden;
-        const hasFarm = GameState.base.buildings.farm;
-        let maxCrops = (hasGarden ? 3 : 0) + (hasFarm ? 5 : 0);
-
-        // Building upgrade bonuses
-        const gardenEffect = this.getUpgradeEffect('garden');
-        if (gardenEffect === 'garden_upgrade') maxCrops += 1;
-        else if (gardenEffect === 'greenhouse') maxCrops += 3;
-        const farmEffect = this.getUpgradeEffect('farm');
-        if (farmEffect === 'farm_expand') maxCrops += 3;
-
-        let html = '<h3>Farming</h3>';
-
-        if (!hasGarden && !hasFarm) {
-            html += '<p style="color:var(--text-secondary)">Build a Garden or Farm Plot to start growing crops.</p>';
-        } else {
-            html += `<p style="color:var(--text-secondary);margin-bottom:0.8rem;font-size:0.85rem">Plots: ${GameState.base.crops.length}/${maxCrops} | Crops grow each turn as you explore.</p>`;
-
-            // Current crops
-            if (GameState.base.crops.length > 0) {
-                html += '<div class="farm-plots">';
-                GameState.base.crops.forEach((crop, idx) => {
-                    const cropDef = CROPS[crop.type];
-                    if (!cropDef) return;
-
-                    const progress = Math.min(crop.growth / cropDef.growthTurns, 1);
-                    const stageIdx = Math.floor(progress * (cropDef.stages.length - 1));
-                    const stageEmoji = cropDef.stages[stageIdx];
-                    const isReady = crop.growth >= cropDef.growthTurns;
-
-                    html += `<div class="farm-plot ${isReady ? 'ready' : ''}">`;
-                    html += `<span class="plot-emoji">${stageEmoji}</span>`;
-                    html += `<span class="plot-name">${cropDef.name}</span>`;
-                    if (isReady) {
-                        html += `<button class="action-btn primary" onclick="Base.harvestCrop(${idx})">Harvest</button>`;
-                    } else {
-                        html += `<span class="plot-progress">${Math.floor(progress * 100)}%</span>`;
-                    }
-                    html += '</div>';
-                });
-                html += '</div>';
-            }
-
-            // Plant new crops
-            if (GameState.base.crops.length < maxCrops) {
-                html += '<h4 style="color:var(--accent-gold-dim);margin-top:1rem;margin-bottom:0.5rem;font-size:0.8rem">PLANT CROPS</h4>';
-                for (const [cropId, cropDef] of Object.entries(CROPS)) {
-                    const canPlant = this.canAffordRecipe(cropDef.seedCost);
-                    html += `<div class="craft-item ${canPlant ? '' : 'locked'}">`;
-                    html += `<div class="craft-header">`;
-                    html += `<span class="craft-icon">${cropDef.icon}</span>`;
-                    html += `<div class="craft-info">`;
-                    html += `<div class="craft-name">${cropDef.name}</div>`;
-                    html += `<div class="craft-desc">Grows in ~${cropDef.growthTurns} turns. Yields ${cropDef.harvestQty}x harvest.</div>`;
-                    html += `</div></div>`;
-
-                    html += '<div class="craft-cost">';
-                    for (const [res, qty] of Object.entries(cropDef.seedCost)) {
-                        const have = GameState.getInventoryCount(res);
-                        const item = ITEMS[res];
-                        const enough = have >= qty;
-                        html += `<span class="cost-item ${enough ? 'have' : 'need'}">${item ? item.icon : ''} ${have}/${qty}</span>`;
-                    }
-                    html += '</div>';
-
-                    if (canPlant) {
-                        html += `<button class="action-btn primary" onclick="Base.plantCrop('${cropId}')">Plant</button>`;
-                    }
-                    html += '</div>';
-                }
-            }
-        }
-
-        html += `<button class="action-btn" onclick="document.getElementById('side-panel').classList.add('hidden')" style="margin-top:1rem">Close</button>`;
-        panel.innerHTML = html;
-    },
-
-    plantCrop(cropId) {
-        const cropDef = CROPS[cropId];
-        if (!cropDef) return;
-
-        if (!this.canAffordRecipe(cropDef.seedCost)) {
-            Notifications.show('Not enough resources to plant!', 'red');
-            return;
-        }
-
-        const hasGarden = GameState.base.buildings.garden;
-        const hasFarm = GameState.base.buildings.farm;
-        let maxCrops = (hasGarden ? 3 : 0) + (hasFarm ? 5 : 0);
-        const gardenEffect2 = this.getUpgradeEffect('garden');
-        if (gardenEffect2 === 'garden_upgrade') maxCrops += 1;
-        else if (gardenEffect2 === 'greenhouse') maxCrops += 3;
-        const farmEffect2 = this.getUpgradeEffect('farm');
-        if (farmEffect2 === 'farm_expand') maxCrops += 3;
-
-        if (GameState.base.crops.length >= maxCrops) {
-            Notifications.show('All farm plots are full!', 'red');
-            return;
-        }
-
-        // Deduct seed cost
-        for (const [res, qty] of Object.entries(cropDef.seedCost)) {
-            GameState.removeFromInventory(res, qty);
-        }
-
-        GameState.base.crops.push({ type: cropId, growth: 0 });
-
-        Narrative.addAction(`You plant ${cropDef.name} in your garden.`);
-        Notifications.show(`Planted ${cropDef.name}!`, 'green');
-
-        HUD.update();
-        GameState.save();
-        this.showFarmPanel();
-    },
-
-    harvestCrop(idx) {
-        if (!GameState.base || !GameState.base.crops) return;
-        const crop = GameState.base.crops[idx];
-        if (!crop) return;
-
-        const cropDef = CROPS[crop.type];
-        if (!cropDef) return;
-
-        if (crop.growth < cropDef.growthTurns) {
-            Notifications.show('Not ready yet!', 'red');
-            return;
-        }
-
-        GameState.addToInventory(cropDef.harvestItem, cropDef.harvestQty);
-        GameState.base.crops.splice(idx, 1);
-
-        const item = ITEMS[cropDef.harvestItem];
-        Narrative.addLoot(`Harvested ${cropDef.harvestQty}x ${item ? item.name : cropDef.harvestItem}!`);
-        Notifications.show(`Harvested ${cropDef.name}!`, 'green');
-
-        HUD.update();
-        GameState.save();
-        this.showFarmPanel();
+        if (typeof Homestead !== 'undefined') Homestead.showFarmPanel();
     },
 
     tickFarming() {
-        if (!GameState.base || !GameState.base.crops) return;
-        // Check for farmer's garb speed bonus
-        let growthAmount = 1;
-        if (GameState.player && GameState.player.equipment) {
-            const armor = ITEMS[GameState.player.equipment.armor];
-            if (armor && armor.workBonus && armor.workBonus.type === 'farming') {
-                growthAmount = Math.ceil(growthAmount * (armor.workBonus.speedMult || 1));
-            }
-        }
-        // Check for well placeable
-        if (this.hasPlaceable('irrigation')) {
-            growthAmount = Math.ceil(growthAmount * 1.25);
-        }
-        // Check garden/greenhouse upgrade speed bonus
-        const gardenEffect = this.getUpgradeEffect('garden');
-        if (gardenEffect === 'garden_upgrade') growthAmount = Math.ceil(growthAmount * 1.25);
-        else if (gardenEffect === 'greenhouse') growthAmount = Math.ceil(growthAmount * 1.5);
-
-        GameState.base.crops.forEach(crop => {
-            crop.growth += growthAmount;
-        });
+        if (typeof Homestead !== 'undefined') Homestead.tickGrowth(1);
     },
 
     // ---- TRAINING ----

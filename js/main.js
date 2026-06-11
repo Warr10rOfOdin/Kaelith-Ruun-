@@ -597,10 +597,18 @@ const Game = {
             html += `<p style="color:var(--accent-gold-dim);margin-bottom:1rem;font-size:0.85rem">${tierData.icon} Tech Tier ${tier}: ${tierData.name}</p>`;
         }
 
+        const mine = GameState.base && GameState.base.mine ? GameState.base.mine : null;
+        const plots = GameState.base && GameState.base.plots ? GameState.base.plots : [];
+        const stockCount = GameState.base && GameState.base.automation && GameState.base.automation.stockpile
+            ? Object.values(GameState.base.automation.stockpile).reduce((s, q) => s + q, 0) : 0;
+
         html += '<div class="hub-menu">';
         html += '<button class="hub-btn" onclick="Base.showBuildPanel()"><span class="hub-btn-icon">🏗️</span><span class="hub-btn-label">Build Structures</span></button>';
+        html += `<button class="hub-btn" onclick="Homestead.showMinePanel()"><span class="hub-btn-icon">⛏️</span><span class="hub-btn-label">The Depths</span>${mine && mine.maxDepth > 0 ? `<span class="hub-btn-meta">Lv ${mine.maxDepth}</span>` : ''}</button>`;
+        html += `<button class="hub-btn" onclick="Base.showFarmPanel()"><span class="hub-btn-icon">🌾</span><span class="hub-btn-label">Living Soil</span>${plots.length > 0 ? `<span class="hub-btn-meta">${plots.length} plots</span>` : ''}</button>`;
+        html += '<button class="hub-btn" onclick="Homestead.showTerraformPanel()"><span class="hub-btn-icon">🏞️</span><span class="hub-btn-label">Terraform</span></button>';
+        html += `<button class="hub-btn" onclick="Homestead.showIndustryPanel()"><span class="hub-btn-icon">⚙️</span><span class="hub-btn-label">Industry</span>${stockCount > 0 ? `<span class="hub-btn-meta">📦 ${stockCount}</span>` : ''}</button>`;
         html += '<button class="hub-btn" onclick="Base.showCraftPanel()"><span class="hub-btn-icon">⚒️</span><span class="hub-btn-label">Crafting</span></button>';
-        html += '<button class="hub-btn" onclick="Base.showFarmPanel()"><span class="hub-btn-icon">🌾</span><span class="hub-btn-label">Farming</span></button>';
         html += '<button class="hub-btn" onclick="Base.showCampNPCPanel()"><span class="hub-btn-icon">👥</span><span class="hub-btn-label">Settlement</span></button>';
         html += '<button class="hub-btn" onclick="Base.showPlaceablesPanel()"><span class="hub-btn-icon">🏠</span><span class="hub-btn-label">Placeables</span></button>';
         html += '<button class="hub-btn" onclick="Base.showTechPanel()"><span class="hub-btn-icon">🔬</span><span class="hub-btn-label">Tech Tree</span></button>';

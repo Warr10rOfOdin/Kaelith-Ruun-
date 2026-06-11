@@ -75,7 +75,12 @@ const WorldMap = {
         this.ctx = this.canvas.getContext('2d');
         this.ctx.imageSmoothingEnabled = false;
 
-        Sprites.init();
+        // A sprite-generation failure must never kill resize/controls
+        try {
+            Sprites.init();
+        } catch (e) {
+            console.error('[Kaelith Ruun] Sprites.init failed:', e);
+        }
         this.resizeCanvas();
         this.bindControls();
 
@@ -234,8 +239,16 @@ const WorldMap = {
         // Weather system
         this.updateWeather(dt);
 
-        // Live world combat: roaming enemies, weapons, hunger, pickups
-        if (typeof WorldCombat !== 'undefined') WorldCombat.update(dt);
+        // Live world combat: roaming enemies, weapons, hunger, pickups.
+        // Never allowed to take the world down with it.
+        if (typeof WorldCombat !== 'undefined') {
+            try { WorldCombat.update(dt); } catch (e) {
+                if (!this._wcUpdateErrLogged) {
+                    this._wcUpdateErrLogged = true;
+                    console.error('[Kaelith Ruun] WorldCombat.update error:', e);
+                }
+            }
+        }
 
         // Update stamina bar in HUD (fast path, every frame)
         if (typeof HUD !== 'undefined' && HUD.updateStamina) HUD.updateStamina();
@@ -618,6 +631,17 @@ const WorldMap = {
         const ctx = this.ctx;
         if (!ctx || !this.terrain) return;
 
+        // Self-heal a zero-size canvas: init() can run while the game
+        // screen is still mid-transition (display:none → clientWidth 0),
+        // which used to leave the world permanently black.
+        if (this.vpW < 2 || this.vpH < 2) {
+            this.resizeCanvas();
+            if (this.vpW < 2 || this.vpH < 2) return;
+            // re-snap camera now that we know the real viewport
+            this.camX = this.px - this.vpW / (2 * this.zoom);
+            this.camY = this.py - this.vpH / (2 * this.zoom);
+        }
+
         const w = this.vpW;
         const h = this.vpH;
         const T = this.TS;
@@ -769,7 +793,14 @@ const WorldMap = {
         Sprites.drawAmbientParticles(ctx, this.camX, this.camY);
 
         // ── Pass 9b: Live combat — enemies, projectiles, damage numbers ──
-        if (typeof WorldCombat !== 'undefined') WorldCombat.draw(ctx);
+        if (typeof WorldCombat !== 'undefined') {
+            try { WorldCombat.draw(ctx); } catch (e) {
+                if (!this._wcDrawErrLogged) {
+                    this._wcDrawErrLogged = true;
+                    console.error('[Kaelith Ruun] WorldCombat.draw error:', e);
+                }
+            }
+        }
 
         // Restore zoom transform before post-processing (these work in screen space)
         ctx.restore();

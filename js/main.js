@@ -2,9 +2,17 @@
 // KAELITH RUUN — MAIN ENTRY POINT
 // ============================================
 
-// Global error handler — prevent crashes from breaking the game
+// Global error handler — prevent crashes from breaking the game,
+// and surface the first one on screen so it can actually be reported
 window.onerror = function(msg, url, line, col, error) {
     console.error(`[Kaelith Ruun] Error: ${msg} at ${url}:${line}:${col}`, error);
+    if (!window._krErrShown && typeof Notifications !== 'undefined') {
+        window._krErrShown = true;
+        try {
+            const file = (url || '').split('/').pop();
+            Notifications.show(`⚠️ ${msg} (${file}:${line})`, 'red');
+        } catch (e) { /* never recurse */ }
+    }
     return false;
 };
 

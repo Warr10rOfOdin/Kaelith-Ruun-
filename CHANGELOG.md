@@ -4,6 +4,36 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v1.0.0] — 2026-06-11 — THE BREACH
+
+**The game has been rebuilt around a brand-new core.** Kaelith Ruun is now a real-time action roguelite, designed mobile-first for one thumb. The original turn-based RPG lives on as Story Mode.
+
+### Added — The Breach (new core game mode, `js/engine/breach.js`)
+- **Real-time survivors-style runs**: swarms of enemies pour in from all sides, your weapons fire themselves, you steer with one thumb (drag anywhere = virtual joystick; WASD on desktop)
+- **6 auto-firing weapons**, 5 ranks each, all with distinct geometry:
+  - Voidblade (auto-aiming arc slashes with heavy knockback — full 360° at max rank)
+  - Runebolt (seeking missiles) · Dusk Fan (piercing dagger spread)
+  - Soul Ward (orbs that sweep the whole disc around you) · Blood Lash (two-sided strikes with lifesteal) · Ember Nova (eruption ring)
+- **8 stacking boons** (Might, Alacrity, Vitality, Swiftness, Magnet, Warding, Insight, Greed)
+- **Level-up drafts**: XP gems → pick 1 of 3 cards every level; build a loadout of 4 weapons + 4 boons per run
+- **5 classes** from the original game, each a different starting weapon + perk
+- **4 realms** (Ashen Wastes → Hollowfen → Void Sanctum → Shattered Spire) using the existing enemy roster and procedural sprites; enemy tiers unlock as the clock climbs; **elites** every 50s with gem/gold bursts
+- **Region bosses at 5:00** — kill the Ashen King, Mother of the Fen, Ruun, and the Architect to unlock the next realm
+- **Sanctum meta-progression**: gold banked from every run buys permanent upgrades (Vigor, Power, Haste, Fleet, Fortune, and a once-per-run Resolve revive)
+- **Game-feel layer**: damage numbers, hit-flash, knockback, screen shake, kill pops, magnetized pickups, low-HP hurt vignette, boss banners and HP bar, pause/abandon, results screen with run stats
+- New HUD design language (Rajdhani display numerals, chunky glowing bars), draft cards, class/realm select, results and Sanctum screens
+- Title screen rebuilt around the new mode: **Enter the Breach** / **Sanctum** / **Story Mode**
+
+### Balance (tuned via headless simulation of full 5-minute runs)
+- Enemies match player speed — positioning beats fleeing; spawns bias toward your heading
+- All weapons auto-aim at the nearest threat; movement is purely for dodging
+- All 5 classes verified to survive 3:45–5:42 under a deliberately dumb pilot, with the boss reachable and killable
+
+### Kept
+- The entire Story Mode (turn-based RPG with Echoes, Homestead, region events) remains playable from the title screen
+
+---
+
 ## [v0.13.0] — 2026-06-11 — The Homestead
 
 A ground-up overhaul of mining, farming, base building, and the land itself — plus automation through development. New engine: `js/engine/homestead.js`.

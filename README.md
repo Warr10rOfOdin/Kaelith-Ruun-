@@ -1,14 +1,23 @@
 # Kaelith Ruun — Shattered Realms
 
-A dark fantasy text RPG built mobile-first as a PWA. Installable on phones, playable on any browser. No frameworks, no dependencies.
+A dark fantasy **action roguelite** built mobile-first as a PWA. One thumb, a hundred enemies, and the Breach between you and four broken realms. No frameworks, no dependencies.
 
 ## Play
 
 - **Mobile**: Open in your phone's browser and tap "Add to Home Screen" to install as an app
-- **Desktop**: Open `index.html` in any modern browser
+- **Desktop**: Open `index.html` in any modern browser (WASD to move)
 - **Offline**: Works fully offline once loaded (service worker caches all assets)
 
-## Features
+## THE BREACH — Core Mode
+
+- **One-thumb action**: drag anywhere to move — your weapons fire themselves
+- **6 weapons × 5 ranks** with real geometry: arc slashes, seeking bolts, dagger fans, sweeping soul orbs, lifestealing lashes, ember eruptions
+- **Level-up drafts**: vacuum XP gems, pick 1-of-3 power cards, build a 4-weapon + 4-boon loadout every run
+- **5 classes, 4 realms, 4 bosses**: clear the realm boss at 5:00 to breach into the next
+- **Elites, gold, and the Sanctum**: bank gold from every run and buy permanent power between runs
+- Damage numbers, knockback, screen shake, magnet pickups, boss banners — full game-feel
+
+## Story Mode (the original RPG)
 
 - **Mobile-First Design** — Built for phones with touch-friendly UI, safe area support for notched devices, and a native-feeling tab bar
 - **PWA / Installable** — Add to home screen on iOS and Android for a full-screen app experience with offline play

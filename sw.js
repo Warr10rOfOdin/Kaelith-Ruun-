@@ -64,8 +64,24 @@ self.addEventListener('activate', event => {
     self.clients.claim();
 });
 
-// Fetch — cache-first strategy for offline play
+// Fetch strategy:
+//  - Navigations (index.html): network-first so players always get the
+//    newest deploy, with cache fallback for offline play
+//  - Everything else: cache-first for speed and offline support
 self.addEventListener('fetch', event => {
+    if (event.request.mode === 'navigate') {
+        event.respondWith(
+            fetch(event.request).then(response => {
+                if (response.status === 200) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
+                return response;
+            }).catch(() => caches.match(event.request).then(c => c || caches.match('/index.html')))
+        );
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request).then(cached => {
             return cached || fetch(event.request).then(response => {

@@ -65,7 +65,9 @@ const TILE_TYPES = {
     'v': { name: 'Smoke Vent', passable: true, color: '#4a4a4a', emoji: '' },
     'e': { name: 'Scorched Wall', passable: false, color: '#2a2222', emoji: '' },
     'k': { name: 'Collapsed Roof', passable: false, color: '#3a3030', emoji: '' },
-    'o': { name: 'Ash Pile', passable: true, color: '#5a5550', emoji: '' }
+    'o': { name: 'Ash Pile', passable: true, color: '#5a5550', emoji: '' },
+    // Terraforming
+    't': { name: 'Sapling', passable: false, color: '#2a5a2a', emoji: '🌿' }
 };
 
 // Map definitions — procedurally generated at load time via WorldGen
@@ -971,10 +973,59 @@ const BUILDINGS = {
         size: { w: 3, h: 3 },
         provides: 'map_reveal',
         roomBonus: { type: 'warning', amount: 1 }
+    },
+    mineshaft: {
+        name: 'Mineshaft', icon: '⛏️', description: 'A timbered shaft into the depths beneath Kaelith Ruun. Descend to mine ore, gems and stranger things.',
+        cost: { wood: 12, stone: 10, iron_ingot: 2 },
+        size: { w: 3, h: 3 },
+        provides: 'mining',
+        roomBonus: { type: 'mining', amount: 1.0 },
+        adjacency: { forge: { bonus: 'synergy', desc: 'Ore close to the fire', amount: 1 } }
+    },
+    irrigation_network: {
+        name: 'Irrigation Network', icon: '💧', description: 'Stone channels and crystal valves feed every plot. Crops never dry out.',
+        cost: { stone: 10, iron_ingot: 4, veil_crystal: 1 },
+        size: { w: 3, h: 3 },
+        provides: 'irrigation_auto',
+        roomBonus: { type: 'farming', amount: 1.0 },
+        adjacency: { garden: { bonus: 'synergy', desc: 'Channels reach the beds', amount: 1 } }
+    },
+    golem_foundry: {
+        name: 'Golem Foundry', icon: '🗿', description: 'A kiln for waking stone. Forge Cinder Golems that mine the depths every day.',
+        cost: { granite: 8, mithril_ingot: 3, flame_essence: 5 },
+        size: { w: 3, h: 3 },
+        provides: 'golem_mining',
+        roomBonus: { type: 'automation', amount: 1.0 },
+        adjacency: { mineshaft: { bonus: 'synergy', desc: 'Golems live by the shaft', amount: 1 } }
+    },
+    sprite_totem: {
+        name: 'Sprite Totem', icon: '🧚', description: 'A void-carved totem that binds harvest sprites. They reap and replant your fields daily.',
+        cost: { hardwood: 6, void_essence: 2, shadow_silk: 4 },
+        size: { w: 3, h: 3 },
+        provides: 'sprite_harvest',
+        roomBonus: { type: 'automation', amount: 1.0 },
+        adjacency: { farm: { bonus: 'synergy', desc: 'Sprites nest in the rows', amount: 1 } }
     }
 };
 
 const BUILDING_UPGRADES = {
+    mineshaft: {
+        maxLevel: 3,
+        levels: {
+            2: {
+                name: 'Timbered Shaft',
+                description: 'Reinforced supports. +4 lantern oil per descent, and start at level 5 once reached.',
+                cost: { wood: 20, iron_ingot: 5, stone: 10 },
+                effect: 'shaft_timbered'
+            },
+            3: {
+                name: 'Deep Winch',
+                description: 'A counterweighted winch. +8 lantern oil, and start at level 15 once reached.',
+                cost: { hardwood: 10, mithril_ingot: 4, granite: 8 },
+                effect: 'deep_winch'
+            }
+        }
+    },
     shelter: {
         maxLevel: 3,
         levels: {
@@ -1926,6 +1977,12 @@ const RECIPES = {
         ingredients: { void_essence: 1, ruun_shard: 1, ember_root: 3 },
         result: { item: 'elixir_of_restoration', quantity: 1 },
         description: 'Brew a full-restore elixir.'
+    },
+    fertilizer_craft: {
+        name: 'Mix Fertilizer', icon: '🧪', station: 'herbalist_bench',
+        ingredients: { bog_fiber: 2, bone: 1 },
+        result: { item: 'fertilizer', quantity: 2 },
+        description: 'Rich compost. Fertilized plots grow 30% faster with better harvest quality.'
     }
 };
 
@@ -1986,5 +2043,22 @@ const CROPS = {
         harvestQty: 2,
         seedCost: { void_essence: 1, bog_fiber: 2 },
         stages: ['🟫', '🌱', '🌿', '🫐']
+    },
+    // Hybrids — discovered through crossbreeding adjacent crops
+    cinderfruit_seed: {
+        name: 'Cinderfruit', icon: '🍑',
+        growthTurns: 10,
+        harvestItem: 'cinderfruit',
+        harvestQty: 2,
+        seedCost: { cinderfruit: 1 },
+        stages: ['🟫', '🌱', '🔥', '🍑']
+    },
+    glimmercap_seed: {
+        name: 'Glimmercap', icon: '🍄',
+        growthTurns: 9,
+        harvestItem: 'glimmercap',
+        harvestQty: 2,
+        seedCost: { glimmercap: 1 },
+        stages: ['🟫', '🟤', '✨', '🍄']
     }
 };

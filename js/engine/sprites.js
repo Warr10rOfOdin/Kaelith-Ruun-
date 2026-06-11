@@ -235,6 +235,7 @@ const Sprites = {
             case 'e': return this.cache.scorched_wall;
             case 'k': return this.cache.collapsed_roof;
             case 'o': return this.cache[`ashpile_${h % 3}`];
+            case 't': return this.cache.herb; // young sapling
             default: return this.cache.grass_0;
         }
     },

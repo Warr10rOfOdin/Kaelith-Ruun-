@@ -142,6 +142,24 @@ const ITEMS = {
         name: 'Ruun Shard', icon: '⭐', type: 'resource', stackable: true,
         description: 'A fragment of pure creation-energy. Radiates overwhelming power.', value: 200, tier: 3
     },
+    fertilizer: {
+        name: 'Fertilizer', icon: '🧪', type: 'resource', stackable: true,
+        description: 'Rich compost mix. Fertilized plots grow 30% faster and yield finer harvests.', value: 6, tier: 1
+    },
+    cinderfruit: {
+        name: 'Cinderfruit', icon: '🍑', type: 'consumable', stackable: true,
+        description: 'A crossbreed of ember root and voidberry — warm flesh, cold seeds. Restores 40 HP and stokes the blood.', value: 35,
+        effect: { type: 'heal', stat: 'hp', amount: 40 },
+        buff: { id: 'cinder_blood', name: 'Cinder Blood', icon: '🍑', stat: 'attack', amount: 4, duration: 12 },
+        survivalEffect: { temperature: 10, morale: 5 }
+    },
+    glimmercap: {
+        name: 'Glimmercap', icon: '🍄', type: 'consumable', stackable: true,
+        description: 'A starfruit-veiled mushroom hybrid that glows faintly. Restores 30 MP and sharpens the mind.', value: 35,
+        effect: { type: 'heal', stat: 'mp', amount: 30 },
+        buff: { id: 'glimmer_mind', name: 'Glimmer Mind', icon: '🍄', stat: 'magicAttack', amount: 4, duration: 12 },
+        survivalEffect: { morale: 5 }
+    },
 
     // --- Creature Drops ---
     bone: {

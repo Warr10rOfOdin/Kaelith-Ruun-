@@ -40,6 +40,11 @@ const Exploration = {
 
         const buttons = [];
 
+        // Active terraform tool gets a cancel chip up front
+        if (typeof Homestead !== 'undefined' && Homestead.activeTool && Homestead.TOOLS[Homestead.activeTool]) {
+            buttons.push({ text: `✋ Stop ${Homestead.TOOLS[Homestead.activeTool].name}`, class: 'danger', action: 'Homestead.cancelTool()' });
+        }
+
         if (location.type === 'exploration') {
             buttons.push({ text: 'Explore', class: 'primary', action: 'Exploration.explore()' });
             buttons.push({ text: 'Hunt Enemies', class: 'danger', action: 'Exploration.hunt()' });
@@ -689,25 +694,9 @@ const Exploration = {
     },
 
     // ── Crop Advancement ──
+    // Growth lives in the Homestead engine (seasons, watering, soil)
     advanceCrops() {
-        if (!GameState.base || !GameState.base.crops) return;
-        const season = GameState.survival ? GameState.survival.season : 'summer';
-        const seasonGrowth = { spring: 1.3, summer: 1.0, autumn: 0.7, winter: 0.3 };
-        const mult = seasonGrowth[season] || 1.0;
-
-        // Garden/farm upgrade growth bonuses
-        let gardenBonus = 1.0;
-        if (GameState.base.buildingLevels) {
-            const gl = GameState.base.buildingLevels.garden || 1;
-            if (gl >= 3) gardenBonus = 1.5;
-            else if (gl >= 2) gardenBonus = 1.25;
-        }
-
-        GameState.base.crops.forEach(crop => {
-            if (crop.growth < (typeof CROPS !== 'undefined' && CROPS[crop.type] ? CROPS[crop.type].growthTime : 10)) {
-                crop.growth += 1 * mult * gardenBonus;
-            }
-        });
+        if (typeof Homestead !== 'undefined') Homestead.tickGrowth(1);
     },
 
     // ── Base Threat: Raids ──

@@ -25,6 +25,7 @@ Active development tasks for Kaelith Ruun — Shattered Realms.
 
 ## Recently Completed
 
+- [x] The Homestead: expedition mining (The Depths), plot farming (Living Soil), terraforming, and automation (Industry) — `homestead.js` + `base.js` + `worldmap.js` + `state.js` + `maps.js` + `tech.js` + `items.js`
 - [x] Echoes of Ruun permanent boon system (16 echoes, 3 facets, boss offerings + Resonant Shrines) — `echoes.js` + `combat.js` + `exploration.js` + `progression.js` + `state.js`
 - [x] Navigation overhaul: 5-tab nav with SVG icons + Menu hub — `index.html` + `main.js` + `style.css`
 - [x] Bottom sheet panels with drag-to-dismiss and backdrop — `index.html` + `main.js` + `touch.js` + `style.css` + `map.css`

@@ -17,6 +17,7 @@ const Touch = {
         }
         this.handleKeyboard();
         this.setupSwipeBack();
+        this.setupSheetDrag();
     },
 
     preventBounce() {
@@ -105,13 +106,42 @@ const Touch = {
                 const diffY = Math.abs(endY - startY);
 
                 if (diffX > 80 && diffY < 50) {
-                    sidePanel.classList.add('hidden');
-                    NativeBridge.hapticLight();
-                    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                    const exploreTab = document.querySelector('.nav-tab[data-tab="explore"]');
-                    if (exploreTab) exploreTab.classList.add('active');
-                    Exploration.updateActions();
+                    if (typeof Game !== 'undefined' && Game.closePanel) Game.closePanel();
                 }
+            }
+        }, { passive: true });
+    },
+
+    // Drag the sheet grip downward to dismiss the bottom sheet
+    setupSheetDrag() {
+        const grip = document.getElementById('sheet-grip');
+        const panel = document.getElementById('side-panel');
+        if (!grip || !panel) return;
+
+        let dragStartY = null;
+
+        grip.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches.length > 0) {
+                dragStartY = e.touches[0].clientY;
+                panel.style.transition = 'none';
+            }
+        }, { passive: true });
+
+        grip.addEventListener('touchmove', (e) => {
+            if (dragStartY === null || !e.touches || e.touches.length === 0) return;
+            const dy = Math.max(0, e.touches[0].clientY - dragStartY);
+            panel.style.transform = `translateY(${dy}px)`;
+        }, { passive: true });
+
+        grip.addEventListener('touchend', (e) => {
+            if (dragStartY === null) return;
+            const endY = e.changedTouches && e.changedTouches.length > 0 ? e.changedTouches[0].clientY : dragStartY;
+            const dy = endY - dragStartY;
+            dragStartY = null;
+            panel.style.transition = '';
+            panel.style.transform = '';
+            if (dy > 90) {
+                if (typeof Game !== 'undefined' && Game.closePanel) Game.closePanel();
             }
         }, { passive: true });
     },

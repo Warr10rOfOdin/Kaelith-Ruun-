@@ -110,9 +110,19 @@ const Combat = {
         this._comboChainBonus = 0;
         this._currentStance = 'balanced';
         this._environmentalHazards = [];
+        this._deathWardUsed = false;
 
         // Ensure player statusEffects array exists
         if (!GameState.player.statusEffects) GameState.player.statusEffects = [];
+
+        // Echo Sight: reveal enemy weaknesses/resistances at battle start
+        if (typeof Echoes !== 'undefined' && Echoes.hasRevealWeaknesses() && this.enemy.resistances) {
+            if (!this._discoveredWeaknesses[enemyKey]) this._discoveredWeaknesses[enemyKey] = {};
+            for (const [elem, res] of Object.entries(this.enemy.resistances)) {
+                if (res < -0.15) this._discoveredWeaknesses[enemyKey][elem] = 'weak';
+                else if (res > 0.15) this._discoveredWeaknesses[enemyKey][elem] = 'resist';
+            }
+        }
 
         // Show combat screen with region-specific background
         ScreenManager.showScreen('combat');
@@ -279,9 +289,10 @@ const Combat = {
 
         // Abilities with MP cost display (modified by stance)
         if (p.abilities && p.abilities.length > 0) {
+            const echoMpMult = typeof Echoes !== 'undefined' ? Echoes.mpCostMult() : 1;
             p.abilities.forEach((ability, idx) => {
                 if (!ability) return;
-                const adjustedCost = Math.max(0, Math.floor(ability.mpCost * stance.mpCostMult));
+                const adjustedCost = Math.max(0, Math.floor(ability.mpCost * stance.mpCostMult * echoMpMult));
                 const canUse = adjustedCost <= p.mp;
                 const btnType = ability.type === 'buff' ? 'defend' : 'magic';
                 const costLabel = adjustedCost !== ability.mpCost ? `<s style="opacity:0.4;font-size:0.6rem">${ability.mpCost}</s> ${adjustedCost}` : `${adjustedCost}`;
@@ -523,13 +534,19 @@ const Combat = {
         const stance = this.STANCES[this._currentStance];
         damage = Math.floor(damage * stance.damageDealt);
 
+        // Echo damage modifier
+        if (typeof Echoes !== 'undefined') {
+            damage = Math.floor(damage * Echoes.damageDealtMult());
+        }
+
         // Weaken debuff: 30% damage reduction
         const isWeakened = this.playerBuffs.some(b => b.type === 'weaken');
         if (isWeakened) {
             damage = Math.floor(damage * 0.7);
         }
 
-        const isCrit = Math.random() * 100 < (p.critChance + stance.critBonus);
+        const echoCrit = typeof Echoes !== 'undefined' ? Echoes.critBonus() : 0;
+        const isCrit = Math.random() * 100 < (p.critChance + stance.critBonus + echoCrit);
 
         // Reflect check
         const hasReflect = this.enemyBuffs.some(b => b.type === 'reflect');
@@ -575,9 +592,10 @@ const Combat = {
         const ability = p.abilities[idx];
         if (!ability) return;
 
-        // Apply stance MP cost modifier
+        // Apply stance + echo MP cost modifiers
         const stance = this.STANCES[this._currentStance];
-        const adjustedCost = Math.max(0, Math.floor(ability.mpCost * stance.mpCostMult));
+        const echoMpMult = typeof Echoes !== 'undefined' ? Echoes.mpCostMult() : 1;
+        const adjustedCost = Math.max(0, Math.floor(ability.mpCost * stance.mpCostMult * echoMpMult));
         if (adjustedCost > p.mp) return;
 
         p.mp -= adjustedCost;
@@ -626,6 +644,11 @@ const Combat = {
             // Stance damage modifier
             damage = Math.floor(damage * stance.damageDealt);
 
+            // Echo damage modifier
+            if (typeof Echoes !== 'undefined') {
+                damage = Math.floor(damage * Echoes.damageDealtMult());
+            }
+
             // Elemental resistance/weakness
             const element = this.getAbilityElement(ability);
             let resistResult = 'normal';
@@ -633,6 +656,12 @@ const Combat = {
                 const res = this.applyElementalResistance(damage, element);
                 damage = res.damage;
                 resistResult = res.result;
+
+                // Echo elemental attunement bonus
+                const echoElem = typeof Echoes !== 'undefined' ? Echoes.elementBonus(element) : 0;
+                if (echoElem > 0) {
+                    damage = Math.floor(damage * (1 + echoElem));
+                }
             }
 
             // Combo chain bonus
@@ -683,7 +712,8 @@ const Combat = {
                 this.showPlayerDamageNumber(reflected);
             }
 
-            const isCrit = Math.random() * 100 < (p.critChance + stance.critBonus);
+            const echoCrit = typeof Echoes !== 'undefined' ? Echoes.critBonus() : 0;
+            const isCrit = Math.random() * 100 < (p.critChance + stance.critBonus + echoCrit);
             if (isCrit) {
                 damage = Math.floor(damage * 1.5);
                 this.logCombat(`CRITICAL! ${ability.name} hits for ${damage} damage!`, 'critical');
@@ -821,7 +851,20 @@ const Combat = {
 
         // Choose enemy ability — use telegraphed ability if available
         if (!this.enemy.abilities || this.enemy.abilities.length === 0) {
-            const damage = this.calculateDamage(this.enemy.attack, GameState.player.defense);
+            let damage = this.calculateDamage(this.enemy.attack, GameState.player.defense);
+            if (this.playerDefending) {
+                const defendMult = typeof Echoes !== 'undefined' ? Echoes.defendMult() : 0.5;
+                damage = Math.floor(damage * defendMult);
+            }
+            const stanceTaken = this.STANCES[this._currentStance];
+            if (stanceTaken) damage = Math.floor(damage * stanceTaken.damageTaken);
+            if (typeof Echoes !== 'undefined') damage = Math.floor(damage * Echoes.damageTakenMult());
+            if (damage >= GameState.player.hp && !this._deathWardUsed &&
+                typeof Echoes !== 'undefined' && Echoes.hasDeathWard()) {
+                this._deathWardUsed = true;
+                damage = Math.max(0, GameState.player.hp - 1);
+                this.logCombat('Second Wind! A candle of will refuses to gutter — you survive at 1 HP!', 'buff');
+            }
             GameState.player.hp = Math.max(0, GameState.player.hp - damage);
             this.logCombat(`${this.enemy.name} attacks for ${damage} damage!`, 'enemy-attack');
             this.updateBars();
@@ -929,7 +972,8 @@ const Combat = {
             }
 
             if (this.playerDefending) {
-                damage = Math.floor(damage * 0.5);
+                const defendMult = typeof Echoes !== 'undefined' ? Echoes.defendMult() : 0.5;
+                damage = Math.floor(damage * defendMult);
             }
 
             // Stance damage-taken modifier
@@ -938,9 +982,15 @@ const Combat = {
                 damage = Math.floor(damage * stanceMod.damageTaken);
             }
 
-            // Counter success: 40% damage reduction + reflect 20% back
+            // Echo damage-taken modifier
+            if (typeof Echoes !== 'undefined') {
+                damage = Math.floor(damage * Echoes.damageTakenMult());
+            }
+
+            // Counter success: 40% damage reduction + reflect back
             if (this._counterSuccess) {
-                const reflected = Math.floor(damage * 0.2);
+                const reflectPct = typeof Echoes !== 'undefined' ? Echoes.counterReflect() : 0.2;
+                const reflected = Math.floor(damage * reflectPct);
                 damage = Math.floor(damage * 0.6);
                 if (reflected > 0) {
                     this.enemy.hp = Math.max(0, this.enemy.hp - reflected);
@@ -982,6 +1032,15 @@ const Combat = {
 
             // Ensure damage doesn't go below 0
             damage = Math.max(0, damage);
+
+            // Second Wind: once per battle, survive a lethal blow at 1 HP
+            if (damage >= GameState.player.hp && !this._deathWardUsed &&
+                typeof Echoes !== 'undefined' && Echoes.hasDeathWard()) {
+                this._deathWardUsed = true;
+                damage = Math.max(0, GameState.player.hp - 1);
+                this.logCombat('Second Wind! A candle of will refuses to gutter — you survive at 1 HP!', 'buff');
+                Effects.screenFlash('rgba(201,168,76,0.2)');
+            }
 
             GameState.player.hp = Math.max(0, GameState.player.hp - damage);
             this.logCombat(`${this.enemy.name} uses ${ability.name} for ${damage} damage!`, 'enemy-attack');
@@ -1061,6 +1120,12 @@ const Combat = {
 
         // Process boss environmental hazards
         this.processEnvironmentalHazards();
+
+        // Mana Spring echo: recover MP at end of each round
+        const mpRegen = typeof Echoes !== 'undefined' ? Echoes.mpRegen() : 0;
+        if (mpRegen > 0 && GameState.player.mp < GameState.player.maxMp) {
+            GameState.player.mp = Math.min(GameState.player.maxMp, GameState.player.mp + mpRegen);
+        }
 
         this.updateBars();
         this.updateStatusOverlays();
@@ -1602,6 +1667,7 @@ const Combat = {
         if (RACES[GameState.player.race] && RACES[GameState.player.race].name === 'Human') {
             xp = Math.floor(xp * 1.1);
         }
+        if (typeof Echoes !== 'undefined') xp = Math.floor(xp * Echoes.xpMult());
         const leveled = GameState.gainXp(xp);
         this.logCombat(`Gained ${xp} XP!`, 'info');
 
@@ -1620,7 +1686,8 @@ const Combat = {
         const goldReward = enemy.goldReward || [0, 0];
         const goldMin = goldReward[0] || 0;
         const goldMax = goldReward[1] || goldMin;
-        const gold = goldMin + Math.floor(Math.random() * (goldMax - goldMin + 1));
+        let gold = goldMin + Math.floor(Math.random() * (goldMax - goldMin + 1));
+        if (typeof Echoes !== 'undefined') gold = Math.floor(gold * Echoes.goldMult());
         GameState.player.gold += gold;
         GameState.trackStat('goldEarned', gold);
         this.logCombat(`Found ${gold} gold!`, 'info');
@@ -1672,14 +1739,33 @@ const Combat = {
             GameState.completeObjective('main', null, 'first_combat');
         }
 
+        // Bloodthirst echo: heal on kill
+        if (typeof Echoes !== 'undefined') {
+            const healPct = Echoes.onKillHealPct();
+            if (healPct > 0) {
+                const healAmt = Math.floor(GameState.player.maxHp * healPct);
+                GameState.healPlayer(healAmt);
+                this.logCombat(`Bloodthirst restores ${healAmt} HP!`, 'heal');
+            }
+        }
+
         // Clear player combat debuffs
         GameState.player.statusEffects = [];
 
         GameState.save();
 
-        // Return to game after a delay
+        // Return to game after a delay — bosses release an Echo of Ruun
+        const offerEcho = enemy.isBoss && typeof Echoes !== 'undefined' && Echoes.available().length > 0;
         this._setTimeout(() => {
             this.returnToGame();
+            if (offerEcho) {
+                this._setTimeout(() => {
+                    Echoes.showOffering(3,
+                        'The Shattering Resonates',
+                        `${enemy.name}'s death releases a fragment — attune one Echo`,
+                        null);
+                }, 600);
+            }
         }, 2500);
     },
 

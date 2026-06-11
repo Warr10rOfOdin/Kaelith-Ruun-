@@ -87,6 +87,8 @@ const GameState = {
         explorer:         { name: 'Wanderer',            desc: 'Discover all 3 regions',            check: s => s.regionsDiscovered >= 3 },
         survivor:         { name: 'Survivor',            desc: 'Die and return 3 times',            check: s => s.deathCount >= 3 },
         crit_50:          { name: 'Precision',           desc: 'Land 50 critical hits',             check: s => s.criticalHits >= 50 },
+        echo_first:       { name: 'Resonant',            desc: 'Attune your first Echo of Ruun',    check: (s,g) => !!(g.player && g.player.echoes && g.player.echoes.length >= 1) },
+        echo_5:           { name: 'Shard Bearer',        desc: 'Attune 5 Echoes of Ruun',           check: (s,g) => !!(g.player && g.player.echoes && g.player.echoes.length >= 5) },
     },
 
     // ── Survival Methods ──
@@ -317,7 +319,8 @@ const GameState = {
             inventory: [],
             buffs: [],
             debuffs: [],
-            statusEffects: []
+            statusEffects: [],
+            echoes: []
         };
 
         if (cls.startingEquipment[2]) {
@@ -630,6 +633,7 @@ const GameState = {
             if (!this.player.buffs) this.player.buffs = [];
             if (!this.player.debuffs) this.player.debuffs = [];
             if (!this.player.statusEffects) this.player.statusEffects = [];
+            if (!this.player.echoes) this.player.echoes = [];
             if (!this.player.inventory) this.player.inventory = [];
             if (!this.player.abilities) this.player.abilities = [];
             if (!this.player.equipment) this.player.equipment = { weapon: null, helmet: null, armor: null, boots: null, offhand: null, accessory: null };

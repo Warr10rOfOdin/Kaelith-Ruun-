@@ -4,6 +4,39 @@ All notable changes to Kaelith Ruun — Shattered Realms.
 
 ---
 
+## [v0.12.0] — 2026-06-11 — Echoes of Ruun
+
+A full design, gameplay, UI, and UX overhaul.
+
+### Added
+- **Echoes of Ruun — permanent boon system** (`js/engine/echoes.js`):
+  - 16 attunable Echoes across three facets — War (offense), Ward (defense), Wisdom (utility) — with common/rare/legendary rarities
+  - Defeating any region boss releases a fragment: choose 1 of 3 Echoes
+  - **Resonant Shrines** — rare exploration event offering a choice of 2 Echoes
+  - Effects hook deep into combat: damage dealt/taken, crit chance, elemental attunements (+25% per element), MP costs and per-round regen, improved Defend (70% block) and Counter (40% reflect), on-kill healing, XP/gold gains, revealed enemy weaknesses, and **Second Wind** (once per battle, survive a lethal blow at 1 HP)
+  - Echoes display in the character sheet with facet and rarity styling; persist in saves
+  - 2 new achievements: Resonant (first Echo), Shard Bearer (5 Echoes)
+- **Region events** — choice-driven encounters unique to each region:
+  - Ashen Wastes: Smoldering Cache, The Ashen Pilgrim
+  - Hollowfen: Drowned Reliquary, Witchlight Wisps
+  - Void Sanctum: Whispering Rift, The Unraveled Soldier
+  - Shattered Spire: Resonant Crystal
+  - Each presents a styled event card with 2 risk/reward choices (gold, items, buffs, karma, XP, ambushes); 6-turn cooldown between events
+- **Accessibility options** in Settings: Text Size (normal/large) and Reduced Motion (also honors the system `prefers-reduced-motion` preference)
+
+### Changed
+- **Navigation overhaul** — bottom nav consolidated from 8 cramped tabs to 5 focused ones (Explore, Items, Hero, Map, Menu) with crisp inline SVG iconography replacing emoji
+  - New **Menu hub** panel: Journal & Quests, Camp & Crafting, Achievements, Echoes, World Lore, Settings
+  - Tapping the active tab closes its panel; sub-panels keep the Menu tab lit
+- **Bottom sheet panels** — the full-screen side panel is now a draggable bottom sheet with grip handle, dimmed backdrop, and swipe-down-to-dismiss; the world stays visible above it. Desktop keeps the right sidebar
+- **Design system v2** — rebuilt design tokens: deeper void-violet background palette, brighter accent contrast, translucent surface layers, radius/elevation scales, and refined typography
+- **Notifications** redesigned as left-accented glass toasts
+- Combat action buttons and bars aligned to the new radius/elevation language
+- Basic enemy attacks (no-ability enemies) now correctly respect Defend, stance, and damage-reduction modifiers
+- Android back button, swipe-back, and legacy Close buttons all route through the unified panel close path
+
+---
+
 ## [v0.11.0] — 2026-03-02 — The Shattered Spire
 
 ### Added

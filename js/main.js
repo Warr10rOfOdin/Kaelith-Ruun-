@@ -27,6 +27,16 @@ const Game = {
             this.setupLoreScreen();
             this.setupBottomNav();
 
+            // Keep the sheet backdrop in sync with the panel, even when
+            // legacy close buttons toggle the panel's class directly.
+            const sp = document.getElementById('side-panel');
+            const bd = document.getElementById('side-panel-backdrop');
+            if (sp && bd && typeof MutationObserver !== 'undefined') {
+                new MutationObserver(() => {
+                    bd.classList.toggle('hidden', sp.classList.contains('hidden'));
+                }).observe(sp, { attributes: true, attributeFilter: ['class'] });
+            }
+
             // Check for existing save
             if (GameState.hasSave()) {
                 const continueBtn = document.getElementById('btn-continue');
@@ -525,18 +535,54 @@ const Game = {
     },
 
     // =========================================
-    // BOTTOM NAV
+    // BOTTOM NAV + PANEL SHEET
     // =========================================
     setupBottomNav() {
         document.querySelectorAll('.nav-tab').forEach(tab => {
             tab.onclick = () => {
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-
                 const tabName = tab.dataset.tab;
+                const sidePanel = document.getElementById('side-panel');
+                const panelOpen = sidePanel && !sidePanel.classList.contains('hidden');
+
+                // Tapping the active tab while its panel is open closes it
+                if (tab.classList.contains('active') && panelOpen && tabName !== 'explore') {
+                    this.closePanel();
+                    return;
+                }
+
+                this.setActiveTab(tabName);
                 this.handleTabChange(tabName);
             };
         });
+
+        const backdrop = document.getElementById('side-panel-backdrop');
+        if (backdrop) backdrop.onclick = () => this.closePanel();
+    },
+
+    setActiveTab(tabName) {
+        // Sub-panels opened from the menu hub keep the Menu tab lit
+        const hubPanels = ['journal', 'achievements', 'base', 'settings'];
+        const target = hubPanels.includes(tabName) ? 'menu' : tabName;
+        document.querySelectorAll('.nav-tab').forEach(t => {
+            t.classList.toggle('active', t.dataset.tab === target);
+        });
+    },
+
+    openPanel() {
+        const sidePanel = document.getElementById('side-panel');
+        const backdrop = document.getElementById('side-panel-backdrop');
+        if (sidePanel) sidePanel.classList.remove('hidden');
+        if (backdrop) backdrop.classList.remove('hidden');
+    },
+
+    closePanel() {
+        const sidePanel = document.getElementById('side-panel');
+        const backdrop = document.getElementById('side-panel-backdrop');
+        if (sidePanel) sidePanel.classList.add('hidden');
+        if (backdrop) backdrop.classList.add('hidden');
+        this.setActiveTab('explore');
+        if (typeof Exploration !== 'undefined') Exploration.updateActions();
+        if (typeof NativeBridge !== 'undefined') NativeBridge.hapticLight();
     },
 
     showBaseMenu() {
@@ -551,16 +597,37 @@ const Game = {
             html += `<p style="color:var(--accent-gold-dim);margin-bottom:1rem;font-size:0.85rem">${tierData.icon} Tech Tier ${tier}: ${tierData.name}</p>`;
         }
 
-        html += '<div style="display:flex;flex-direction:column;gap:0.5rem">';
-        html += '<button class="action-btn primary" onclick="Base.showBuildPanel()" style="padding:0.8rem;font-size:0.95rem">🏗️ Build Structures</button>';
-        html += '<button class="action-btn primary" onclick="Base.showCraftPanel()" style="padding:0.8rem;font-size:0.95rem">⚒️ Crafting</button>';
-        html += '<button class="action-btn primary" onclick="Base.showFarmPanel()" style="padding:0.8rem;font-size:0.95rem">🌾 Farming</button>';
-        html += '<button class="action-btn primary" onclick="Base.showCampNPCPanel()" style="padding:0.8rem;font-size:0.95rem">👥 Settlement</button>';
-        html += '<button class="action-btn primary" onclick="Base.showPlaceablesPanel()" style="padding:0.8rem;font-size:0.95rem">🏠 Placeables</button>';
-        html += '<button class="action-btn primary" onclick="Base.showTechPanel()" style="padding:0.8rem;font-size:0.95rem">🔬 Tech Tree</button>';
+        html += '<div class="hub-menu">';
+        html += '<button class="hub-btn" onclick="Base.showBuildPanel()"><span class="hub-btn-icon">🏗️</span><span class="hub-btn-label">Build Structures</span></button>';
+        html += '<button class="hub-btn" onclick="Base.showCraftPanel()"><span class="hub-btn-icon">⚒️</span><span class="hub-btn-label">Crafting</span></button>';
+        html += '<button class="hub-btn" onclick="Base.showFarmPanel()"><span class="hub-btn-icon">🌾</span><span class="hub-btn-label">Farming</span></button>';
+        html += '<button class="hub-btn" onclick="Base.showCampNPCPanel()"><span class="hub-btn-icon">👥</span><span class="hub-btn-label">Settlement</span></button>';
+        html += '<button class="hub-btn" onclick="Base.showPlaceablesPanel()"><span class="hub-btn-icon">🏠</span><span class="hub-btn-label">Placeables</span></button>';
+        html += '<button class="hub-btn" onclick="Base.showTechPanel()"><span class="hub-btn-icon">🔬</span><span class="hub-btn-label">Tech Tree</span></button>';
         html += '</div>';
 
-        html += `<button class="action-btn" onclick="document.getElementById('side-panel').classList.add('hidden')" style="margin-top:1rem">Close</button>`;
+        html += `<button class="action-btn" onclick="Game.handleTabChange('menu')" style="margin-top:1rem">Back to Menu</button>`;
+        panel.innerHTML = html;
+    },
+
+    showMenuHub() {
+        const panel = document.getElementById('side-panel-content');
+        if (!panel) return;
+
+        const p = GameState.player;
+        const echoCount = p && p.echoes ? p.echoes.length : 0;
+        const achCount = Object.keys(GameState.achievements || {}).length;
+        const achTotal = Object.keys(GameState._achievementDefs || {}).length;
+
+        let html = '<h3>Menu</h3>';
+        html += '<div class="hub-menu">';
+        html += '<button class="hub-btn" onclick="Game.handleTabChange(\'journal\')"><span class="hub-btn-icon">📜</span><span class="hub-btn-label">Journal &amp; Quests</span></button>';
+        html += '<button class="hub-btn" onclick="Game.handleTabChange(\'base\')"><span class="hub-btn-icon">🏕️</span><span class="hub-btn-label">Camp &amp; Crafting</span></button>';
+        html += `<button class="hub-btn" onclick="Game.handleTabChange('achievements')"><span class="hub-btn-icon">⭐</span><span class="hub-btn-label">Achievements</span><span class="hub-btn-meta">${achCount}/${achTotal}</span></button>`;
+        html += `<button class="hub-btn" onclick="Game.handleTabChange('character')"><span class="hub-btn-icon">✴️</span><span class="hub-btn-label">Echoes of Ruun</span><span class="hub-btn-meta">${echoCount} attuned</span></button>`;
+        html += '<button class="hub-btn" onclick="ScreenManager.showScreen(\'lore\')"><span class="hub-btn-icon">📖</span><span class="hub-btn-label">World Lore</span></button>';
+        html += '<button class="hub-btn" onclick="Game.handleTabChange(\'settings\')"><span class="hub-btn-icon">⚙️</span><span class="hub-btn-label">Settings</span></button>';
+        html += '</div>';
         panel.innerHTML = html;
     },
 
@@ -568,47 +635,44 @@ const Game = {
         const sidePanel = document.getElementById('side-panel');
         if (!sidePanel) return;
 
-        switch (tabName) {
-            case 'explore':
-                sidePanel.classList.add('hidden');
-                WorldMap.updateActions();
-                break;
+        if (tabName === 'explore') {
+            this.closePanel();
+            WorldMap.updateActions();
+            return;
+        }
 
+        this.setActiveTab(tabName);
+        this.openPanel();
+
+        switch (tabName) {
             case 'inventory':
-                sidePanel.classList.remove('hidden');
                 Inventory.render();
                 break;
-
             case 'character':
-                sidePanel.classList.remove('hidden');
                 Progression.renderCharacterSheet();
                 break;
-
             case 'map':
-                sidePanel.classList.remove('hidden');
                 MapUI.render();
                 break;
-
             case 'journal':
-                sidePanel.classList.remove('hidden');
                 Progression.renderJournal();
                 break;
-
             case 'achievements':
-                sidePanel.classList.remove('hidden');
                 Progression.renderAchievements();
                 break;
-
             case 'base':
-                sidePanel.classList.remove('hidden');
                 this.showBaseMenu();
                 break;
-
             case 'settings':
-                sidePanel.classList.remove('hidden');
                 Settings.render();
                 break;
+            case 'menu':
+                this.showMenuHub();
+                break;
         }
+
+        // Scroll panel content back to top when switching views
+        sidePanel.scrollTop = 0;
     }
 };
 

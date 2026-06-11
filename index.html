@@ -24,6 +24,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/combat.css">
     <link rel="stylesheet" href="css/map.css">
+    <link rel="stylesheet" href="css/breach.css">
 </head>
 <body>
     <div id="game-container">
@@ -35,12 +36,18 @@
             <h1 class="game-title">Kaelith Ruun</h1>
             <p class="subtitle">Shattered Realms</p>
             <div class="title-menu">
-                <button id="btn-new-game" class="menu-btn">New Journey</button>
-                <button id="btn-continue" class="menu-btn" disabled>Continue</button>
-                <button id="btn-lore" class="menu-btn">World Lore</button>
+                <button id="btn-breach" class="menu-btn breach-cta">⚔ Enter the Breach</button>
+                <button id="btn-sanctum" class="menu-btn">Sanctum</button>
+                <button id="btn-story" class="menu-btn">Story Mode</button>
+                <div id="story-menu" class="story-submenu hidden">
+                    <button id="btn-new-game" class="menu-btn">New Journey</button>
+                    <button id="btn-continue" class="menu-btn" disabled>Continue</button>
+                    <button id="btn-lore" class="menu-btn">World Lore</button>
+                </div>
             </div>
+            <div id="title-meta" class="title-meta"></div>
             <div id="save-info" class="save-info hidden"></div>
-            <p class="version-info">v0.13.0 — The Homestead</p>
+            <p class="version-info">v1.0.0 — The Breach</p>
             <p id="install-prompt" class="install-hint hidden">Tap to install as app</p>
         </div>
 
@@ -196,6 +203,48 @@
             </div>
         </div>
 
+        <!-- THE BREACH — Action Mode -->
+        <div id="breach-screen" class="screen">
+            <canvas id="breach-canvas"></canvas>
+            <div id="breach-vignette"></div>
+            <div id="breach-hud">
+                <div class="bhud-top">
+                    <div class="bhud-hp-wrap">
+                        <div id="bhud-hp-fill"></div>
+                        <span id="bhud-hp-text"></span>
+                    </div>
+                    <div id="bhud-timer">0:00</div>
+                    <div class="bhud-side">
+                        <span id="bhud-kills">☠ 0</span>
+                        <span id="bhud-gold">🪙 0</span>
+                    </div>
+                </div>
+                <div class="bhud-xp-wrap"><div id="bhud-xp-fill"></div></div>
+                <span id="bhud-level">LV 1</span>
+                <div id="bhud-boss" class="hidden">
+                    <div id="bhud-boss-name"></div>
+                    <div class="bhud-boss-track"><div id="bhud-boss-fill"></div></div>
+                </div>
+            </div>
+            <button id="breach-pause-btn" aria-label="Pause" onclick="Breach.pause()">❚❚</button>
+            <div id="breach-boss-banner"></div>
+        </div>
+
+        <!-- Breach overlays -->
+        <div id="breach-setup" class="breach-overlay hidden"></div>
+        <div id="breach-draft" class="breach-overlay hidden"></div>
+        <div id="breach-results" class="breach-overlay hidden"></div>
+        <div id="breach-pause" class="breach-overlay hidden">
+            <div class="bpause-inner">
+                <div class="bpause-title">PAUSED</div>
+                <button class="bstart-btn" onclick="Breach.resume()">RESUME</button>
+                <button class="action-btn" onclick="Breach.abandon()">Abandon Run</button>
+            </div>
+        </div>
+        <div id="sanctum-overlay" class="breach-overlay hidden"></div>
+        <div id="joy-base"></div>
+        <div id="joy-knob"></div>
+
         <!-- Combat Screen -->
         <div id="combat-screen" class="screen">
             <canvas id="combat-bg-canvas"></canvas>
@@ -270,6 +319,7 @@
     <script src="js/engine/worldmap.js"></script>
     <script src="js/engine/base.js"></script>
     <script src="js/engine/homestead.js"></script>
+    <script src="js/engine/breach.js"></script>
     <script src="js/ui/screens.js"></script>
     <script src="js/ui/hud.js"></script>
     <script src="js/ui/actions.js"></script>

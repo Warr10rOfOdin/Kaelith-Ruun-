@@ -118,6 +118,29 @@ const Game = {
         const newGameBtn = document.getElementById('btn-new-game');
         const continueBtn = document.getElementById('btn-continue');
         const loreBtn = document.getElementById('btn-lore');
+        const breachBtn = document.getElementById('btn-breach');
+        const sanctumBtn = document.getElementById('btn-sanctum');
+        const storyBtn = document.getElementById('btn-story');
+
+        if (breachBtn) {
+            breachBtn.onclick = () => {
+                if (typeof Audio !== 'undefined') Audio.ensure();
+                Breach.openSetup();
+            };
+        }
+
+        if (sanctumBtn) {
+            sanctumBtn.onclick = () => this.showSanctum();
+        }
+
+        if (storyBtn) {
+            storyBtn.onclick = () => {
+                const menu = document.getElementById('story-menu');
+                if (menu) menu.classList.toggle('hidden');
+            };
+        }
+
+        this.updateTitleMeta();
 
         if (newGameBtn) {
             newGameBtn.onclick = () => {
@@ -146,6 +169,69 @@ const Game = {
                 ScreenManager.showScreen('lore');
             };
         }
+    },
+
+    // =========================================
+    // THE BREACH — title meta + Sanctum shop
+    // =========================================
+    updateTitleMeta() {
+        const el = document.getElementById('title-meta');
+        if (!el || typeof BreachMeta === 'undefined') return;
+        const meta = BreachMeta.load();
+        const cleared = Object.keys(meta.cleared || {}).length;
+        if (meta.stats.runs === 0) {
+            el.innerHTML = 'The Breach awaits its first challenger.';
+            return;
+        }
+        el.innerHTML = `<strong>🪙 ${meta.gold}</strong> &nbsp;·&nbsp; ${meta.stats.runs} runs &nbsp;·&nbsp; ${meta.stats.kills} slain &nbsp;·&nbsp; ${cleared}/4 realms cleared`;
+    },
+
+    showSanctum() {
+        const el = document.getElementById('sanctum-overlay');
+        if (!el || typeof BreachMeta === 'undefined') return;
+        const meta = BreachMeta.load();
+
+        let html = `<div class="sanctum-panel">`;
+        html += `<div class="bsetup-title">Sanctum</div>`;
+        html += `<div class="bsetup-sub">Permanent power, bought in gold</div>`;
+        html += `<div class="sanctum-gold">🪙 ${meta.gold}</div>`;
+        html += `<div class="sanctum-grid">`;
+
+        for (const [key, def] of Object.entries(SANCTUM_UPGRADES)) {
+            const lvl = BreachMeta.upgradeLevel(key);
+            const maxed = lvl >= def.max;
+            const cost = BreachMeta.upgradeCost(key);
+            let pips = '';
+            for (let i = 0; i < def.max; i++) {
+                pips += `<span class="s-pip ${i < lvl ? 'on' : ''}"></span>`;
+            }
+            html += `<div class="sanctum-card">
+                <div class="s-head">${def.icon} ${def.name}</div>
+                <div class="s-pips">${pips}</div>
+                <div class="s-desc">${def.desc}</div>
+                <button class="sanctum-buy ${maxed ? 'maxed' : ''}" ${maxed || meta.gold < cost ? 'disabled' : ''}
+                    onclick="Game.buySanctum('${key}')">${maxed ? 'MASTERED' : `🪙 ${cost}`}</button>
+            </div>`;
+        }
+
+        html += `</div>`;
+        html += `<button class="bstart-btn" style="margin-top:1rem" onclick="Breach.openSetup();document.getElementById('sanctum-overlay').classList.add('hidden')">⚔ ENTER THE BREACH</button>`;
+        html += `<button class="bsetup-close" onclick="document.getElementById('sanctum-overlay').classList.add('hidden');Game.updateTitleMeta()">✕</button>`;
+        html += `</div>`;
+
+        el.innerHTML = html;
+        el.classList.remove('hidden');
+    },
+
+    buySanctum(key) {
+        if (typeof BreachMeta === 'undefined') return;
+        if (BreachMeta.buyUpgrade(key)) {
+            if (typeof Audio !== 'undefined') { try { Audio.playCraft(); } catch (e) {} }
+            if (typeof NativeBridge !== 'undefined') NativeBridge.hapticLight();
+        } else {
+            Notifications.show('Not enough gold.', 'red');
+        }
+        this.showSanctum();
     },
 
     // =========================================
